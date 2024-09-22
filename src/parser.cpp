@@ -1128,6 +1128,8 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 				string result = "";
 				// Выполняем перебор всего объекта
 				for(auto & el : node.items()){
+					// Получаем ключ записи
+					const string & key = (this->_fmk->is(el.key(), fmk_t::check_t::NUMBER) ? "item" : el.key());
 					// Если значение является числом
 					if(el.value().is_number()){
 						// Если количество отступов больше нуля
@@ -1140,7 +1142,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем открытие тега
 						result.append(1, '<');
 						// Выполняем формирование результата
-						result.append(el.key());
+						result.append(key);
 						// Выполняем закрытие тега
 						result.append(1, '>');
 						// Временное значение переменной
@@ -1160,7 +1162,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем закрытие тега
 						result.append("</");
 						// Выполняем установку тега
-						result.append(el.key());
+						result.append(key);
 						// Выполняем закрытие тега
 						result.append(1, '>');
 						// Если разрешено выполнять разложение XML-объекта
@@ -1179,7 +1181,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем открытие тега
 						result.append(1, '<');
 						// Выполняем формирование результата
-						result.append(el.key());
+						result.append(key);
 						// Выполняем закрытие тега
 						result.append(1, '>');
 						// Выполняем установку строки
@@ -1187,7 +1189,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем закрытие тега
 						result.append("</");
 						// Выполняем установку тега
-						result.append(el.key());
+						result.append(key);
 						// Выполняем закрытие тега
 						result.append(1, '>');
 						// Если разрешено выполнять разложение XML-объекта
@@ -1208,7 +1210,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 							// Выполняем открытие тега
 							result.append(1, '<');
 							// Выполняем формирование результата
-							result.append(el.key());
+							result.append(key);
 							// Выполняем закрытие тега
 							result.append("/>");
 						// Если значение ложное
@@ -1216,7 +1218,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 							// Выполняем открытие тега
 							result.append(1, '<');
 							// Выполняем формирование результата
-							result.append(el.key());
+							result.append(key);
 							// Выполняем закрытие тега
 							result.append(1, '>');
 							// Выполняем установку строки
@@ -1224,7 +1226,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 							// Выполняем закрытие тега
 							result.append("</");
 							// Выполняем установку тега
-							result.append(el.key());
+							result.append(key);
 							// Выполняем закрытие тега
 							result.append(1, '>');
 						}
@@ -1244,7 +1246,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем открытие тега
 						result.append(1, '<');
 						// Выполняем формирование результата
-						result.append(el.key());
+						result.append(key);
 						// Выполняем закрытие тега
 						result.append(1, '>');
 						// Выполняем установку строки
@@ -1252,7 +1254,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем закрытие тега
 						result.append("</");
 						// Выполняем установку тега
-						result.append(el.key());
+						result.append(key);
 						// Выполняем закрытие тега
 						result.append(1, '>');
 						// Если разрешено выполнять разложение XML-объекта
@@ -1271,7 +1273,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем открытие тега
 						result.append(1, '<');
 						// Выполняем формирование результата
-						result.append(el.key());
+						result.append(key);
 						// Флаг формирования сложного тега
 						bool difficult = false;
 						// Выполняем поиск вложенных объектов и массивов
@@ -1289,6 +1291,8 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 							size_t pos = string::npos, count = 0;
 							// Выполняем перебор всех значений объекта
 							for(auto & item : el.value().items()){
+								// Получаем ключ записи
+								const string & key = (this->_fmk->is(item.key(), fmk_t::check_t::NUMBER) ? this->_fmk->format("Item%s", item.key().c_str()) : item.key());
 								// Если ключом является устанавливаемое значение
 								if((pos = item.key().rfind("value")) != string::npos){
 									// Если значение ещё не установлено
@@ -1352,7 +1356,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Выполняем добавление разделителя параметра
 									result.append(1, ' ');
 									// Выполняем добавление ключа записи
-									result.append(item.key());
+									result.append(key);
 									// Выполняем добавление знака присвоения
 									result.append("=\"");
 									// Временное значение переменной
@@ -1376,7 +1380,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Выполняем добавление разделителя параметра
 									result.append(1, ' ');
 									// Выполняем добавление ключа записи
-									result.append(item.key());
+									result.append(key);
 									// Выполняем добавление знака присвоения
 									result.append("=\"");
 									// Выполняем добавление значения
@@ -1388,7 +1392,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Выполняем добавление разделителя параметра
 									result.append(1, ' ');
 									// Выполняем добавление ключа записи
-									result.append(item.key());
+									result.append(key);
 									// Выполняем добавление знака присвоения
 									result.append("=\"");
 									// Выполняем добавление значения
@@ -1400,7 +1404,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Выполняем добавление разделителя параметра
 									result.append(1, ' ');
 									// Выполняем добавление ключа записи
-									result.append(item.key());
+									result.append(key);
 									// Выполняем добавление знака присвоения
 									result.append("=\"");
 									// Выполняем добавление значения
@@ -1422,7 +1426,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем закрытие тега
 								result.append("</");
 								// Выполняем установку тега
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 							}
@@ -1446,7 +1450,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 							// Выполняем закрытие тега
 							result.append("</");
 							// Выполняем установку тега
-							result.append(el.key());
+							result.append(key);
 							// Выполняем закрытие тега
 							result.append(1, '>');
 						}
@@ -1470,7 +1474,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем открытие тега
 								result.append(1, '<');
 								// Выполняем формирование результата
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Временное значение переменной
@@ -1490,7 +1494,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем закрытие тега
 								result.append("</");
 								// Выполняем установку тега
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Если разрешено выполнять разложение XML-объекта
@@ -1509,7 +1513,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем открытие тега
 								result.append(1, '<');
 								// Выполняем формирование результата
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Выполняем установку строки
@@ -1517,7 +1521,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем закрытие тега
 								result.append("</");
 								// Выполняем установку тега
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Если разрешено выполнять разложение XML-объекта
@@ -1536,7 +1540,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем открытие тега
 								result.append(1, '<');
 								// Выполняем формирование результата
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Выполняем установку строки
@@ -1544,7 +1548,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем закрытие тега
 								result.append("</");
 								// Выполняем установку тега
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Если разрешено выполнять разложение XML-объекта
@@ -1563,7 +1567,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем открытие тега
 								result.append(1, '<');
 								// Выполняем формирование результата
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Выполняем установку строки
@@ -1571,7 +1575,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем закрытие тега
 								result.append("</");
 								// Выполняем установку тега
-								result.append(el.key());
+								result.append(key);
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Если разрешено выполнять разложение XML-объекта
@@ -1590,7 +1594,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем открытие тега
 								result.append(1, '<');
 								// Выполняем формирование результата
-								result.append(el.key());
+								result.append(key);
 								// Флаг формирования сложного тега
 								bool difficult = false;
 								// Выполняем поиск вложенных объектов и массивов
@@ -1608,6 +1612,8 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									size_t pos = string::npos, count = 0;
 									// Выполняем перебор всех значений объекта
 									for(auto & el : item.items()){
+										// Получаем ключ записи
+										const string & key = (this->_fmk->is(el.key(), fmk_t::check_t::NUMBER) ? this->_fmk->format("Item%s", el.key().c_str()) : el.key());
 										// Если ключом является устанавливаемое значение
 										if((pos = el.key().rfind("value")) != string::npos){
 											// Если значение ещё не установлено
@@ -1671,7 +1677,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 											// Выполняем добавление разделителя параметра
 											result.append(1, ' ');
 											// Выполняем добавление ключа записи
-											result.append(el.key());
+											result.append(key);
 											// Выполняем добавление знака присвоения
 											result.append("=\"");
 											// Временное значение переменной
@@ -1695,7 +1701,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 											// Выполняем добавление разделителя параметра
 											result.append(1, ' ');
 											// Выполняем добавление ключа записи
-											result.append(el.key());
+											result.append(key);
 											// Выполняем добавление знака присвоения
 											result.append("=\"");
 											// Выполняем добавление значения
@@ -1707,7 +1713,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 											// Выполняем добавление разделителя параметра
 											result.append(1, ' ');
 											// Выполняем добавление ключа записи
-											result.append(el.key());
+											result.append(key);
 											// Выполняем добавление знака присвоения
 											result.append("=\"");
 											// Выполняем добавление значения
@@ -1719,7 +1725,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 											// Выполняем добавление разделителя параметра
 											result.append(1, ' ');
 											// Выполняем добавление ключа записи
-											result.append(el.key());
+											result.append(key);
 											// Выполняем добавление знака присвоения
 											result.append("=\"");
 											// Выполняем добавление значения
@@ -1741,7 +1747,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 										// Выполняем закрытие тега
 										result.append("</");
 										// Выполняем установку тега
-										result.append(el.key());
+										result.append(key);
 										// Выполняем закрытие тега
 										result.append(1, '>');
 									}
@@ -1765,7 +1771,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Выполняем закрытие тега
 									result.append("</");
 									// Выполняем установку тега
-									result.append(el.key());
+									result.append(key);
 									// Выполняем закрытие тега
 									result.append(1, '>');
 								}
@@ -1785,7 +1791,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Формируем объект объекта
 								nlohmann::json obj = nlohmann::json::object();
 								// Добавляем полученный объекта
-								obj.emplace(el.key(), item);
+								obj.emplace(key, item);
 								// Выполняем извлечение данных объекта
 								parseFn(result, obj, tabs + 1);
 								// Если разрешено выполнять разложение XML-объекта
@@ -1801,8 +1807,32 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 					// Формируем объект ключа
 					root.append(result);
 			};
+			// Если нет корневого элемента
+			if(data.is_array() || (data.size() > 1) || data.front().is_array()){
+				// Выполняем открытие тега
+				result.append(1, '<');
+				// Добавляем название блока
+				result.append("root");
+				// Выполняем закрытие тега
+				result.append(1, '>');
+				// Если разрешено выполнять разложение XML-объекта
+				if(pretty)
+					// Выполняем добавление переноса строк
+					result.append(1, '\n');
+				// Выполняем парсинг объекта XML
+				parseFn(result, data, 1);
+				// Выполняем закрытие тега
+				result.append("</");
+				// Выполняем установку тега
+				result.append("root");
+				// Выполняем закрытие тега
+				result.append(1, '>');
+				// Если разрешено выполнять разложение XML-объекта
+				if(pretty)
+					// Выполняем добавление переноса строк
+					result.append(1, '\n');
 			// Выполняем парсинг объекта XML
-			parseFn(result, data, 0);
+			} else parseFn(result, data, 0);
 		/**
 		 * Если возникает ошибка
 		 */
