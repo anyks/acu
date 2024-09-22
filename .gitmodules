@@ -1,0 +1,9 @@
+[submodule "submodules/awh"]
+	path = submodules/awh
+	url = https://github.com/anyks/awh.git
+[submodule "submodules/yaml"]
+	path = submodules/yaml
+	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "submodules/libxml2"]
+	path = submodules/libxml2
+	url = https://github.com/GNOME/libxml2.git
