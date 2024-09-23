@@ -28,9 +28,11 @@
 	#define yaml_cpp_EXPORTS
 #endif
 
+/*
 #ifndef ACU_SHARED_LIBRARY_IMPORT
 	#define ACU_SHARED_LIBRARY_IMPORT
 #endif
+*/
 
 /**
  * Подключаем зависимые заголовки
