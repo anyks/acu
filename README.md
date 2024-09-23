@@ -113,6 +113,13 @@ $ cmake \
 $ cmake --build .
 ```
 
+### Example convert JSON to XML
+```bash
+$ echo '{"Hello": "World!!!"}' | acu -from json -to xml -pretty
+```
+
+---
+
 ### Example convert JSON to XML from file
 ```bash
 $ acu -from json -to xml -src ./example.json -pretty

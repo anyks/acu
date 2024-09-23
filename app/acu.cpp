@@ -281,8 +281,21 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 		env_t env(ACU_SHORT_NAME, "text", &fmk, &log);
 		// Устанавливаем название сервиса
 		log.name(ACU_SHORT_NAME);
+		// Текстовое значение полученное из потока
+		string text = "";
 		// Создаём формат даты
 		string formatDate = DATE_FORMAT;
+		// Если операционной системой является Windows
+		#if defined(_WIN32) || defined(_WIN64)
+			// Выполняем чтение из коммандной строки
+			std::getline(cin, text);
+		// Для всех остальных операционных систем
+		#else
+			// Считываем строку из буфера stdin
+			if(!::isatty(STDIN_FILENO))
+				// Выполняем чтение из коммандной строки
+				std::getline(cin, text);
+		#endif
 		/**
 		 * Выполняем работу для Windows
 		 */
@@ -455,8 +468,134 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 				// Выводим удачное завершение работы
 				return EXIT_FAILURE;
 			}
+			// Если данные прочитаны из потока
+			if(!text.empty()){
+				// Объект в формате JSON
+				json result = json::object();
+				// Определяем тип файла
+				switch(static_cast <uint8_t> (from)){
+					// Если формат входящих данных указан как XML
+					case static_cast <uint8_t> (type_t::XML):
+						// Выполняем конвертацию данных
+						result = parser.xml(text);
+					break;
+					// Если формат входящих данных указан как JSON
+					case static_cast <uint8_t> (type_t::JSON):
+						// Выполняем конвертацию данных
+						result = parser.json(text);
+					break;
+					// Если формат входящих данных указан как INI
+					case static_cast <uint8_t> (type_t::INI):
+						// Выполняем конвертацию данных
+						result = parser.ini(text);
+					break;
+					// Если формат входящих данных указан как YAML
+					case static_cast <uint8_t> (type_t::YAML):
+						// Выполняем конвертацию данных
+						result = parser.yaml(text);
+					break;
+					// Если формат входящих данных указан как CEF
+					case static_cast <uint8_t> (type_t::CEF): {
+						// Режим парсинга CEF по умолчанию
+						cef_t::mode_t mode = cef_t::mode_t::STRONG;
+						// Если режим парсинга CEF передан
+						if(env.isString("cef")){
+							// Получаем режим парсинга
+							const string & cef = env.get("cef");
+							// Если режим парсинга установлен как строгий
+							if(fmk.compare("strong", cef))
+								// Устанавливаем строгий режим парсинга
+								mode = cef_t::mode_t::STRONG;
+							// Если режим парсинга установлен как простой
+							else if(fmk.compare("low", cef))
+								// Устанавливаем простой режим парсинга
+								mode = cef_t::mode_t::LOW;
+							// Если режим парсинга установлен как средний
+							else if(fmk.compare("medium", cef))
+								// Устанавливаем средний режим парсинга
+								mode = cef_t::mode_t::MEDIUM;
+						}
+						// Выполняем конвертацию данных
+						result = parser.cef(text, mode);
+					} break;
+					// Если формат входящих данных указан как CSV
+					case static_cast <uint8_t> (type_t::CSV):
+						// Выполняем конвертацию данных
+						result = parser.csv(text, env.is("header"));
+					break;
+					// Если формат входящих данных указан как GROK
+					case static_cast <uint8_t> (type_t::GROK):
+						// Выполняем конвертацию данных
+						result = parser.grok(text, express);
+					break;
+					// Если формат входящих данных указан как SysLog
+					case static_cast <uint8_t> (type_t::SYSLOG):
+						// Выполняем конвертацию данных
+						result = parser.syslog(text);
+					break;
+				}
+				// Если результат получен
+				if(!result.empty()){
+					// Определяем тип файла
+					switch(static_cast <uint8_t> (to)){
+						// Если формат входящих данных указан как XML
+						case static_cast <uint8_t> (type_t::XML):
+							// Выполняем конвертирование в формат XML
+							cout << parser.xml(result, true) << endl;
+						break;
+						// Если формат входящих данных указан как JSON
+						case static_cast <uint8_t> (type_t::JSON):
+							// Выполняем конвертирование в формат JSON
+							cout << parser.json(result, true) << endl;
+						break;
+						// Если формат входящих данных указан как INI
+						case static_cast <uint8_t> (type_t::INI):
+							// Выполняем конвертирование в формат INI
+							cout << parser.ini(result) << endl;
+						break;
+						// Если формат входящих данных указан как YAML
+						case static_cast <uint8_t> (type_t::YAML):
+							// Выполняем конвертирование в формат YAML
+							cout << parser.yaml(result) << endl;
+						break;
+						// Если формат входящих данных указан как CEF
+						case static_cast <uint8_t> (type_t::CEF): {
+							// Режим парсинга CEF по умолчанию
+							cef_t::mode_t mode = cef_t::mode_t::STRONG;
+							// Если режим парсинга CEF передан
+							if(env.isString("cef")){
+								// Получаем режим парсинга
+								const string & cef = env.get("cef");
+								// Если режим парсинга установлен как строгий
+								if(fmk.compare("strong", cef))
+									// Устанавливаем строгий режим парсинга
+									mode = cef_t::mode_t::STRONG;
+								// Если режим парсинга установлен как простой
+								else if(fmk.compare("low", cef))
+									// Устанавливаем простой режим парсинга
+									mode = cef_t::mode_t::LOW;
+								// Если режим парсинга установлен как средний
+								else if(fmk.compare("medium", cef))
+									// Устанавливаем средний режим парсинга
+									mode = cef_t::mode_t::MEDIUM;
+							}
+							// Выполняем конвертирование в формат CEF
+							cout << parser.cef(result, mode) << endl;
+						} break;
+						// Если формат входящих данных указан как CSV
+						case static_cast <uint8_t> (type_t::CSV):
+							// Выполняем конвертирование в формат CSV
+							cout << parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';')) << endl;
+						break;
+						// Если формат входящих данных указан как SysLog
+						case static_cast <uint8_t> (type_t::SYSLOG):
+							// Выполняем конвертирование в формат SysLog
+							cout << parser.syslog(result) << endl;
+						break;
+					}
+				}
 			// Если адрес файла хранения указан
-			if(env.isString("src")){
+			} else if(env.isString("src")) {
 				// Получаем адрес файла или каталога
 				const string & addr = env.get("src");
 				// Если адрес является каталогом
