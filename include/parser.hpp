@@ -25,6 +25,7 @@
  * Разрешаем сборку библиотеки YAML
  */
 #ifndef yaml_cpp_EXPORTS
+	#define YAML_CPP_API
 	#define yaml_cpp_EXPORTS
 #endif
 
