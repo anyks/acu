@@ -215,7 +215,6 @@ string anyks::Parser::cef(const nlohmann::json & data, const cef_t::mode_t mode)
  * @param log объект для работы с логами
  */
 anyks::Parser::Parser(const fmk_t * fmk, const log_t * log) noexcept :
- _cef(fmk, log), _csv(fmk, log), _grok(fmk, log), _syslog(fmk, log), _fmk(fmk), _log(log) {
-	// Выполняем инициализацию Grok
-	this->_grok.init();
+ _cef(fmk, log), _csv(fmk, log), _syslog(fmk, log), _fmk(fmk), _log(log) {
+	
 }
