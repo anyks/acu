@@ -292,6 +292,7 @@ if [ ! -f "$src/.stamp_done" ]; then
 	# Выполняем конфигурацию проекта
 	if [[ $OS = "Windows" ]]; then
 		cmake \
+		 -DLIBXML_STATIC="ON" \
 		 -DBUILD_SHARED_LIBS="OFF" \
 		 -DLIBXML2_WITH_LZMA="OFF" \
 		 -DLIBXML2_WITH_ZLIB="OFF" \
@@ -304,6 +305,7 @@ if [ ! -f "$src/.stamp_done" ]; then
 		 .. || exit 1
 	else
 		cmake \
+		 -DLIBXML_STATIC="ON" \
 		 -DBUILD_SHARED_LIBS="OFF" \
 		 -DLIBXML2_WITH_LZMA="OFF" \
 		 -DLIBXML2_WITH_ZLIB="OFF" \
