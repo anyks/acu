@@ -15,20 +15,6 @@
 #define __ANYKS_ACU_PARSER__
 
 /**
- * Разрешаем сборку библиотеки LibXML2
- */
-#ifndef LIBXML_STATIC
-	#define LIBXML_STATIC
-#endif
-
-/**
- * Разрешаем сборку библиотеки YAML
- */
-#ifndef yaml_cpp_EXPORTS
-	#define yaml_cpp_EXPORTS
-#endif
-
-/**
  * Подключаем зависимые заголовки
  */
 #include <mutex>
@@ -38,6 +24,11 @@
  * Подключаем INI
 */
 #include "ini/ini.h"
+
+/**
+ * Подключаем YAML
+*/
+#include "yaml-cpp/yaml.h"
 
 /**
  * Подключаем LibXML2
@@ -52,6 +43,20 @@
 #include <csv.hpp>
 #include <grok.hpp>
 #include <syslog.hpp>
+
+/**
+ * Разрешаем сборку библиотеки LibXML2
+ */
+#ifndef LIBXML_STATIC
+	#define LIBXML_STATIC
+#endif
+
+/**
+ * Разрешаем сборку библиотеки YAML
+ */
+#ifndef yaml_cpp_EXPORTS
+	#define yaml_cpp_EXPORTS
+#endif
 
 /**
  * anyks пространство имён
