@@ -273,6 +273,74 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 	 */
 	int32_t main(int32_t count, const char * params[]) noexcept {
 #endif
+		// Создаём объект фреймворка
+		fmk_t fmk;
+		// Создаём объект для работы с логами
+		log_t log(&fmk);
+		// Объект работы с файловой системой
+		fs_t fs(&fmk, &log);
+		// Создаём объект переменных окружения
+		env_t env(ACU_SHORT_NAME, "text", &fmk, &log);
+		// Устанавливаем название сервиса
+		log.name(ACU_SHORT_NAME);
+		// Текстовое значение полученное из потока
+		string text = "";
+		// Создаём формат даты
+		string formatDate = DATE_FORMAT;
+		// Если операционной системой является Windows
+		#if defined(_WIN32) || defined(_WIN64)
+			// Выполняем чтение из коммандной строки
+			std::getline(cin, text);
+		// Для всех остальных операционных систем
+		#else
+			// Считываем строку из буфера stdin
+			if(!::isatty(STDIN_FILENO))
+				// Выполняем чтение из коммандной строки
+				std::getline(cin, text);
+		#endif
+		/**
+		 * Выполняем работу для Windows
+		 */
+		#if defined(_WIN32) || defined(_WIN64)
+			// Выполняем инициализацию переданных параметров
+			env.init(reinterpret_cast <const wchar_t **> (params), static_cast <uint8_t> (count));
+		/**
+		 * Выполняем работу для Unix
+		 */
+		#else
+			// Выполняем инициализацию переданных параметров
+			env.init(reinterpret_cast <const char **> (params), static_cast <uint8_t> (count));
+		#endif
+		// Если формат вывода лога передан
+		if(env.is("formatDate", true))
+			// Получаем формат вывода даты
+			formatDate = env.get("formatDate", true);
+		// Устанавливаем формат вывода даты
+		log.format(formatDate);
+		// Если нужно вывести справочную помощь
+		if(!env.size() || (env.is("info") || env.is("H"))){
+			// Выводим справочную информацию
+			help();
+			// Выходим из приложения
+			::exit(EXIT_SUCCESS);
+		// Если версия получена
+		} else if(env.is("version") || env.is("V")) {
+			/**
+			 * Выполняем работу для Windows
+			 */
+			#if defined(_WIN32) || defined(_WIN64)
+				// Выводим версию приложения
+				version(&fmk, &log, fmk.convert(wstring(params[0])));
+			/**
+			 * Выполняем работу для Unix
+			 */
+			#else
+				// Выводим версию приложения
+				version(&fmk, &log, params[0]);
+			#endif
+			// Выходим из приложения
+			::exit(EXIT_SUCCESS);
+		}
 		
 		// Выводим удачное завершение работы
 		return EXIT_SUCCESS;
