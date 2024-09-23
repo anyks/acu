@@ -14,10 +14,6 @@
 #ifndef __ANYKS_ACU_CSV__
 #define __ANYKS_ACU_CSV__
 
-#ifndef ACU_SHARED_LIBRARY_IMPORT
-	#define ACU_SHARED_LIBRARY_IMPORT
-#endif
-
 /**
  * Выполняем работу для Windows
  */
