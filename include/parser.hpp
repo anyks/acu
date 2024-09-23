@@ -35,22 +35,6 @@
 #include <string>
 
 /**
- * Подключаем INI
-*/
-#include "ini/ini.h"
-
-/**
- * Подключаем YAML
-*/
-#include "yaml-cpp/yaml.h"
-
-/**
- * Подключаем LibXML2
-*/
-#include <libxml/parser.h>
-#include <libxml/xmlmemory.h>
-
-/**
  * Наши модули
  */
 #include <cef.hpp>
