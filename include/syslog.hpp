@@ -324,13 +324,13 @@ namespace anyks {
 	 * @param is     поток для чтения
 	 * @param syslog контенер для присвоения
 	 */
-	istream & operator >> (istream & is, syslog_t & syslog) noexcept;
+	ACUSHARED_EXPORT istream & operator >> (istream & is, syslog_t & syslog) noexcept;
 	/**
 	 * Оператор [<<] вывода в поток SysLog контейнера
 	 * @param os     поток куда нужно вывести данные
 	 * @param syslog контенер для присвоения
 	 */
-	ostream & operator << (ostream & os, const syslog_t & syslog) noexcept;
+	ACUSHARED_EXPORT ostream & operator << (ostream & os, const syslog_t & syslog) noexcept;
 };
 
 #endif // __ANYKS_ACU_SYSLOG__

@@ -281,7 +281,7 @@ namespace anyks {
 	 * @param os   поток куда нужно вывести данные
 	 * @param grok контенер для присвоения
 	 */
-	ostream & operator << (ostream & os, const grok_t & grok) noexcept;
+	ACUSHARED_EXPORT ostream & operator << (ostream & os, const grok_t & grok) noexcept;
 };
 
 #endif // __ANYKS_ACU_GROK__

@@ -201,13 +201,13 @@ namespace anyks {
 	 * @param is  поток для чтения
 	 * @param csv контенер для присвоения
 	 */
-	istream & operator >> (istream & is, csv_t & csv) noexcept;
+	ACUSHARED_EXPORT istream & operator >> (istream & is, csv_t & csv) noexcept;
 	/**
 	 * Оператор [<<] вывода в поток CSV контейнера
 	 * @param os  поток куда нужно вывести данные
 	 * @param csv контенер для присвоения
 	 */
-	ostream & operator << (ostream & os, const csv_t & csv) noexcept;
+	ACUSHARED_EXPORT ostream & operator << (ostream & os, const csv_t & csv) noexcept;
 };
 
 #endif // __ANYKS_ACU_CSV__

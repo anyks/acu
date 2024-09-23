@@ -726,13 +726,13 @@ namespace anyks {
 	 * @param is  поток для чтения
 	 * @param cef контенер для присвоения
 	 */
-	istream & operator >> (istream & is, cef_t & cef) noexcept;
+	ACUSHARED_EXPORT istream & operator >> (istream & is, cef_t & cef) noexcept;
 	/**
 	 * Оператор [<<] вывода в поток CEF контейнера
 	 * @param os  поток куда нужно вывести данные
 	 * @param cef контенер для присвоения
 	 */
-	ostream & operator << (ostream & os, const cef_t & cef) noexcept;
+	ACUSHARED_EXPORT ostream & operator << (ostream & os, const cef_t & cef) noexcept;
 };
 
 #endif // __ANYKS_ACU_CEF__
