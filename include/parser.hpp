@@ -14,6 +14,8 @@
 #ifndef __ANYKS_ACU_PARSER__
 #define __ANYKS_ACU_PARSER__
 
+#define yaml_cpp_EXPORTS
+
 /**
  * Подключаем зависимые заголовки
  */
