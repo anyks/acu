@@ -15,6 +15,10 @@
 #ifndef __ANYKS_ACU_GROK__
 #define __ANYKS_ACU_GROK__
 
+#ifndef ACU_SHARED_LIBRARY_IMPORT
+	#define ACU_SHARED_LIBRARY_IMPORT
+#endif
+
 /**
  * Разрешаем сборку под Windows
  */

@@ -14,6 +14,10 @@
 #ifndef __ACU_ENV__
 #define __ACU_ENV__
 
+#ifndef ACU_SHARED_LIBRARY_IMPORT
+	#define ACU_SHARED_LIBRARY_IMPORT
+#endif
+
 /**
  * Разрешаем сборку под Windows
  */
