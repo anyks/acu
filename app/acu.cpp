@@ -11,6 +11,10 @@
  * @copyright: Copyright © 2024
  */
 
+#ifndef AWH_SHARED_LIBRARY_EXPORT
+	#define AWH_SHARED_LIBRARY_EXPORT
+#endif
+
 /**
  * Подключаем модули парсера
  */
