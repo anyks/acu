@@ -206,11 +206,11 @@ namespace anyks {
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
-			Parser(const fmk_t * fmk, const log_t * log) noexcept;
+			ACUSHARED_EXPORT Parser(const fmk_t * fmk, const log_t * log) noexcept;
 			/**
 			 * ~Parser Деструктор
 			 */
-			~Parser() noexcept {}
+			ACUSHARED_EXPORT ~Parser() noexcept {}
 	} parser_t;
 };
 
