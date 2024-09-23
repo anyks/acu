@@ -12,16 +12,16 @@
  */
 
 /**
+ * Подключаем модуль файловой системы
+ */
+#include <sys/fs.hpp>
+
+/**
  * Подключаем модули парсера
  */
 #include <lib.hpp>
 #include <env.hpp>
 #include <parser.hpp>
-
-/**
- * Подключаем модуль файловой системы
- */
-#include <sys/fs.hpp>
 
 // Подключаем пространство имён
 using namespace anyks;
