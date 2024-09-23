@@ -200,8 +200,8 @@ if [ ! -f "$src/.stamp_done" ]; then
 	# Версия YAML
 	VER="0.8.0"
 
-	# Переключаемся на main
-	git checkout main
+	# Переключаемся на master
+	git checkout master
 	# Выполняем удаление предыдущей закаченной версии
 	git tag -d v${VER}
 	# Закачиваем все теги
@@ -213,7 +213,7 @@ if [ ! -f "$src/.stamp_done" ]; then
 
 	if [[ $CMD = "--update" ]]; then
 		# Выполняем обновление репозитория
-		git pull origin main
+		git pull origin master
 	fi
 
 	# Создаём каталог сборки
