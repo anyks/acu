@@ -18,13 +18,15 @@
  * Разрешаем сборку библиотеки LibXML2
  */
 #ifndef LIBXML_STATIC
-#define LIBXML_STATIC
+	#define LIBXML_STATIC
+#endif
 
 /**
  * Разрешаем сборку библиотеки YAML
  */
 #ifndef yaml_cpp_EXPORTS
-#define yaml_cpp_EXPORTS
+	#define yaml_cpp_EXPORTS
+#endif
 
 /**
  * Подключаем зависимые заголовки
