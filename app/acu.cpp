@@ -541,12 +541,12 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 						// Если формат входящих данных указан как XML
 						case static_cast <uint8_t> (type_t::XML):
 							// Выполняем конвертирование в формат XML
-							cout << parser.xml(result, true) << endl;
+							cout << parser.xml(result, env.is("pretty")) << endl;
 						break;
 						// Если формат входящих данных указан как JSON
 						case static_cast <uint8_t> (type_t::JSON):
 							// Выполняем конвертирование в формат JSON
-							cout << parser.json(result, true) << endl;
+							cout << parser.json(result, env.is("pretty")) << endl;
 						break;
 						// Если формат входящих данных указан как INI
 						case static_cast <uint8_t> (type_t::INI):
@@ -779,12 +779,12 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 										// Если формат входящих данных указан как XML
 										case static_cast <uint8_t> (type_t::XML):
 											// Выполняем конвертирование в формат XML
-											cout << parser.xml(result, true) << endl;
+											cout << parser.xml(result, env.is("pretty")) << endl;
 										break;
 										// Если формат входящих данных указан как JSON
 										case static_cast <uint8_t> (type_t::JSON):
 											// Выполняем конвертирование в формат JSON
-											cout << parser.json(result, true) << endl;
+											cout << parser.json(result, env.is("pretty")) << endl;
 										break;
 										// Если формат входящих данных указан как INI
 										case static_cast <uint8_t> (type_t::INI):
@@ -1010,12 +1010,12 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 									// Если формат входящих данных указан как XML
 									case static_cast <uint8_t> (type_t::XML):
 										// Выполняем конвертирование в формат XML
-										cout << parser.xml(result, true) << endl;
+										cout << parser.xml(result, env.is("pretty")) << endl;
 									break;
 									// Если формат входящих данных указан как JSON
 									case static_cast <uint8_t> (type_t::JSON):
 										// Выполняем конвертирование в формат JSON
-										cout << parser.json(result, true) << endl;
+										cout << parser.json(result, env.is("pretty")) << endl;
 									break;
 									// Если формат входящих данных указан как INI
 									case static_cast <uint8_t> (type_t::INI):
