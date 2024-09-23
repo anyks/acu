@@ -35,10 +35,27 @@
 #include <string>
 
 /**
+ * Подключаем INI
+*/
+#include "ini/ini.h"
+
+/**
+ * Подключаем YAML
+*/
+#include "yaml-cpp/yaml.h"
+
+/**
+ * Подключаем LibXML2
+*/
+#include <libxml/parser.h>
+#include <libxml/xmlmemory.h>
+
+/**
  * Наши модули
  */
 #include <cef.hpp>
 #include <csv.hpp>
+#include <grok.hpp>
 #include <syslog.hpp>
 
 /**
@@ -54,6 +71,8 @@ namespace anyks {
 			cef_t _cef;
 			// Объект модуля CSV
 			csv_t _csv;
+			// Объект модуля GROK
+			grok_t _grok;
 			// Объект модуля SysLog
 			syslog_t _syslog;
 		private:
