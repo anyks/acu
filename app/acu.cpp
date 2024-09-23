@@ -11,6 +11,10 @@
  * @copyright: Copyright © 2024
  */
 
+#ifndef ACU_SHARED_LIBRARY_IMPORT
+	#define ACU_SHARED_LIBRARY_IMPORT
+#endif
+
 /**
  * Подключаем модули парсера
  */
