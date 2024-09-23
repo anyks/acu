@@ -235,7 +235,7 @@ if(CMAKE_SHARED_BUILD_LIB)
 
         # Выполняем сборку динамической библиотеки
         target_link_libraries(
-            ${ACTU_LIB_NAME}
+            ${ACU_LIB_NAME}
             PRIVATE
             ${XML_LIBRARY}
             ${YAML_LIBRARY}
