@@ -70,7 +70,7 @@ namespace anyks {
 	/**
 	 * Parser Класс парсера
 	 */
-	typedef class Parser {
+	typedef class ACUSHARED_EXPORT Parser {
 		private:
 			// Объект модуля CEF
 			cef_t _cef;
