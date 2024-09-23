@@ -236,9 +236,10 @@ if(CMAKE_SHARED_BUILD_LIB)
         # Выполняем сборку динамической библиотеки
         target_link_libraries(
             ${ACU_LIB_NAME}
-            PUBLIC
+            PRIVATE
             ${XML_LIBRARY}
             ${YAML_LIBRARY}
+            PUBLIC
             ${AWH_LIBRARIES}
             ${WINFLAGS}
             ${AWH_IDN}
