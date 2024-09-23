@@ -15,9 +15,15 @@
 #define __ANYKS_ACU_PARSER__
 
 /**
- * Разрешаем сборку библиотек
+ * Разрешаем сборку библиотеки LibXML2
  */
+#ifndef LIBXML_STATIC
 #define LIBXML_STATIC
+
+/**
+ * Разрешаем сборку библиотеки YAML
+ */
+#ifndef yaml_cpp_EXPORTS
 #define yaml_cpp_EXPORTS
 
 /**
@@ -41,6 +47,11 @@
 */
 #include <libxml/parser.h>
 #include <libxml/xmlmemory.h>
+
+/**
+ * Разрешаем сборку под Windows
+ */
+#include <global.hpp>
 
 /**
  * Наши модули

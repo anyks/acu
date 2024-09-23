@@ -25,6 +25,12 @@
 #endif
 
 /**
+ * Разрешаем сборку под Windows
+ */
+#include <global.hpp>
+
+
+/**
  * Подключаем зависимые заголовки
  */
 #include <vector>

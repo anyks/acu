@@ -15,6 +15,11 @@
 #define __ANYKS_ACU_SYSLOG__
 
 /**
+ * Разрешаем сборку под Windows
+ */
+#include <global.hpp>
+
+/**
  * Подключаем зависимые заголовки
  */
 #include <ctime>

@@ -15,6 +15,11 @@
 #define __ACU_ENV__
 
 /**
+ * Разрешаем сборку под Windows
+ */
+#include <global.hpp>
+
+/**
  * Стандартная библиотека
  */
 #include <vector>

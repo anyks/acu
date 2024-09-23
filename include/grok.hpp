@@ -16,6 +16,11 @@
 #define __ANYKS_ACU_GROK__
 
 /**
+ * Разрешаем сборку под Windows
+ */
+#include <global.hpp>
+
+/**
  * Подключаем зависимые заголовки
  */
 #include <set>
