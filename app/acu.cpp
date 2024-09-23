@@ -11,7 +11,7 @@
  * @copyright: Copyright © 2024
  */
 
-#define ACUSHARED_EXPORT
+#define ACU_SHARED_LIBRARY_IMPORT1
 
 /**
  * Подключаем модули парсера
