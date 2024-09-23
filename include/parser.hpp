@@ -40,11 +40,6 @@
 #include "ini/ini.h"
 
 /**
- * Подключаем YAML
-*/
-#include "yaml-cpp/yaml.h"
-
-/**
  * Подключаем LibXML2
 */
 #include <libxml/parser.h>
