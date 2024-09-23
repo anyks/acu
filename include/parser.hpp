@@ -51,11 +51,6 @@
 #include <libxml/xmlmemory.h>
 
 /**
- * Разрешаем сборку под Windows
- */
-#include <global.hpp>
-
-/**
  * Наши модули
  */
 #include <cef.hpp>

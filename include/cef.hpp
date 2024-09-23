@@ -55,7 +55,7 @@ namespace anyks {
 	/**
 	 * Cef Класс модуля CEF
 	 */
-	typedef class Cef {
+	typedef class ACUSHARED_EXPORT Cef {
 		private:
 			// Устанавливаем формат даты и времени по умолчанию
 			static constexpr char FORMAT[] = "%b %d %Y %H:%M:%S %Z";

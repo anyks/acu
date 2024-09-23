@@ -56,7 +56,7 @@ namespace anyks {
 	/**
 	 * Env Класс модуля работы с переменными окружения
 	 */
-	typedef class Env {
+	typedef class ACUSHARED_EXPORT Env {
 		private:
 			// Флаг автоматического чтения текстовой переменной
 			bool _automatic;

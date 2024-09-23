@@ -54,7 +54,7 @@ namespace anyks {
 	/**
 	 * SysLog Класс модуля парсера SysLog (RFC3164/RFC5424)
 	 */
-	typedef class SysLog {
+	typedef class ACUSHARED_EXPORT SysLog {
 		public:
 			/**
 			 * Поддерживаемые стандарты парсинга

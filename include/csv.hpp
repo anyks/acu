@@ -29,7 +29,6 @@
  */
 #include <global.hpp>
 
-
 /**
  * Подключаем зависимые заголовки
  */
@@ -61,7 +60,7 @@ namespace anyks {
 	/**
 	 * CSV Класс модуля CSV
 	 */
-	typedef class CSV {
+	typedef class ACUSHARED_EXPORT CSV {
 		private:
 			// Флаг разрешения использования заголовков
 			bool _header;
