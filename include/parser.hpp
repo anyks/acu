@@ -14,6 +14,10 @@
 #ifndef __ANYKS_ACU_PARSER__
 #define __ANYKS_ACU_PARSER__
 
+/**
+ * Разрешаем сборку библиотек
+ */
+#define LIBXML_STATIC
 #define yaml_cpp_EXPORTS
 
 /**
