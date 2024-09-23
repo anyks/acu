@@ -341,6 +341,9 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
 		}
+
+		// Выполняем инициализацию объекта парсера
+		parser_t parser(&fmk, &log);
 		
 		// Выводим удачное завершение работы
 		return EXIT_SUCCESS;
