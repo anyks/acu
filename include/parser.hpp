@@ -210,7 +210,7 @@ namespace anyks {
 			/**
 			 * ~Parser Деструктор
 			 */
-			ACUSHARED_EXPORT ~Parser() noexcept {}
+			~Parser() noexcept {}
 	} parser_t;
 };
 
