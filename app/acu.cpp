@@ -328,7 +328,7 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 			 */
 			#if defined(_WIN32) || defined(_WIN64)
 				// Выводим версию приложения
-				version(&fmk, &log, fmk.convert(wstring(params[0])));
+				version(&fmk, &log, fmk.convert(wstring(params[0])).c_str());
 			/**
 			 * Выполняем работу для Unix
 			 */
