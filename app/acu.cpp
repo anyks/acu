@@ -12,7 +12,7 @@
  */
 
 #define ACU_SHARED_LIBRARY_IMPORT1
-#define AWH_SHARED_LIBRARY_IMPORT
+#define ACU_SHARED_LIBRARY_IMPORT
 
 /**
  * Подключаем модули парсера
