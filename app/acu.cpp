@@ -60,9 +60,9 @@ static void help() noexcept {
  * @param log     объект для работы с логами
  * @param address адрес приложения
  */
-static void version(const fmk_t * fmk, const log_t * log, const char * address) noexcept {
+static void version(const fmk_t * fmk, const log_t * log, const string & address) noexcept {
 	// Если входящие данные переданы
-	if((fmk != nullptr) && (log != nullptr) && (address != nullptr)){
+	if((fmk != nullptr) && (log != nullptr) && !address.empty()){
 		// Название операционной системы
 		const char * os = nullptr;
 		// Определяем название операционной системы
@@ -328,7 +328,7 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 			 */
 			#if defined(_WIN32) || defined(_WIN64)
 				// Выводим версию приложения
-				version(&fmk, &log, fmk.convert(wstring(params[0])).c_str());
+				version(&fmk, &log, fmk.convert(wstring(params[0])));
 			/**
 			 * Выполняем работу для Unix
 			 */
