@@ -1,3 +1,4 @@
+
 /**
  * @file: acu.cpp
  * @date: 2024-09-22
@@ -12,16 +13,16 @@
  */
 
 /**
- * Подключаем модуль файловой системы
- */
-#include <sys/fs.hpp>
-
-/**
  * Подключаем модули парсера
  */
 #include <lib.hpp>
 #include <env.hpp>
 #include <parser.hpp>
+
+/**
+ * Подключаем модуль файловой системы
+ */
+#include <sys/fs.hpp>
 
 // Подключаем пространство имён
 using namespace anyks;

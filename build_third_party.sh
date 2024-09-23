@@ -129,7 +129,7 @@ if [ ! -f "$src/.stamp_done" ]; then
 	cd "$src" || exit 1
 
 	# Версия AWH
-	VER="4.2.3"
+	VER="4.2.4"
 
 	# Переключаемся на main
 	git checkout main
