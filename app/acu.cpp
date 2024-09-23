@@ -11,9 +11,10 @@
  * @copyright: Copyright © 2024
  */
 
-#ifndef AWH_SHARED_LIBRARY_EXPORT
-	#define AWH_SHARED_LIBRARY_EXPORT
-#endif
+/**
+ * Разрешаем сборку под Windows
+ */
+#include <sys/global.hpp>
 
 /**
  * Подключаем модули парсера
