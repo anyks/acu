@@ -41,11 +41,12 @@ $ sudo kldload sctp
 $ sudo apt install libsctp-dev
 $ sudo modprobe sctp
 $ sudo sysctl -w net.sctp.auth_enable=1
+```
 
 ### Build third party for MacOS X, Linux and FreeBSD
 
 ```bash
-$ ./build_third_party.sh --idn
+$ ./build_third_party.sh
 ```
 
 ### Build on MacOS X, Linux and FreeBSD
