@@ -12,6 +12,7 @@
  */
 
 #define ACU_SHARED_LIBRARY_IMPORT1
+#define AWH_SHARED_LIBRARY_IMPORT
 
 /**
  * Подключаем модули парсера
@@ -344,7 +345,7 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 
 		// Выполняем инициализацию объекта парсера
 		parser_t parser(&fmk, &log);
-		
+
 		// Выводим удачное завершение работы
 		return EXIT_SUCCESS;
 }
