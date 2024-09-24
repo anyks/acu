@@ -766,11 +766,34 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 									// Если есть дочерние элементы у ноды
 									if(xmlChildElementCount(node) > 0){
 										// Если у ноды есть параметры
-										if(node->properties == nullptr)
-											// Выполняем создание нового объекта
-											root[reinterpret_cast <const char *> (node->name)] = json::object();
+										if(node->properties == nullptr){
+											// Если такого ключа ещё не существует в списке
+											if(!root.contains(reinterpret_cast <const char *> (node->name))){
+												// Выполняем создание нового объекта
+												root[reinterpret_cast <const char *> (node->name)] = json::object();
+												// Выполняем парсинг ноды дальше
+												parseFn(root[reinterpret_cast <const char *> (node->name)], node->xmlChildrenNode);
+											// Если текущий ключ не является массивом
+											} else if(!root[reinterpret_cast <const char *> (node->name)].is_array()) {
+												// Поулчаем текущие данные объекта
+												nlohmann::json value = root[reinterpret_cast <const char *> (node->name)];
+												// Создаём новый массив
+												root[reinterpret_cast <const char *> (node->name)] = nlohmann::json::array();
+												// Выполняем установку полученного значения
+												root[reinterpret_cast <const char *> (node->name)].push_back(std::move(value));
+												// Выполняем создание объекта внутри массива
+												root[reinterpret_cast <const char *> (node->name)].push_back(nlohmann::json::object());
+												// Выполняем парсинг ноды дальше
+												parseFn(root[reinterpret_cast <const char *> (node->name)].back(), node->xmlChildrenNode);
+											// Если текущий ключ уже является массивом
+											} else {
+												// Выполняем создание объекта внутри массива
+												root[reinterpret_cast <const char *> (node->name)].push_back(nlohmann::json::object());
+												// Выполняем парсинг ноды дальше
+												parseFn(root[reinterpret_cast <const char *> (node->name)].back(), node->xmlChildrenNode);
+											}
 										// Выполняем парсинг ноды дальше
-										parseFn(root[reinterpret_cast <const char *> (node->name)], node->xmlChildrenNode);
+										} else parseFn(root[reinterpret_cast <const char *> (node->name)], node->xmlChildrenNode);
 									// Если дочерних элементов нет
 									} else {
 										// Если корневой элемент не является объектом
