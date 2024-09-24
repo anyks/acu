@@ -631,19 +631,10 @@ namespace anyks {
 				if(!this->_text.empty() && !this->exist(this->_text)){
 					// Очищаем значение
 					val.clear();
-					// Если операционной системой является Windows
-					#if defined(_WIN32) || defined(_WIN64)
-						// Считываем строку из буфера stdin
-						if(this->_automatic && this->env(this->_text).empty())
-							// Выполняем чтение из коммандной строки
-							std::getline(cin, val);
-					// Для всех остальных операционных систем
-					#else
-						// Считываем строку из буфера stdin
-						if(!::isatty(STDIN_FILENO) || (this->_automatic && this->env(this->_text).empty()))
-							// Выполняем чтение из коммандной строки
-							std::getline(cin, val);
-					#endif
+					// Считываем строку из буфера stdin
+					if(!::isatty(STDIN_FILENO) || (this->_automatic && this->env(this->_text).empty()))
+						// Выполняем чтение из коммандной строки
+						std::getline(cin, val);
 					// Добавляем полученные данные в список переменных
 					if(!val.empty())
 						// Добавляем полученное значение

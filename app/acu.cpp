@@ -286,38 +286,20 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 		string text = "";
 		// Создаём формат даты
 		string formatDate = DATE_FORMAT;
-		// Если операционной системой является Windows
-		#if defined(_WIN32) || defined(_WIN64)
-			{
-				// Результат полученный из потока
-				string result = "";
-				// Выполняем чтение данных из потока
-				while(std::getline(std::cin, result) && !result.empty()){
-					// Если результат сформирован
-					if(!result.empty())
-						// Добавляем разделитель строки
-						result.append(1, '\n');
-					// Формируем текст полученного результата
-					text.append(result);
-				}
+		// Считываем строку из буфера stdin
+		if(!::isatty(STDIN_FILENO)){
+			// Результат полученный из потока
+			string result = "";
+			// Выполняем чтение данных из потока
+			while(std::getline(std::cin, result) && !result.empty()){
+				// Если результат сформирован
+				if(!result.empty())
+					// Добавляем разделитель строки
+					result.append(1, '\n');
+				// Формируем текст полученного результата
+				text.append(result);
 			}
-		// Для всех остальных операционных систем
-		#else
-			// Считываем строку из буфера stdin
-			if(!::isatty(STDIN_FILENO)){
-				// Результат полученный из потока
-				string result = "";
-				// Выполняем чтение данных из потока
-				while(std::getline(std::cin, result) && !result.empty()){
-					// Если результат сформирован
-					if(!result.empty())
-						// Добавляем разделитель строки
-						result.append(1, '\n');
-					// Формируем текст полученного результата
-					text.append(result);
-				}
-			}
-		#endif
+		}
 		/**
 		 * Выполняем работу для Windows
 		 */
