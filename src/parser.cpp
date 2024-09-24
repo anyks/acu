@@ -774,27 +774,25 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 									// Если дочерних элементов нет
 									} else {
 										// Если корневой элемент не является объектом
-										if(!root.is_object())
+										if(!root.is_object() && !root.is_array())
 											// Создаём объект
 											root = nlohmann::json::object();
-										// Если корень объекта уже содержит данные
-										if(root[reinterpret_cast <const char *> (node->name)].is_object()){
-											// Поулчаем текущие данные объекта
-											nlohmann::json value = root[reinterpret_cast <const char *> (node->name)];
-											// Создаём новый массив
-											root[reinterpret_cast <const char *> (node->name)] = nlohmann::json::array();
-											// Выполняем установку полученного значения
-											root[reinterpret_cast <const char *> (node->name)].push_back(std::move(value));
+										// Если такой ключ уже существует
+										if(root.contains(reinterpret_cast <const char *> (node->name))){
+											// Если ключ не является массивом
+											if(!root[reinterpret_cast <const char *> (node->name)].is_array()){
+												// Поулчаем текущие данные объекта
+												nlohmann::json value = root[reinterpret_cast <const char *> (node->name)];
+												// Создаём новый массив
+												root[reinterpret_cast <const char *> (node->name)] = nlohmann::json::array();
+												// Выполняем установку полученного значения
+												root[reinterpret_cast <const char *> (node->name)].push_back(std::move(value));
+												// Выполняем создание объекта внутри массива
+												root[reinterpret_cast <const char *> (node->name)].push_back(nlohmann::json::object());
 											// Выполняем создание объекта внутри массива
-											root[reinterpret_cast <const char *> (node->name)].push_back(nlohmann::json::object());
-										// Если полученный объект не является массивом
-										} else if(!root[reinterpret_cast <const char *> (node->name)].is_array())
-											// Выполняем создание нового объекта	
-											root[reinterpret_cast <const char *> (node->name)] = nlohmann::json::object();
-										// Иначе добавляем в указанный индекс массива
-										else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-											// Выполняем создание объекта внутри массива
-											root[reinterpret_cast <const char *> (node->name)].push_back(nlohmann::json::object());
+											} else root[reinterpret_cast <const char *> (node->name)].push_back(nlohmann::json::object());
+										// Если такой ключ ещё не существует
+										} else root[reinterpret_cast <const char *> (node->name)] = nlohmann::json::object();
 										// Если у ноды есть параметры
 										if(node->properties != nullptr){
 											// Получаем список атрибутов
@@ -902,9 +900,14 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 													// Выполняем установку полученного значения
 													else root[reinterpret_cast <const char *> (node->name)] = number;
 												// Иначе добавляем в указанный индекс массива
-												} else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-													// Выполняем добавление названия атрибута
-													root[reinterpret_cast <const char *> (node->name)].back().emplace(key, number);
+												} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+													// Если у ноды есть параметры
+													if(node->properties != nullptr)
+														// Выполняем добавление названия атрибута
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, number);
+													// Выполняем установку полученного значения
+													else root[reinterpret_cast <const char *> (node->name)].back() = number;
+												}
 											// Если число является положительным
 											} else {
 												// Если элемент не является массивом
@@ -916,9 +919,14 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 													// Выполняем установку полученного значения
 													else root[reinterpret_cast <const char *> (node->name)] = ::stoull(reinterpret_cast <const char *> (value));
 												// Иначе добавляем в указанный индекс массива
-												} else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-													// Выполняем добавление названия атрибута
-													root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stoull(reinterpret_cast <const char *> (value)));
+												} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+													// Если у ноды есть параметры
+													if(node->properties != nullptr)
+														// Выполняем добавление названия атрибута
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stoull(reinterpret_cast <const char *> (value)));
+													// Выполняем установку полученного значения
+													else root[reinterpret_cast <const char *> (node->name)].back() = ::stoull(reinterpret_cast <const char *> (value));
+												}
 											}
 										// Если полученное значение является числом с плавающей точкой
 										} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL)) {
@@ -931,9 +939,14 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 												// Выполняем установку полученного значения
 												else root[reinterpret_cast <const char *> (node->name)] = ::stod(reinterpret_cast <const char *> (value));
 											// Иначе добавляем в указанный индекс массива
-											} else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-												// Выполняем добавление названия атрибута
-												root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stod(reinterpret_cast <const char *> (value)));
+											} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+												// Если у ноды есть параметры
+												if(node->properties != nullptr)
+													// Выполняем добавление названия атрибута
+													root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stod(reinterpret_cast <const char *> (value)));
+												// Выполняем установку полученного значения
+												else root[reinterpret_cast <const char *> (node->name)].back() = ::stod(reinterpret_cast <const char *> (value));
+											}
 										// Если значение не является числом
 										} else {
 											// Флаг булевого значения
@@ -949,9 +962,14 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 													// Выполняем установку полученного значения
 													else root[reinterpret_cast <const char *> (node->name)] = (isTrue ? true : false);
 												// Иначе добавляем в указанный индекс массива
-												} else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-													// Выполняем добавление названия атрибута
-													root[reinterpret_cast <const char *> (node->name)].back().emplace(key, (isTrue ? true : false));
+												} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+													// Если у ноды есть параметры
+													if(node->properties != nullptr)
+														// Выполняем добавление названия атрибута
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, (isTrue ? true : false));
+													// Выполняем установку полученного значения
+													else root[reinterpret_cast <const char *> (node->name)].back() = (isTrue ? true : false);
+												}
 											// Если значение является обычной строкой
 											} else {
 												// Если элемент не является массивом
@@ -963,9 +981,14 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 													// Выполняем установку полученного значения
 													else root[reinterpret_cast <const char *> (node->name)] = reinterpret_cast <const char *> (value);
 												// Иначе добавляем в указанный индекс массива
-												} else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-													// Выполняем добавление названия атрибута
-													root[reinterpret_cast <const char *> (node->name)].back().emplace(key, reinterpret_cast <const char *> (value));
+												} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+													// Если у ноды есть параметры
+													if(node->properties != nullptr)
+														// Выполняем добавление названия атрибута
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, reinterpret_cast <const char *> (value));
+													// Выполняем установку полученного значения
+													else root[reinterpret_cast <const char *> (node->name)].back() = reinterpret_cast <const char *> (value);
+												}
 											}
 										}
 										// Выполняем освобождение памяти выделенной под значение
@@ -1809,6 +1832,12 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 			};
 			// Если нет корневого элемента
 			if(data.is_array() || (data.size() > 1) || data.front().is_array()){
+				// Добавляем тип документа
+				result.append("<!DOCTYPE root>");
+				// Если разрешено выполнять разложение XML-объекта
+				if(pretty)
+					// Выполняем добавление переноса строк
+					result.append(1, '\n');
 				// Выполняем открытие тега
 				result.append(1, '<');
 				// Добавляем название блока
@@ -1831,8 +1860,17 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 				if(pretty)
 					// Выполняем добавление переноса строк
 					result.append(1, '\n');
-			// Выполняем парсинг объекта XML
-			} else parseFn(result, data, 0);
+			// Если корневой элемент присутствует
+			} else {
+				// Добавляем тип документа
+				result.append(this->_fmk->format("<!DOCTYPE %s>", data.begin().key().c_str()));
+				// Если разрешено выполнять разложение XML-объекта
+				if(pretty)
+					// Выполняем добавление переноса строк
+					result.append(1, '\n');
+				// Выполняем парсинг объекта XML
+				parseFn(result, data, 0);
+			}
 		/**
 		 * Если возникает ошибка
 		 */

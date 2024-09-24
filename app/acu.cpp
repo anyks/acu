@@ -288,14 +288,39 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 		string formatDate = DATE_FORMAT;
 		// Если операционной системой является Windows
 		#if defined(_WIN32) || defined(_WIN64)
-			// Выполняем чтение из коммандной строки
-			std::getline(cin, text);
+			{
+				// Результат полученный из потока
+				string result = "";
+				// Выполняем чтение данных из потока
+				for(;;){
+					// Выполняем чтение из коммандной строки
+					std::getline(cin, result);
+					// Если результат получен
+					if(!result.empty())
+						// Формируем текст полученного результата
+						text.append(result);
+					// Выходим из цикла
+					else break;
+				}
+			}
 		// Для всех остальных операционных систем
 		#else
 			// Считываем строку из буфера stdin
-			if(!::isatty(STDIN_FILENO))
-				// Выполняем чтение из коммандной строки
-				std::getline(cin, text);
+			if(!::isatty(STDIN_FILENO)){
+				// Результат полученный из потока
+				string result = "";
+				// Выполняем чтение данных из потока
+				for(;;){
+					// Выполняем чтение из коммандной строки
+					std::getline(cin, result);
+					// Если результат получен
+					if(!result.empty())
+						// Формируем текст полученного результата
+						text.append(result);
+					// Выходим из цикла
+					else break;
+				}
+			}
 		#endif
 		/**
 		 * Выполняем работу для Windows
