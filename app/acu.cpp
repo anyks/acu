@@ -292,15 +292,13 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 				// Результат полученный из потока
 				string result = "";
 				// Выполняем чтение данных из потока
-				for(;;){
-					// Выполняем чтение из коммандной строки
-					std::getline(cin, result);
-					// Если результат получен
+				while(std::getline(std::cin, result) && !result.empty()){
+					// Если результат сформирован
 					if(!result.empty())
-						// Формируем текст полученного результата
-						text.append(result);
-					// Выходим из цикла
-					else break;
+						// Добавляем разделитель строки
+						result.append(1, '\n');
+					// Формируем текст полученного результата
+					text.append(result);
 				}
 			}
 		// Для всех остальных операционных систем
@@ -310,15 +308,13 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 				// Результат полученный из потока
 				string result = "";
 				// Выполняем чтение данных из потока
-				for(;;){
-					// Выполняем чтение из коммандной строки
-					std::getline(cin, result);
-					// Если результат получен
+				while(std::getline(std::cin, result) && !result.empty()){
+					// Если результат сформирован
 					if(!result.empty())
-						// Формируем текст полученного результата
-						text.append(result);
-					// Выходим из цикла
-					else break;
+						// Добавляем разделитель строки
+						result.append(1, '\n');
+					// Формируем текст полученного результата
+					text.append(result);
 				}
 			}
 		#endif
