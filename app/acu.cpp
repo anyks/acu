@@ -47,7 +47,7 @@ static void help() noexcept {
 	"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG)\r\n\r\n"
 	"\x1B[34m\x1B[1m*\x1B[0m Format of the file from which reading is performed: \x1B[1m[-from <value> | --from=<value>]\x1B[0m\r\n"
 	"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK)\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Directory address for saving converted files: \x1B[1m[-dest <value> | --dest=<value>]\x1B[0m\r\n\r\n"
+	"\x1B[34m\x1B[1m*\x1B[0m File or directory address for saving converted files: \x1B[1m[-dest <value> | --dest=<value>]\x1B[0m\r\n\r\n"
 	"\x1B[34m\x1B[1m*\x1B[0m File address for writing trade logs (if required): \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
 	"\x1B[34m\x1B[1m*\x1B[0m Address of the file or directory with files to convert: \x1B[1m[-src <value> | --src=<value>]\x1B[0m\r\n\r\n"
 	"\x1B[34m\x1B[1m*\x1B[0m Address of the file in JSON format with GROK templates: \x1B[1m[-patterns <value> | --patterns=<value>]\x1B[0m\r\n\r\n"
@@ -540,62 +540,154 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 				}
 				// Если результат получен
 				if(!result.empty()){
-					// Определяем тип файла
-					switch(static_cast <uint8_t> (to)){
-						// Если формат входящих данных указан как XML
-						case static_cast <uint8_t> (type_t::XML):
-							// Выполняем конвертирование в формат XML
-							cout << parser.xml(result, env.is("pretty")) << endl;
-						break;
-						// Если формат входящих данных указан как JSON
-						case static_cast <uint8_t> (type_t::JSON):
-							// Выполняем конвертирование в формат JSON
-							cout << parser.json(result, env.is("pretty")) << endl;
-						break;
-						// Если формат входящих данных указан как INI
-						case static_cast <uint8_t> (type_t::INI):
-							// Выполняем конвертирование в формат INI
-							cout << parser.ini(result) << endl;
-						break;
-						// Если формат входящих данных указан как YAML
-						case static_cast <uint8_t> (type_t::YAML):
-							// Выполняем конвертирование в формат YAML
-							cout << parser.yaml(result) << endl;
-						break;
-						// Если формат входящих данных указан как CEF
-						case static_cast <uint8_t> (type_t::CEF): {
-							// Режим парсинга CEF по умолчанию
-							cef_t::mode_t mode = cef_t::mode_t::STRONG;
-							// Если режим парсинга CEF передан
-							if(env.isString("cef")){
-								// Получаем режим парсинга
-								const string & cef = env.get("cef");
-								// Если режим парсинга установлен как строгий
-								if(fmk.compare("strong", cef))
-									// Устанавливаем строгий режим парсинга
-									mode = cef_t::mode_t::STRONG;
-								// Если режим парсинга установлен как простой
-								else if(fmk.compare("low", cef))
-									// Устанавливаем простой режим парсинга
-									mode = cef_t::mode_t::LOW;
-								// Если режим парсинга установлен как средний
-								else if(fmk.compare("medium", cef))
-									// Устанавливаем средний режим парсинга
-									mode = cef_t::mode_t::MEDIUM;
+					// Если указан адрес каталога назначения
+					if(env.isString("dest")){
+						// Получаем адрес каталога
+						const string & addr = env.get("dest");
+						// Если адрес каталога получен
+						if(!addr.empty()){
+							// Адрес файла для сохранения
+							string filename = addr;
+							// Если каталог не существует
+							if(fs.isDir(addr)){
+								// Получаем расширение файла
+								const string extension = env.get("to");
+								// Переводим расширение в нижний регистр
+								fmk.transform(extension, fmk_t::transform_t::LOWER);
+								// Выполняем создание адреса файла для сохранения
+								filename = fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, "result", extension.c_str());
 							}
-							// Выполняем конвертирование в формат CEF
-							cout << parser.cef(result, mode) << endl;
-						} break;
-						// Если формат входящих данных указан как CSV
-						case static_cast <uint8_t> (type_t::CSV):
-							// Выполняем конвертирование в формат CSV
-							cout << parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';')) << endl;
-						break;
-						// Если формат входящих данных указан как SysLog
-						case static_cast <uint8_t> (type_t::SYSLOG):
-							// Выполняем конвертирование в формат SysLog
-							cout << parser.syslog(result) << endl;
-						break;
+							// Буфер данных для записи
+							string buffer = "";
+							// Определяем тип файла
+							switch(static_cast <uint8_t> (to)){
+								// Если формат входящих данных указан как XML
+								case static_cast <uint8_t> (type_t::XML):
+									// Выполняем конвертирование в формат XML
+									buffer = parser.xml(result, env.is("pretty"));
+								break;
+								// Если формат входящих данных указан как JSON
+								case static_cast <uint8_t> (type_t::JSON):
+									// Выполняем конвертирование в формат JSON
+									buffer = parser.json(result, env.is("pretty"));
+								break;
+								// Если формат входящих данных указан как INI
+								case static_cast <uint8_t> (type_t::INI):
+									// Выполняем конвертирование в формат INI
+									buffer = parser.ini(result);
+								break;
+								// Если формат входящих данных указан как YAML
+								case static_cast <uint8_t> (type_t::YAML):
+									// Выполняем конвертирование в формат YAML
+									buffer = parser.yaml(result);
+								break;
+								// Если формат входящих данных указан как CEF
+								case static_cast <uint8_t> (type_t::CEF): {
+									// Режим парсинга CEF по умолчанию
+									cef_t::mode_t mode = cef_t::mode_t::STRONG;
+									// Если режим парсинга CEF передан
+									if(env.isString("cef")){
+										// Получаем режим парсинга
+										const string & cef = env.get("cef");
+										// Если режим парсинга установлен как строгий
+										if(fmk.compare("strong", cef))
+											// Устанавливаем строгий режим парсинга
+											mode = cef_t::mode_t::STRONG;
+										// Если режим парсинга установлен как простой
+										else if(fmk.compare("low", cef))
+											// Устанавливаем простой режим парсинга
+											mode = cef_t::mode_t::LOW;
+										// Если режим парсинга установлен как средний
+										else if(fmk.compare("medium", cef))
+											// Устанавливаем средний режим парсинга
+											mode = cef_t::mode_t::MEDIUM;
+									}
+									// Выполняем конвертирование в формат CEF
+									buffer = parser.cef(result, mode);
+								} break;
+								// Если формат входящих данных указан как CSV
+								case static_cast <uint8_t> (type_t::CSV):
+									// Выполняем конвертирование в формат CSV
+									buffer = parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';'));
+								break;
+								// Если формат входящих данных указан как SysLog
+								case static_cast <uint8_t> (type_t::SYSLOG):
+									// Выполняем конвертирование в формат SysLog
+									buffer = parser.syslog(result);
+								break;
+							}
+							// Если данные для записи получены
+							if(!buffer.empty())
+								// Выполняем запись данных в файл
+								write(filename, buffer, &fmk, &log);
+							// Выводим сообщение об ошибке
+							else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
+							// Выводим удачное завершение работы
+							return EXIT_SUCCESS;
+						}
+						// Выводим сообщение об ошибке
+						log.print("Directory address is not set", log_t::flag_t::CRITICAL);
+						// Выводим удачное завершение работы
+						return EXIT_FAILURE;
+					// Если адрес для сохранения файла не указан
+					} else {
+						// Определяем тип файла
+						switch(static_cast <uint8_t> (to)){
+							// Если формат входящих данных указан как XML
+							case static_cast <uint8_t> (type_t::XML):
+								// Выполняем конвертирование в формат XML
+								cout << parser.xml(result, env.is("pretty")) << endl;
+							break;
+							// Если формат входящих данных указан как JSON
+							case static_cast <uint8_t> (type_t::JSON):
+								// Выполняем конвертирование в формат JSON
+								cout << parser.json(result, env.is("pretty")) << endl;
+							break;
+							// Если формат входящих данных указан как INI
+							case static_cast <uint8_t> (type_t::INI):
+								// Выполняем конвертирование в формат INI
+								cout << parser.ini(result) << endl;
+							break;
+							// Если формат входящих данных указан как YAML
+							case static_cast <uint8_t> (type_t::YAML):
+								// Выполняем конвертирование в формат YAML
+								cout << parser.yaml(result) << endl;
+							break;
+							// Если формат входящих данных указан как CEF
+							case static_cast <uint8_t> (type_t::CEF): {
+								// Режим парсинга CEF по умолчанию
+								cef_t::mode_t mode = cef_t::mode_t::STRONG;
+								// Если режим парсинга CEF передан
+								if(env.isString("cef")){
+									// Получаем режим парсинга
+									const string & cef = env.get("cef");
+									// Если режим парсинга установлен как строгий
+									if(fmk.compare("strong", cef))
+										// Устанавливаем строгий режим парсинга
+										mode = cef_t::mode_t::STRONG;
+									// Если режим парсинга установлен как простой
+									else if(fmk.compare("low", cef))
+										// Устанавливаем простой режим парсинга
+										mode = cef_t::mode_t::LOW;
+									// Если режим парсинга установлен как средний
+									else if(fmk.compare("medium", cef))
+										// Устанавливаем средний режим парсинга
+										mode = cef_t::mode_t::MEDIUM;
+								}
+								// Выполняем конвертирование в формат CEF
+								cout << parser.cef(result, mode) << endl;
+							} break;
+							// Если формат входящих данных указан как CSV
+							case static_cast <uint8_t> (type_t::CSV):
+								// Выполняем конвертирование в формат CSV
+								cout << parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';')) << endl;
+							break;
+							// Если формат входящих данных указан как SysLog
+							case static_cast <uint8_t> (type_t::SYSLOG):
+								// Выполняем конвертирование в формат SysLog
+								cout << parser.syslog(result) << endl;
+							break;
+						}
 					}
 				}
 			// Если адрес файла хранения указан
@@ -695,10 +787,16 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 											// Если каталог не создан, выходим
 											if(!fs.isDir(addr)){
 												// Выводим сообщение об ошибке
-												log.print("Directory at address \"%s\" could not be created.", log_t::flag_t::CRITICAL, addr.c_str());
+												log.print("Directory at address \"%s\" could not be created", log_t::flag_t::CRITICAL, addr.c_str());
 												// Выводим удачное завершение работы
 												return;
 											}
+										// Если адрес передан в качестве файла
+										} else if(fs.isFile(addr)) {
+											// Выводим сообщение об ошибке
+											log.print("Destination address must be a directory and not a file \"%s\"", log_t::flag_t::CRITICAL, addr.c_str());
+											// Выводим удачное завершение работы
+											return;
 										}
 										// Буфер данных для записи
 										string buffer = "";
@@ -919,17 +1017,16 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 								const string & addr = env.get("dest");
 								// Если адрес каталога получен
 								if(!addr.empty()){
+									// Адрес файла для сохранения
+									string filename = addr;
 									// Если каталог не существует
-									if(!fs.isDir(addr)){
-										// Выполняем создание каталога
-										fs.makePath(addr);
-										// Если каталог не создан, выходим
-										if(!fs.isDir(addr)){
-											// Выводим сообщение об ошибке
-											log.print("Directory at address \"%s\" could not be created.", log_t::flag_t::CRITICAL, addr.c_str());
-											// Выводим удачное завершение работы
-											return EXIT_FAILURE;
-										}
+									if(fs.isDir(addr)){
+										// Получаем расширение файла
+										const string extension = env.get("to");
+										// Переводим расширение в нижний регистр
+										fmk.transform(extension, fmk_t::transform_t::LOWER);
+										// Выполняем создание адреса файла для сохранения
+										filename = fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, name.c_str(), extension.c_str());
 									}
 									// Буфер данных для записи
 									string buffer = "";
@@ -991,15 +1088,11 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 										break;
 									}
 									// Если данные для записи получены
-									if(!buffer.empty()){
-										// Получаем расширение файла
-										const string extension = env.get("to");
-										// Переводим расширение в нижний регистр
-										fmk.transform(extension, fmk_t::transform_t::LOWER);
+									if(!buffer.empty())
 										// Выполняем запись данных в файл
-										write(fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, name.c_str(), extension.c_str()), buffer, &fmk, &log);
+										write(filename, buffer, &fmk, &log);
 									// Выводим сообщение об ошибке
-									} else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
+									else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
 									// Выводим удачное завершение работы
 									return EXIT_SUCCESS;
 								}
