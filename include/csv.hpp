@@ -137,16 +137,21 @@ namespace anyks {
 			/**
 			 * read Метод чтения данных из файла
 			 * @param filename адрес файла контейнера CSV для чтения
-			 * @param callback функция обратного вызова
 			 */
-			void read(const string & filename, function <void (const vector <string> &)> callback = nullptr) noexcept;
+			void read(const string & filename) noexcept;
 			/**
 			 * read Метод чтения данных из файла
 			 * @param filename адрес файла контейнера CSV для чтения
 			 * @param delim    используемый разделитель
-			 * @param callback функция обратного вызова
 			 */
-			void read(const string & filename, const char delim, function <void (const vector <string> &)> callback = nullptr) noexcept;
+			void read(const string & filename, const char delim) noexcept;
+			/**
+			 * read Метод чтения данных из файла
+			 * @param filename адрес файла контейнера CSV для чтения
+			 * @param callback функция обратного вызова
+			 * @param delim    используемый разделитель
+			 */
+			void read(const string & filename, function <void (const vector <string> &)> callback, const char delim = '0') noexcept;
 		public:
 			/**
 			 * dump Метод создания дампа данных

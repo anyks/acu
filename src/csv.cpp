@@ -411,13 +411,12 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 /**
  * read Метод чтения данных из файла
  * @param filename адрес файла контейнера CSV для чтения
- * @param callback функция обратного вызова
  */
-void anyks::CSV::read(const string & filename, function <void (const vector <string> &)> callback) noexcept {
+void anyks::CSV::read(const string & filename) noexcept {
 	// Если файл для чтения передан
 	if(!filename.empty())
 		// Выполняем чтение файла с неустановленным разделителем
-		this->read(filename, '0', callback);
+		this->read(filename, '0');
 	// Выводим сообщение об ошибке
 	else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "file address for reading was not set");
 }
@@ -425,9 +424,25 @@ void anyks::CSV::read(const string & filename, function <void (const vector <str
  * read Метод чтения данных из файла
  * @param filename адрес файла контейнера CSV для чтения
  * @param delim    используемый разделитель
- * @param callback функция обратного вызова
  */
-void anyks::CSV::read(const string & filename, const char delim, function <void (const vector <string> &)> callback) noexcept {
+void anyks::CSV::read(const string & filename, const char delim) noexcept {
+	// Если файл для чтения передан
+	if(!filename.empty()){
+		// Выполняем чтение файла
+		this->_fs.readFile3(filename, [delim, this](const string & text) noexcept -> void {
+			// Выводим полученную строку
+			this->prepare(text.data(), text.size(), delim);
+		});
+	// Выводим сообщение об ошибке
+	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "file address for reading was not set");
+}
+/**
+ * read Метод чтения данных из файла
+ * @param filename адрес файла контейнера CSV для чтения
+ * @param callback функция обратного вызова
+ * @param delim    используемый разделитель
+ */
+void anyks::CSV::read(const string & filename, function <void (const vector <string> &)> callback, const char delim) noexcept {
 	// Если файл для чтения передан
 	if(!filename.empty()){
 		// Выполняем чтение файла
@@ -436,8 +451,6 @@ void anyks::CSV::read(const string & filename, const char delim, function <void 
 			if(callback != nullptr)
 				// Выводим полученную строку
 				this->prepare(text.data(), text.size(), callback, delim);
-			// Выводим полученную строку
-			else this->prepare(text.data(), text.size(), delim);
 		});
 	// Выводим сообщение об ошибке
 	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "file address for reading was not set");
