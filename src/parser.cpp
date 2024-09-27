@@ -1709,6 +1709,28 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 							result.append(1, '\n');
 					// Если значение является массивом
 					} else if(el.value().is_array()) {
+						// Получаем флаг генерации ключа
+						const bool flag = this->_fmk->compare("item", key);
+						// Если ключ является сгенерированным
+						if(flag){
+							// Если количество отступов больше нуля
+							if(pretty && (tabs > 0)){
+								// Выполняем установку количества отступов
+								for(uint16_t i = 0; i < tabs; i++)
+									// Выполняем добавление отступов
+									result.append(1, '\t');
+							}
+							// Выполняем открытие тега
+							result.append(1, '<');
+							// Выполняем формирование результата
+							result.append(key);
+							// Выполняем закрытие тега
+							result.append(1, '>');
+							// Если разрешено выполнять разложение XML-объекта
+							if(pretty)
+								// Выполняем добавление переноса строк
+								result.append(1, '\n');
+						}
 						// Выполняем переход по всему массиву
 						for(auto & item : el.value()){
 							// Если значение является числом
@@ -1716,7 +1738,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Если количество отступов больше нуля
 								if(pretty && (tabs > 0)){
 									// Выполняем установку количества отступов
-									for(uint16_t i = 0; i < tabs; i++)
+									for(uint16_t i = 0; i < (tabs + (flag ? 1 : 0)); i++)
 										// Выполняем добавление отступов
 										result.append(1, '\t');
 								}
@@ -1755,7 +1777,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Если количество отступов больше нуля
 								if(pretty && (tabs > 0)){
 									// Выполняем установку количества отступов
-									for(uint16_t i = 0; i < tabs; i++)
+									for(uint16_t i = 0; i < (tabs + (flag ? 1 : 0)); i++)
 										// Выполняем добавление отступов
 										result.append(1, '\t');
 								}
@@ -1782,7 +1804,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Если количество отступов больше нуля
 								if(pretty && (tabs > 0)){
 									// Выполняем установку количества отступов
-									for(uint16_t i = 0; i < tabs; i++)
+									for(uint16_t i = 0; i < (tabs + (flag ? 1 : 0)); i++)
 										// Выполняем добавление отступов
 										result.append(1, '\t');
 								}
@@ -1809,7 +1831,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Если количество отступов больше нуля
 								if(pretty && (tabs > 0)){
 									// Выполняем установку количества отступов
-									for(uint16_t i = 0; i < tabs; i++)
+									for(uint16_t i = 0; i < (tabs + (flag ? 1 : 0)); i++)
 										// Выполняем добавление отступов
 										result.append(1, '\t');
 								}
@@ -1836,7 +1858,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Если количество отступов больше нуля
 								if(pretty && (tabs > 0)){
 									// Выполняем установку количества отступов
-									for(uint16_t i = 0; i < tabs; i++)
+									for(uint16_t i = 0; i < (tabs + (flag ? 1 : 0)); i++)
 										// Выполняем добавление отступов
 										result.append(1, '\t');
 								}
@@ -2013,7 +2035,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Если количество отступов больше нуля
 									if(pretty && (tabs > 0)){
 										// Выполняем установку количества отступов
-										for(uint16_t i = 0; i < tabs; i++)
+										for(uint16_t i = 0; i < (tabs + (flag ? 1 : 0)); i++)
 											// Выполняем добавление отступов
 											result.append(1, '\t');
 									}
@@ -2030,8 +2052,8 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									result.append(1, '\n');
 							// Если значение является массивом
 							} else if(item.is_array()) {
-								// Если количество отступов больше нуля
-								if(pretty && (tabs > 0)){
+								// Если ключ не является сгенерированным
+								if(!flag && pretty && (tabs > 0)){
 									// Выполняем установку количества отступов
 									for(uint16_t i = 0; i < tabs; i++)
 										// Выполняем добавление отступов
@@ -2043,11 +2065,31 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								obj.emplace(key, item);
 								// Выполняем извлечение данных объекта
 								parseFn(result, obj, tabs + 1);
-								// Если разрешено выполнять разложение XML-объекта
-								if(pretty)
+								// Если ключ не является сгенерированным
+								if(!flag && pretty)
 									// Выполняем добавление переноса строк
 									result.append(1, '\n');
 							}
+						}
+						// Если ключ является сгенерированным
+						if(flag){
+							// Если количество отступов больше нуля
+							if(pretty && (tabs > 0)){
+								// Выполняем установку количества отступов
+								for(uint16_t i = 0; i < tabs; i++)
+									// Выполняем добавление отступов
+									result.append(1, '\t');
+							}
+							// Выполняем закрытие тега
+							result.append("</");
+							// Выполняем установку тега
+							result.append(key);
+							// Выполняем закрытие тега
+							result.append(1, '>');
+							// Если разрешено выполнять разложение XML-объекта
+							if(pretty)
+								// Выполняем добавление переноса строк
+								result.append(1, '\n');
 						}
 					}
 				}

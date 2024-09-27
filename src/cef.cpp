@@ -171,39 +171,39 @@ void anyks::Cef::parse(const string & cef) noexcept {
 																		// Выполняем препарирование расширений
 																		this->prepare(value);
 																	// Добавляем в список полученные ошибки
-																	else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "extensions is not found");
+																	else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "extensions is not found");
 																// Выводим сообщение об ошибке
-																} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "severity is not found");
+																} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "severity is not found");
 															// Выводим сообщение об ошибке
-															} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "severity is not found");
+															} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "severity is not found");
 														// Выводим сообщение об ошибке
-														} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "event name is not found");
+														} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "event name is not found");
 													// Выводим сообщение об ошибке
-													} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "event name is not found");
+													} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "event name is not found");
 												// Выводим сообщение об ошибке
-												} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "signature ID is not found");
+												} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "signature ID is not found");
 											// Выводим сообщение об ошибке
-											} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "signature ID is not found");
+											} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "signature ID is not found");
 										// Выводим сообщение об ошибке
-										} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "device version is not found");
+										} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device version is not found");
 									// Выводим сообщение об ошибке
-									} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "device version is not found");
+									} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device version is not found");
 								// Выводим сообщение об ошибке
-								} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "device product is not found");
+								} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device product is not found");
 							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "device product is not found");
+							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device product is not found");
 						// Выводим сообщение об ошибке
-						} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "device vendor is not found");
+						} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device vendor is not found");
 					// Выводим сообщение об ошибке
-					} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "device vendor is not found");
+					} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device vendor is not found");
 				// Выводим сообщение об ошибке
-				} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "container version must be a number");
+				} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "container version must be a number");
 			// Если получена ошибка
-			} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "version is not found");
+			} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "version is not found");
 		// Если получена ошибка
-		} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "an invalid data format was passed");
+		} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "an invalid data format was passed");
 	// Если получена ошибка
-	} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "no parsing data passed");
+	} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "no parsing data passed");
 }
 /**
  * prepare Метод препарирования расширений
@@ -299,7 +299,7 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 								// Добавляем основной текст сообщения
 								error.append("\" key does not comply with CEF standard");
 								// Выводим сообщение, что указанный ключ, не соответствует стандарту CEF
-								this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, error.c_str());
+								this->_log->print("CEF: %s", log_t::flag_t::WARNING, error.c_str());
 								// Получаем значение предыдущего ключа
 								value = extensions.substr(disparity + 1, current - (disparity + 1));
 								// Удаляем лишние пробелы
@@ -1681,7 +1681,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 				// Добавляем оставшийся текст ошибки
 				error.append("\" key is not defined in the specification");
 				// Выводим сообщение об ошибке и выходим
-				this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, error.c_str());
+				this->_log->print("CEF: %s", log_t::flag_t::WARNING, error.c_str());
 				// Выходим из функции
 				return;
 			}
@@ -1923,7 +1923,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 				// Добавляем оставшийся текст ошибки
 				error.append("\" does not exist");
 				// Выводим сообщение об ошибке и выходим
-				this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, error.c_str());
+				this->_log->print("CEF: %s", log_t::flag_t::WARNING, error.c_str());
 			}
 		// Если режим парсинга не установлен, добавляем расширение так-как оно было передано
 		} else this->extension(key, vector <char> (value.begin(), value.end()));

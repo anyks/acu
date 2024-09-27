@@ -59,11 +59,12 @@ static void help() noexcept {
  * version Функция вывода версии приложения
  * @param fmk     объект фреймворка
  * @param log     объект для работы с логами
+ * @param fs      объект работы с файловой системой
  * @param address адрес приложения
  */
-static void version(const fmk_t * fmk, const log_t * log, const string & address) noexcept {
+static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const string & address) noexcept {
 	// Если входящие данные переданы
-	if((fmk != nullptr) && (log != nullptr) && !address.empty()){
+	if((fmk != nullptr) && (log != nullptr) && (fs != nullptr) && !address.empty()){
 		// Название операционной системы
 		const char * os = nullptr;
 		// Определяем название операционной системы
@@ -104,10 +105,8 @@ static void version(const fmk_t * fmk, const log_t * log, const string & address
 		if(os != nullptr){
 			// Позиция в каталоге
 			size_t pos = 0;
-			// Объект работы с файловой системой
-			fs_t fs(fmk, log);
 			// Определяем адрес приложения
-			string app = fs.realPath(address);
+			string app = fs->realPath(address);
 			// Ищем каталог
 			if((pos = app.rfind(FS_SEPARATOR)) != string::npos)
 				// Получаем название приложения
@@ -134,120 +133,6 @@ static void version(const fmk_t * fmk, const log_t * log, const string & address
 		// Выводим сообщение об ошибке
 		} else log->print("Operating system is not identified", log_t::flag_t::CRITICAL);
 	}
-}
-/**
- * read Функция записи данных в файл
- * @param filename адрес файла для чтения
- * @param data     данные для записи в файл
- * @param fmk      объект фреймворка
- * @param log      объект для работы с логами
- */
-static void write(const string & filename, const string & data, const fmk_t * fmk, const log_t * log) noexcept {
-	// Если данные переданы
-	if(!filename.empty() && !data.empty() && (fmk != nullptr) && (log != nullptr)){
-		/**
-		 * Выполняем перехват ошибок
-		 */
-		try {
-			/**
-			 * Выполняем работу для Windows
-			 */
-			#if defined(_WIN32) || defined(_WIN64)
-				// Выполняем открытие файла на запись
-				HANDLE file = CreateFileW(fmk->convert(filename).c_str(), GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-				// Если открыть файл открыт нормально
-				if(file != INVALID_HANDLE_VALUE){
-					// Выполняем запись данных в файл
-					WriteFile(file, static_cast <LPCVOID> (data.data()), static_cast <DWORD> (data.size()), 0, nullptr);
-					// Выполняем закрытие файла
-					CloseHandle(file);
-				}
-			/**
-			 * Выполняем работу для Unix
-			 */
-			#else
-				// Файловый поток для записи
-				ofstream file(filename, ios::binary);
-				// Если файл открыт на запись
-				if(file.is_open()){
-					// Выполняем запись данных в файл
-					file.write(data.data(), data.size());
-					// Закрываем файл
-					file.close();
-				}
-			#endif
-		/**
-		 * Если возникает ошибка
-		 */
-		} catch (const std::ios_base::failure & error) {
-			// Выводим сообщение инициализации метода класса скрипта торговой платформы
-			log->print("%s for filename %s", log_t::flag_t::CRITICAL, error.what(), filename.c_str());
-		}
-	}
-}
-/**
- * read Функция чтения данных из файла
- * @param filename адрес файла для чтения
- * @param fs       объект работы с файловой системой
- * @param fmk      объект фреймворка
- * @param log      объект для работы с логами
- * @return         данные прочитанные из файла
- */
-static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, const log_t * log) noexcept {
-	// Результат работы функции
-	string result = "";
-	// Если данные переданы
-	if(!filename.empty() && (fs != nullptr) && (fmk != nullptr) && (log != nullptr)){
-		/**
-		 * Выполняем перехват ошибок
-		 */
-		try {
-			/**
-			 * Выполняем работу для Windows
-			 */
-			#if defined(_WIN32) || defined(_WIN64)
-				// Создаём объект работы с файлом
-				HANDLE file = CreateFileW(fmk->convert(filename).c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-				// Если открыть файл открыт нормально
-				if(file != INVALID_HANDLE_VALUE){
-					// Устанавливаем размер буфера
-					result.resize(static_cast <uintmax_t> (GetFileSize(file, nullptr)), 0);
-					// Выполняем чтение из файла в буфер данные
-					ReadFile(file, static_cast <LPVOID> (result.data()), static_cast <DWORD> (result.size()), 0, nullptr);
-					// Выполняем закрытие файла
-					CloseHandle(file);
-				}
-			/**
-			 * Выполняем работу для Unix
-			 */
-			#else
-				// Получаем размер файла
-				const size_t size = fs->size(filename);
-				// Если файл не пйстой
-				if(size > 0){
-					// Открываем файл на чтение
-					ifstream file(filename, ios::in);
-					// Если файл открыт на запись
-					if(file.is_open()){
-						// Устанавливаем размер буфера
-						result.resize(size, 0);
-						// Выполняем чтение данных из файла
-						file.read(result.data(), size);
-						// Закрываем файл
-						file.close();
-					}
-				}
-			#endif
-		/**
-		 * Если возникает ошибка
-		 */
-		} catch (const std::ios_base::failure & error) {
-			// Выводим сообщение инициализации метода класса скрипта торговой платформы
-			log->print("%s for filename %s", log_t::flag_t::CRITICAL, error.what(), filename.c_str());
-		}
-	}
-	// Выводим результат
-	return result;
 }
 /**
  * Выполняем работу для Windows
@@ -332,13 +217,13 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 			 */
 			#if defined(_WIN32) || defined(_WIN64)
 				// Выводим версию приложения
-				version(&fmk, &log, fmk.convert(wstring(params[0])));
+				version(&fmk, &log, &fs, fmk.convert(wstring(params[0])));
 			/**
 			 * Выполняем работу для Unix
 			 */
 			#else
 				// Выводим версию приложения
-				version(&fmk, &log, params[0]);
+				version(&fmk, &log, &fs, params[0]);
 			#endif
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
@@ -396,7 +281,7 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 				// Если файл шаблона указан
 				if(env.isString("patterns")){
 					// Выполняем чтение объекта шаблонов
-					json patterns = json::parse(read(env.get("patterns"), &fs, &fmk, &log));
+					json patterns = json::parse(fs.read(env.get("patterns")));
 					// Если данные шаблонов получены
 					if(patterns.is_object() && !patterns.empty()){
 						// Выполняем перебор всего списка значений
@@ -411,14 +296,15 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 				// Если регулярное выражение передано
 				if(env.isString("express")){
 					// Выполняем чтение данных регулярного выражения
-					express = read(env.get("express"), &fs, &fmk, &log);
+					const auto & buffer = fs.read(env.get("express"));
 					// Если регулярное выражение не получено
-					if(express.empty()){
+					if(buffer.empty()){
 						// Выводим сообщение об ошибке
 						log.print("Regular expression in GROK format is not set", log_t::flag_t::CRITICAL);
 						// Выводим удачное завершение работы
 						return EXIT_FAILURE;
-					}
+					// Формируем полученное регулярное выражение
+					} else express.assign(buffer.begin(), buffer.end());
 				// Выводим сообщение об ошибке
 				} else {
 					// Выводим сообщение об ошибке
@@ -619,7 +505,7 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 							// Если данные для записи получены
 							if(!buffer.empty())
 								// Выполняем запись данных в файл
-								write(filename, buffer, &fmk, &log);
+								fs.write(filename, buffer.data(), buffer.size());
 							// Выводим сообщение об ошибке
 							else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
 							// Выводим удачное завершение работы
@@ -702,14 +588,16 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 					fmk.transform(extension, fmk_t::transform_t::LOWER);
 					// Выполняем чтение каталога
 					fs.readDir(addr, extension, true, [&](const string & filename) noexcept -> void {
+						// Выполняем чтение данных файла
+						const auto & buffer = fs.read(filename);
 						// Получаем название файла
 						const string & name = fs.components(filename).first;
-						// Выполняем чтение данных файла
-						const string & text = read(filename, &fs, &fmk, &log);
 						// Если данные файла загружены
-						if(!text.empty()){
+						if(!buffer.empty()){
 							// Объект в формате JSON
 							json result = json::object();
+							// Формируем полученный текст
+							const string text(buffer.begin(), buffer.end());
 							// Определяем тип файла
 							switch(static_cast <uint8_t> (from)){
 								// Если формат входящих данных указан как XML
@@ -864,7 +752,7 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 											// Переводим расширение в нижний регистр
 											fmk.transform(extension, fmk_t::transform_t::LOWER);
 											// Выполняем запись данных в файл
-											write(fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, name.c_str(), extension.c_str()), buffer, &fmk, &log);
+											fs.write(fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, name.c_str(), extension.c_str()), buffer.data(), buffer.size());
 										// Выводим сообщение об ошибке
 										} else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
 										// Выводим удачное завершение работы
@@ -939,14 +827,16 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 					});
 				// Если адрес является файлом
 				} else if(fs.isFile(addr)) {
+					// Выполняем чтение данных файла
+					const auto & buffer = fs.read(addr);
 					// Получаем название файла
 					const string & name = fs.components(addr).first;
-					// Выполняем чтение данных файла
-					const string & text = read(addr, &fs, &fmk, &log);
 					// Если данные файла загружены
-					if(!text.empty()){
+					if(!buffer.empty()){
 						// Объект в формате JSON
 						json result = json::object();
+						// Формируем полученный текст
+						const string text(buffer.begin(), buffer.end());
 						// Определяем тип файла
 						switch(static_cast <uint8_t> (from)){
 							// Если формат входящих данных указан как XML
@@ -1090,7 +980,7 @@ static string read(const string & filename, const fs_t * fs, const fmk_t * fmk, 
 									// Если данные для записи получены
 									if(!buffer.empty())
 										// Выполняем запись данных в файл
-										write(filename, buffer, &fmk, &log);
+										fs.write(filename, buffer.data(), buffer.size());
 									// Выводим сообщение об ошибке
 									else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
 									// Выводим удачное завершение работы

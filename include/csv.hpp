@@ -15,16 +15,6 @@
 #define __ANYKS_ACU_CSV__
 
 /**
- * Выполняем работу для Windows
- */
-#if defined(_WIN32) || defined(_WIN64)
-	/**
-	 * Подключаем зависимые заголовки под Windows
-	 */
-	#include <windows.h>
-#endif
-
-/**
  * Разрешаем сборку под Windows
  */
 #include <global.hpp>
@@ -34,15 +24,15 @@
  */
 #include <vector>
 #include <string>
-#include <fstream>
 #include <iostream>
 #include <algorithm>
-#include <sys/stat.h>
+#include <functional>
 #include <nlohmann/json.hpp>
 
 /**
  * Модули AWH
  */
+#include <sys/fs.hpp>
 #include <sys/fmk.hpp>
 #include <sys/log.hpp>
 
@@ -61,6 +51,9 @@ namespace anyks {
 	 * CSV Класс модуля CSV
 	 */
 	typedef class ACUSHARED_EXPORT CSV {
+		private:
+			// Объект работы с файловой системой
+			fs_t _fs;
 		private:
 			// Флаг разрешения использования заголовков
 			bool _header;
@@ -83,6 +76,14 @@ namespace anyks {
 			 * @param delim  используемый разделитель
 			 */
 			void prepare(const char * buffer, const size_t size, const char delim = ',') noexcept;
+			/**
+			 * prepare Метод выполнения препарирования полученных данных строки
+			 * @param buffer   буфер данных для препарирования
+			 * @param size     размер буфера данных для препарирования
+			 * @param callback функция обратного вызова
+			 * @param delim    используемый разделитель
+			 */
+			void prepare(const char * buffer, const size_t size, function <void (const vector <string> &)> callback, const char delim = ',') noexcept;
 		public:
 			/**
 			 * clear Метод очистки данных
@@ -136,22 +137,16 @@ namespace anyks {
 			/**
 			 * read Метод чтения данных из файла
 			 * @param filename адрес файла контейнера CSV для чтения
+			 * @param callback функция обратного вызова
 			 */
-			void read(const string & filename) noexcept;
+			void read(const string & filename, function <void (const vector <string> &)> callback = nullptr) noexcept;
 			/**
 			 * read Метод чтения данных из файла
 			 * @param filename адрес файла контейнера CSV для чтения
 			 * @param delim    используемый разделитель
+			 * @param callback функция обратного вызова
 			 */
-			void read(const string & filename, const char delim) noexcept;
-			/**
-			 * read Метод чтения данных из буфера
-			 * @param buffer буфер бинарных данных
-			 * @param delim  используемый разделитель
-			 * @param end    обрабатываемый блок данных является последним
-			 * @return       количество обработанных байт
-			 */
-			size_t read(const vector <char> & buffer, const char delim, const bool end = true) noexcept;
+			void read(const string & filename, const char delim, function <void (const vector <string> &)> callback = nullptr) noexcept;
 		public:
 			/**
 			 * dump Метод создания дампа данных
@@ -194,7 +189,11 @@ namespace anyks {
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
-			CSV(const fmk_t * fmk, const log_t * log) noexcept : _header(false), _fmk(fmk), _log(log) {}
+			CSV(const fmk_t * fmk, const log_t * log) noexcept : _fs(fmk, log), _header(false), _fmk(fmk), _log(log) {}
+			/**
+			 * ~CSV Деструктор
+			 */
+			~CSV() noexcept {}
 	} csv_t;
 	/**
 	 * Оператор [>>] чтения из потока CSV контейнера
