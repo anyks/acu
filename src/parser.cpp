@@ -2062,7 +2062,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Формируем объект объекта
 								nlohmann::json obj = nlohmann::json::object();
 								// Добавляем полученный объекта
-								obj.emplace(key, item);
+								obj.emplace("item", item);
 								// Выполняем извлечение данных объекта
 								parseFn(result, obj, tabs + 1);
 								// Если ключ не является сгенерированным
