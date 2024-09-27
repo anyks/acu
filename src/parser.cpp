@@ -837,7 +837,7 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 												} else {
 													// Флаг булевого значения
 													bool isTrue = false;
-													// Если трока является булевым значением
+													// Если строка является булевым значением
 													if((isTrue = this->_fmk->compare("true", reinterpret_cast <const char *> (value))) || this->_fmk->compare("false", reinterpret_cast <const char *> (value))){
 														// Если элемент не является массивом
 														if(root[reinterpret_cast <const char *> (node->name)].is_object())
@@ -934,7 +934,7 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 												} else {
 													// Флаг булевого значения
 													bool isTrue = false;
-													// Если трока является булевым значением
+													// Если строка является булевым значением
 													if((isTrue = this->_fmk->compare("true", reinterpret_cast <const char *> (value))) || this->_fmk->compare("false", reinterpret_cast <const char *> (value))){
 														// Если элемент не является массивом
 														if(root[reinterpret_cast <const char *> (node->name)].is_object())
@@ -1045,7 +1045,7 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 										} else {
 											// Флаг булевого значения
 											bool isTrue = false;
-											// Если трока является булевым значением
+											// Если строка является булевым значением
 											if((isTrue = this->_fmk->compare("true", reinterpret_cast <const char *> (value))) || this->_fmk->compare("false", reinterpret_cast <const char *> (value))){
 												// Если элемент не является массивом
 												if(root[reinterpret_cast <const char *> (node->name)].is_object()){
@@ -1090,10 +1090,28 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 									}
 								// Если дочерних элементов не обнаружено
 								} else {
-									// Выполняем создание нового объекта
-									root[reinterpret_cast <const char *> (node->name)] = nlohmann::json::object();
 									// Если у ноды есть параметры
 									if(node->properties != nullptr){
+										// Если корневой элемент не является объектом
+										if(!root.is_object() && !root.is_array())
+											// Создаём объект
+											root = nlohmann::json::object();
+										// Если такой ключ уже существует
+										if(root.contains(reinterpret_cast <const char *> (node->name))){
+											// Если ключ не является массивом
+											if(!root[reinterpret_cast <const char *> (node->name)].is_array()){
+												// Поулчаем текущие данные объекта
+												nlohmann::json value = root[reinterpret_cast <const char *> (node->name)];
+												// Создаём новый массив
+												root[reinterpret_cast <const char *> (node->name)] = nlohmann::json::array();
+												// Выполняем установку полученного значения
+												root[reinterpret_cast <const char *> (node->name)].push_back(std::move(value));
+												// Выполняем создание объекта внутри массива
+												root[reinterpret_cast <const char *> (node->name)].push_back(nlohmann::json::object());
+											// Выполняем создание объекта внутри массива
+											} else root[reinterpret_cast <const char *> (node->name)].push_back(nlohmann::json::object());
+										// Если такой ключ ещё не существует
+										} else root[reinterpret_cast <const char *> (node->name)] = nlohmann::json::object();
 										// Получаем список атрибутов
 										xmlAttr * attribute = node->properties;
 										// Выполняем перебор всего списка атрибутов
@@ -1105,33 +1123,74 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 												// Получаем значение числа
 												const long long number = ::stoll(reinterpret_cast <const char *> (value));
 												// Если число является отрицательным
-												if(number < 0)
-													// Выполняем формирования списка параметров
-													root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = number;
-												// Выполняем формирования списка параметров
-												else root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
+												if(number < 0){
+													// Если корневой тег является объектом
+													if(root[reinterpret_cast <const char *> (node->name)].is_object())
+														// Выполняем формирования списка параметров
+														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = number;
+													// Если корневой тег является массивом
+													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+														// Добавляем в объект наше значение
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), number);
+												// Если число является положительным
+												} else {
+													// Если корневой тег является объектом
+													if(root[reinterpret_cast <const char *> (node->name)].is_object())
+														// Выполняем формирования списка параметров
+														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
+													// Если корневой тег является массивом
+													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+														// Добавляем в объект наше значение
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoull(reinterpret_cast <const char *> (value)));
+												}
 											// Если полученное значение является числом с плавающей точкой
-											} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL))
-												// Выполняем формирования списка параметров
-												root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stod(reinterpret_cast <const char *> (value));
+											} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL)) {
+												// Если корневой тег является объектом
+												if(root[reinterpret_cast <const char *> (node->name)].is_object())
+													// Выполняем формирования списка параметров
+													root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stod(reinterpret_cast <const char *> (value));
+												// Если корневой тег является массивом
+												else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+													// Добавляем в объект наше значение
+													root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stod(reinterpret_cast <const char *> (value)));
 											// Если значение является строковым
-											else {
+											} else {
 												// Флаг булевого значения
 												bool isTrue = false;
-												// Если трока является булевым значением
-												if((isTrue = this->_fmk->compare("true", reinterpret_cast <const char *> (value))) || this->_fmk->compare("false", reinterpret_cast <const char *> (value)))
-													// Выполняем формирования списка параметров
-													root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = (isTrue ? true : false);
-												// Выполняем формирования списка параметров
-												else root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
+												// Если строка является булевым значением
+												if((isTrue = this->_fmk->compare("true", reinterpret_cast <const char *> (value))) || this->_fmk->compare("false", reinterpret_cast <const char *> (value))){
+													// Если корневой тег является объектом
+													if(root[reinterpret_cast <const char *> (node->name)].is_object())
+														// Выполняем формирования списка параметров
+														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = (isTrue ? true : false);
+													// Если корневой тег является массивом
+													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+														// Добавляем в объект наше значение
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), (isTrue ? true : false));
+												// Если значение является обычной строкой
+												} else {
+													// Если корневой тег является объектом
+													if(root[reinterpret_cast <const char *> (node->name)].is_object())
+														// Выполняем формирования списка параметров
+														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
+													// Если корневой тег является массивом
+													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+														// Добавляем в объект наше значение
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), reinterpret_cast <const char *> (value));
+												}
 											}
 											// Выполняем итерацию по аттрибутам
 											attribute = attribute->next;
 											// Выполняем освобождение памяти выделенной под значение
 											xmlFree(value);
 										}
-									// Устанавливаем значение как булевое
-									} else root[reinterpret_cast <const char *> (node->name)] = true;
+									// Если тег просто присутствует в списке
+									} else {
+										// Если корневой объект не является массивом
+										if(!root[reinterpret_cast <const char *> (node->name)].is_array())
+											// Устанавливаем значение как булевое
+											root[reinterpret_cast <const char *> (node->name)] = true;
+									}
 								}
 							}
 							// Выполняем итерацию ноды
@@ -1168,7 +1227,7 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 							else {
 								// Флаг булевого значения
 								bool isTrue = false;
-								// Если трока является булевым значением
+								// Если строка является булевым значением
 								if((isTrue = this->_fmk->compare("true", reinterpret_cast <const char *> (value))) || this->_fmk->compare("false", reinterpret_cast <const char *> (value)))
 									// Выполняем формирования списка параметров
 									result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = (isTrue ? true : false);
@@ -1270,7 +1329,7 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 						} else {
 							// Флаг булевого значения
 							bool isTrue = false;
-							// Если трока является булевым значением
+							// Если строка является булевым значением
 							if((isTrue = this->_fmk->compare("true", item)) || this->_fmk->compare("false", item)){
 								// Если элемент не является массивом
 								if(result[reinterpret_cast <const char *> (node->name)].is_object()){
