@@ -35,7 +35,7 @@ static void help() noexcept {
 	const string msg = "\r\n\x1B[32m\x1B[1musage:\x1B[0m acu [-V | --version] [-H | --info] [<args>]\r\n\r\n\r\n"
 	"\x1B[34m\x1B[1m[FLAGS]\x1B[0m\r\n"
 	"\x1B[34m\x1B[1m*\x1B[0m Flag for generating headers when parsing CSV files: \x1B[1m[-header | --header]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Flag for generating a readable file format (XML or JSON): \x1B[1m[-pretty | --pretty]\x1B[0m\r\n\r\n"
+	"\x1B[34m\x1B[1m*\x1B[0m Flag for generating a readable file format (XML or JSON): \x1B[1m[-prettify | --prettify]\x1B[0m\r\n\r\n"
 	"\x1B[34m\x1B[1m*\x1B[0m Display application version: \x1B[1m[-version | --version | -V]\x1B[0m\r\n\r\n"
 	"\x1B[34m\x1B[1m*\x1B[0m Display information about available application functions: \x1B[1m[-info | --info | -H]\x1B[0m\r\n\r\n"
 	"\x1B[34m\x1B[1m[ARGS]\x1B[0m\r\n"
@@ -450,12 +450,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Если формат входящих данных указан как XML
 								case static_cast <uint8_t> (type_t::XML):
 									// Выполняем конвертирование в формат XML
-									buffer = parser.xml(result, env.is("pretty"));
+									buffer = parser.xml(result, env.is("prettify"));
 								break;
 								// Если формат входящих данных указан как JSON
 								case static_cast <uint8_t> (type_t::JSON):
 									// Выполняем конвертирование в формат JSON
-									buffer = parser.json(result, env.is("pretty"));
+									buffer = parser.json(result, env.is("prettify"));
 								break;
 								// Если формат входящих данных указан как INI
 								case static_cast <uint8_t> (type_t::INI):
@@ -522,12 +522,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							// Если формат входящих данных указан как XML
 							case static_cast <uint8_t> (type_t::XML):
 								// Выполняем конвертирование в формат XML
-								cout << parser.xml(result, env.is("pretty")) << endl;
+								cout << parser.xml(result, env.is("prettify")) << endl;
 							break;
 							// Если формат входящих данных указан как JSON
 							case static_cast <uint8_t> (type_t::JSON):
 								// Выполняем конвертирование в формат JSON
-								cout << parser.json(result, env.is("pretty")) << endl;
+								cout << parser.json(result, env.is("prettify")) << endl;
 							break;
 							// Если формат входящих данных указан как INI
 							case static_cast <uint8_t> (type_t::INI):
@@ -693,12 +693,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Если формат входящих данных указан как XML
 											case static_cast <uint8_t> (type_t::XML):
 												// Выполняем конвертирование в формат XML
-												buffer = parser.xml(result, env.is("pretty"));
+												buffer = parser.xml(result, env.is("prettify"));
 											break;
 											// Если формат входящих данных указан как JSON
 											case static_cast <uint8_t> (type_t::JSON):
 												// Выполняем конвертирование в формат JSON
-												buffer = parser.json(result, env.is("pretty"));
+												buffer = parser.json(result, env.is("prettify"));
 											break;
 											// Если формат входящих данных указан как INI
 											case static_cast <uint8_t> (type_t::INI):
@@ -769,12 +769,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Если формат входящих данных указан как XML
 										case static_cast <uint8_t> (type_t::XML):
 											// Выполняем конвертирование в формат XML
-											cout << parser.xml(result, env.is("pretty")) << endl;
+											cout << parser.xml(result, env.is("prettify")) << endl;
 										break;
 										// Если формат входящих данных указан как JSON
 										case static_cast <uint8_t> (type_t::JSON):
 											// Выполняем конвертирование в формат JSON
-											cout << parser.json(result, env.is("pretty")) << endl;
+											cout << parser.json(result, env.is("prettify")) << endl;
 										break;
 										// Если формат входящих данных указан как INI
 										case static_cast <uint8_t> (type_t::INI):
@@ -925,12 +925,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Если формат входящих данных указан как XML
 										case static_cast <uint8_t> (type_t::XML):
 											// Выполняем конвертирование в формат XML
-											buffer = parser.xml(result, env.is("pretty"));
+											buffer = parser.xml(result, env.is("prettify"));
 										break;
 										// Если формат входящих данных указан как JSON
 										case static_cast <uint8_t> (type_t::JSON):
 											// Выполняем конвертирование в формат JSON
-											buffer = parser.json(result, env.is("pretty"));
+											buffer = parser.json(result, env.is("prettify"));
 										break;
 										// Если формат входящих данных указан как INI
 										case static_cast <uint8_t> (type_t::INI):
@@ -997,12 +997,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Если формат входящих данных указан как XML
 									case static_cast <uint8_t> (type_t::XML):
 										// Выполняем конвертирование в формат XML
-										cout << parser.xml(result, env.is("pretty")) << endl;
+										cout << parser.xml(result, env.is("prettify")) << endl;
 									break;
 									// Если формат входящих данных указан как JSON
 									case static_cast <uint8_t> (type_t::JSON):
 										// Выполняем конвертирование в формат JSON
-										cout << parser.json(result, env.is("pretty")) << endl;
+										cout << parser.json(result, env.is("prettify")) << endl;
 									break;
 									// Если формат входящих данных указан как INI
 									case static_cast <uint8_t> (type_t::INI):
