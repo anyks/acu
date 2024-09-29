@@ -67,13 +67,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#MyDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyDir}\cert.pem"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyDir}\config.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyDir}\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyDir}\libgcc_s_seh-1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyDir}\libstdc++-6.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyDir}\libwinpthread-1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
