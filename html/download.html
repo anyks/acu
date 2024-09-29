@@ -23,8 +23,8 @@
 	<body>
 		<div class="col-lg-8 mx-auto p-4 py-md-5">
 			<!-- Заголовок НАЧАЛО -->
-			<header class="d-flex align-items-center pb-3 mb-5 border-bottom">
-				<a href="https://acu.anyks.com" class="d-flex align-items-center text-body-emphasis text-decoration-none">
+			<header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+				<a href="https://acu.anyks.com" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
 					<svg id="anyks-header" data-name="layer" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 287.15 243.8" width="40" height="40" style="margin-right: 10px;">
 						<title>ANYKS LLC</title>
 						<desc>ANYKS - convert utility (ACU)</desc>
@@ -51,6 +51,7 @@
 					</svg>
 					<span class="fs-4"><strong>ANYKS</strong> - formatter</span>
 				</a>
+				<h5>v1.0.0</h5>
 			</header>
 			<!-- Заголовок КОНЕЦ -->
 			<!-- Контент НАЧАЛО -->
@@ -167,7 +168,14 @@
 									</svg>
 									<div>
 										<h3 class="fw-bold mb-0 fs-4 text-body-emphasis">Windows</h3>
-										<button class="btn btn-secondary btn-sm" type="button">Скачать</button>
+										<div class="btn-group">
+											<button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+												Скачать
+											</button>
+											<ul class="dropdown-menu">
+												<li><a class="dropdown-item" href="#" pkg="exe" architecture="x86_64">x86_64 <strong>[exe]</strong></a></li>
+											</ul>
+										</div>
 									</div>
 								</div>
 								<div class="col d-flex align-items-start">
@@ -182,8 +190,9 @@
 												Скачать
 											</button>
 											<ul class="dropdown-menu">
-												<li><a class="dropdown-item" href="#">Версия под <strong>Intel</strong></a></li>
-												<li><a class="dropdown-item" href="#">Версия под <strong>ARM</strong></a></li>
+												<li><a class="dropdown-item" href="#" pkg="pkg" architecture="arm">arm <strong>[pkg]</strong></a></li>
+												<li><hr class="dropdown-divider"></li>
+												<li><a class="dropdown-item" href="#" pkg="pkg" architecture="intel">intel <strong>[pkg]</strong></a></li>
 											</ul>
 										</div>
 									</div>
@@ -202,8 +211,17 @@
 												Скачать
 											</button>
 											<ul class="dropdown-menu">
-												<li><a class="dropdown-item" href="#">Версия под <strong>Intel</strong></a></li>
-												<li><a class="dropdown-item" href="#">Версия под <strong>ARM</strong></a></li>
+												<li><a class="dropdown-item" href="#" pkg="deb" architecture="arm64">arm64 <strong>[deb]</strong></a></li>
+												<li><hr class="dropdown-divider"></li>
+												<li><a class="dropdown-item" href="#" pkg="deb" architecture="amd64">amd64 <strong>[deb]</strong></a></li>
+												<li><hr class="dropdown-divider"></li>
+												<li><a class="dropdown-item" href="#" pkg="rpm" architecture="arm64">arm64 <strong>[rpm]</strong></a></li>
+												<li><hr class="dropdown-divider"></li>
+												<li><a class="dropdown-item" href="#" pkg="rpm" architecture="amd64">amd64 <strong>[rpm]</strong></a></li>
+												<li><hr class="dropdown-divider"></li>
+												<li><a class="dropdown-item" href="#" pkg="tar.gz" architecture="arm64">arm64 <strong>[tar.gz]</strong></a></li>
+												<li><hr class="dropdown-divider"></li>
+												<li><a class="dropdown-item" href="#" pkg="tar.gz" architecture="amd64">amd64 <strong>[tar.gz]</strong></a></li>
 											</ul>
 										</div>
 									</div>
@@ -214,7 +232,14 @@
 									</svg>
 									<div>
 										<h3 class="fw-bold mb-0 fs-4 text-body-emphasis">FreeBSD</h3>
-										<button class="btn btn-secondary btn-sm" type="button">Скачать</button>
+										<div class="btn-group">
+											<button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+												Скачать
+											</button>
+											<ul class="dropdown-menu">
+												<li><a class="dropdown-item" pkg="tar.gz" architecture="x86_64" href="#">x86_64 <strong>[tar.gz]</strong></a></li>
+											</ul>
+										</div>
 									</div>
 								</div>
 							</div>
