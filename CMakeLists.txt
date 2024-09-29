@@ -144,25 +144,11 @@ if(AWH_FOUND)
         message(STATUS "JeMalloc include dir found: " ${JEMALLOC_INCLUDE_DIR})
     endif()
 
-    # Сборка модуля AWH_EVENT2
-    if(CMAKE_BUILD_EVENT2)
-        # Сборка модуля AWH_IDN, если операционной системой не является Windows
-        if(CMAKE_BUILD_IDN AND (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows"))
-            message(STATUS "IDN2 include dir found: " ${IDN2_INCLUDE_DIR})
-            message(STATUS "ICONV include dir found: " ${ICONV_INCLUDE_DIR})
-        endif()
-        message(STATUS "LibEvent2 include dir found: " ${LIBEVENT_INCLUDE_DIR})
-    # Сборка модуля AWH_EV
-    else(CMAKE_BUILD_EVENT2)
-        # Сборка модуля AWH_IDN, если операционной системой не является Windows
-        if(CMAKE_BUILD_IDN AND (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows"))
-            message(STATUS "IDN2 include dir found: " ${IDN2_INCLUDE_DIR})
-            message(STATUS "ICONV include dir found: " ${ICONV_INCLUDE_DIR})
-        endif()
-        message(STATUS "LibEv EV include dir found: " ${LIBEV_EV_INCLUDE_DIR})
-        message(STATUS "LibEv EV++ include dir found: " ${LIBEV_EVPP_INCLUDE_DIR})
-        message(STATUS "LibEv EVENT include dir found: " ${LIBEV_EVENT_INCLUDE_DIR})
-    endif(CMAKE_BUILD_EVENT2)
+    # Сборка модуля AWH_IDN, если операционной системой не является Windows
+    if(CMAKE_BUILD_IDN AND (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows"))
+        message(STATUS "IDN2 include dir found: " ${IDN2_INCLUDE_DIR})
+        message(STATUS "ICONV include dir found: " ${ICONV_INCLUDE_DIR})
+    endif()
 else(AWH_FOUND)
     message(FATAL_ERROR "Dependence not found")
 endif(AWH_FOUND)
