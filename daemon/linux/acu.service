@@ -1,0 +1,35 @@
+[Unit]
+Description=ANYKS - convert utility
+Wants=network-online.target
+After=network.target
+
+[Service]
+Type=simple
+
+RestartSec=5s
+Restart=on-failure
+
+StartLimitBurst=5
+# StartLimitIntervalSec=500
+
+PIDFile=/run/acu.pid
+
+WorkingDirectory=/usr/bin
+
+User=root
+Group=root
+
+# Environment=TRM_DAEMON=true
+
+ExecStart=/usr/bin/acu-server --config=/etc/acu/config.json --log=/var/log/acu/acu.log --logLevel=6
+
+TimeoutSec=300
+
+# Specifies the maximum file descriptor number that can be opened by this process
+LimitNOFILE=65535
+
+# Specifies the maximum number of processes
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

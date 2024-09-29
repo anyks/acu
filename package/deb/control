@@ -1,0 +1,10 @@
+Package: @package@
+Version: @version@
+Priority: standard
+Section: non-free
+Architecture: @architecture@
+Depends: @dependencies@
+Maintainer: ANYKS
+Homepage: https://acu.anyks.com
+Installed-Size: @size@
+Description: ANYKS - convert utility (ACU)

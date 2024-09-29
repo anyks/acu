@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Custermize this for your application
+APPLICATION_FILE_PATH=bin/acu
+
+# Parameters
+PRODUCT_HOME=/opt/__PRODUCT__
+
+echo "Post installation process started"
+
+# Change permissions in home directory
+echo "Change permissions in product home"
+cd ${PRODUCT_HOME}
+
+[ -d /usr/local/bin ] || mkdir /usr/local/bin
+
+# Add application shortcut to /usr/local/bin
+rm -f /usr/local/bin/__PRODUCT__
+ln -s ${PRODUCT_HOME}/${APPLICATION_FILE_PATH} /usr/local/bin/__PRODUCT__
+echo "Post installation process finished"
+
+# Выставляем права доступа на каталог
+find . -type d ! -perm 755 -exec chmod 755 {} \;
+# Выставляем права доступа на файлы
+find . -type f ! -perm 644 -exec chmod 644 {} \;
+# Выставляем права доступа на исполняемые файлы
+find "./bin" -type f ! -perm 755 -exec chmod 755 {} \;
+# Выставляем права доступа на исполняемые файлы
+chmod +x ./uninstall.sh

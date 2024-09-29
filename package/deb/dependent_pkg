@@ -1,0 +1,5 @@
+libc6
+libstdc++6
+libgcc1
+libgcc-7-dev
+libsctp-dev
