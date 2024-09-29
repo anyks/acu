@@ -25,7 +25,7 @@
 // Телеграм-контакт
 #define ACU_CONTACT "@forman"
 // Адрес сайта автора
-#define ACU_SITE "https://anyks.com"
+#define ACU_SITE "https://acu.anyks.com"
 // Адрес электронной почты
 #define ACU_EMAIL "info@anyks.com"
 
