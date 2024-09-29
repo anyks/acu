@@ -2,16 +2,16 @@
 
 # ANYKS - convert utility (ACU) C++
 
-## Project goals and features
-
-- **INI**: supported conversion formats (JSON / XML / YAML)
-- **CSV**: supported conversion formats (JSON / XML / YAML)
-- **CEF**: supported conversion formats (JSON / XML / YAML)
-- **GROK**: supported conversion formats (JSON / XML / YAML)
-- **SYSLOG**: supported conversion formats (JSON / XML / YAML)
-- **JSON**: supported conversion formats (XML / CSV / CEF / YAML / INI / SYSLOG)
-- **XML**: supported conversion formats (JSON / CSV / CEF / YAML / INI / SYSLOG)
-- **YAML**: supported conversion formats (JSON / XML / CSV / CEF / INI / SYSLOG)
+### Format compatibility
+| **#**      | **XML** | **JSON** | **YAML** | **INI** | **CSV** | **CEF** | **SYSLOG** | **GROK** |
+|------------|---------|----------|----------|---------|---------|---------|------------|----------|
+| **XML**    | Yes     | Yes      | Yes      | Yes     | Yes     | Yes     | Yes        | Yes      |
+| **JSON**   | Yes     | Yes      | Yes      | Yes     | Yes     | Yes     | Yes        | Yes      |
+| **YAML**   | Yes     | Yes      | Yes      | Yes     | Yes     | Yes     | Yes        | Yes      |
+| **INI**    | Yes     | Yes      | Yes      | Yes     | No      | No      | No         | No       |
+| **CSV**    | Yes     | Yes      | Yes      | No      | Yes     | No      | No         | No       |
+| **CEF**    | Yes     | Yes      | Yes      | No      | No      | No      | No         | No       |
+| **SYSLOG** | Yes     | Yes      | Yes      | No      | No      | No      | No         | No       |
 
 ## Requirements
 

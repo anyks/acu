@@ -1,0 +1,152 @@
+/* Основные стили блоков сайта НАЧАЛО */
+html {background: white;}
+html, body {
+	margin:		0;
+	padding:	0;
+	border:		0;
+}
+body {
+	font:	14px/120% Arial, Verdana, Geneva Tahoma, Helvetica, sans-serif;
+	width:	90%;
+	margin:	0 auto;
+}
+html {overflow: auto;}
+/* KHTML сам нарисует скроллинг, не будем ему мешать */
+html:not(:nth-child(1)) {overflow: visible;}
+html, body, #body {
+	margin:		0;
+	padding:	0;
+	border:		0;
+	width:		100%;
+	height:		100%;
+}
+body, #body, #header, #container,
+#content, #left, #right, #footer {
+	position:	relative;
+	display:	block;
+}
+#body {margin: 0 auto;}			
+#container {
+	height:		auto !important;
+	height:		100%; /* для IE6 */
+	min-height:	100%;
+	margin:		-418px auto -29px;
+}
+* html #container {overflow: visible;}
+#header {
+	top:		0;
+	left:		0;
+	width:		auto;
+	height:		418px;
+	min-width:	1024px;
+	margin:		0 auto;
+	color:		black;
+	background:	white;
+	z-index:	1000;
+}
+/* компенсация высоты заголовка */
+#container .column {padding-top: 418px !important;}
+#footer {
+	width:		auto;
+	height:		58px;			/* Компенсация высоты футера */
+	margin:		-58px auto 0;	/* Компенсация высоты футера */
+	min-width:	1024px;
+	color:		white;
+	background:	#64aa1f;
+	z-index:	1000;
+}
+#container {
+	width:			auto;
+	min-width:		584px;
+	padding-left:	220px;
+	padding-right:	220px;
+	overflow:		hidden;
+	float:			left; /* IE 5.01 */
+	float/**/:		none;
+	z-index:		999;
+}
+#container.no_left {
+	min-width:		804px;
+	padding-left:	0;
+}
+#container.no_right {
+	min-width:		804px;
+	padding-right:	0;
+}
+#container.no_left.no_right {min-width: 1024px;}
+#left, #right, #content {
+	padding-bottom:	1000em !important;
+	margin-bottom:	-997em !important; /* компенсация высоты футера */
+	float:			left;
+}
+#left {
+	width:			220px;
+	margin-left:	-100%;
+	right:			220px;
+}
+/* У IE6 всё не как у людей */
+* html #left {left: 200px;}
+#right {
+	width:			220px;
+	margin-right:	-100%;
+}
+#content {width: 100%;}
+#left, #right, #content {
+	float:			left;
+	padding-bottom:	58px; /* компенсация высоты футера */
+}
+/* Прячем от IE/Mac \*/
+#left, #right, #content {
+	padding-bottom:	1000em !important;
+	margin-bottom:	-997em !important; 
+}
+/**/
+#container:after {
+	content:	'EasyClearing';
+	display:	block;
+	height:		0;
+	clear:		both;
+	visibility:	hidden;
+}
+#container {display: inline-block;}
+/*\*/
+#container {display: block;}
+/**/
+#container {
+	float:		left; /* IE 5.01 */
+	float/**/:	none;
+}
+@media all and (min-width: 0px) {
+	#left, #right, #content {
+		margin-bottom:	0 !important;
+		padding-bottom:	58px !important; /* Компенсация высоты футера */
+	}
+	#left:before, #right:before, #content:before {
+		display:		block;
+		height:			0;
+		background:		inherit;
+		padding-top:	1000em !important;
+		margin-bottom:	-1000em !important;
+		content:		'EasyClearing';
+	}
+}
+/* Стиль для выравнивания элементов сайта НАЧАЛО */
+.clearfix:after {
+	display:	block;
+	height:		0;
+	content:	".";
+	clear:		both;
+	visibility:	hidden;
+}
+/* IE6 */
+* html .clearfix {height: 1%;}
+/* IE7 */
+*:first-child + html .clearfix {min-height: 1%;}
+/* Стиль для выравнивания элементов сайта КОНЕЦ */
+* {
+	-webkit-touch-callout:			none;				/* prevent callout to copy image, etc when tap to hold */
+	-webkit-text-size-adjust:		none;				/* prevent webkit from resizing text to fit */
+	-webkit-tap-highlight-color:	rgba(0, 0, 0, 0);	/* prevent tap highlight color / shadow */
+	/* -webkit-user-select:			none; */			/* prevent copy paste, to allow, change 'none' to 'text' */
+}
+/* Основные стили блоков сайта КОНЕЦ */

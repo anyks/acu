@@ -1,0 +1,255 @@
+#body .block {
+	position:	relative;
+	top:		0;
+	left:		0;
+	width:		952px;
+	margin:		0 auto;
+	padding:	0 36px;
+}
+/* Header */
+#body .block .head {
+	position:	relative;
+	display:	block;
+	top:		0;
+	left:		0;
+	width:		952px;
+	height:		354px;
+	padding:	32px 0;
+}
+#body .block .head .text {
+	position:	absolute;
+	top:		0;
+	left:		auto;
+	right:		0;
+	width:		572px;
+	height:		354px;
+}
+#body .block .head .text h1 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	height:			36px;
+	line-height:	36px;
+	font-size:		36px;
+	font-weight:	bold;
+	margin:			0;
+	padding:		40px 0 30px;
+	color:			#ca482f;
+	vertical-align:	top;
+	text-align:		left;
+}
+#body .block .head .text h1 > span {color: #64aa1f;}
+#body .block .head .text h2 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	font-size:		24px;
+	font-weight:	500;
+	margin:			0;
+	padding:		0;
+	color:			#64aa1f;
+	vertical-align:	top;
+	text-align:		left;
+	line-height:	1.2em;
+}
+#body .block .head .text h3 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	font-size:		24px;
+	font-weight:	500;
+	margin:			0;
+	padding:		40px 0;
+	color:			#ca482f;
+	vertical-align:	top;
+	text-align:		left;
+	line-height:	22px;
+}
+#body .block .head .text h3 a {
+	color:				#ca482f;
+	cursor:				pointer;
+	outline:			none;
+	text-decoration:	none;
+}
+#body .block .head .text h3 a:hover {text-decoration: underline;}
+#body .block .head .text div {
+	position:		absolute;
+	display:		block;
+	top:			auto;
+	bottom:			80px;
+	left:			auto;
+	right:			0;
+	width:			auto;
+	height:			40px;
+	line-height:	40px;
+	vertical-align:	middle;
+	font-size:		24px;
+	color:			black;
+}
+#body .block .head .text div span {
+	position:		relative;
+	display:		inline-block;
+	top:			0;
+	left:			0;
+	width:			auto;
+	height:			40px;
+	margin:			0;
+	padding:		0 30px;
+	color:			white;
+	background:		#64aa1f;
+}
+/* Content */
+#body #container #content .wrap {
+	position:			relative;
+	top:				0;
+	left:				0;
+	background-color:	white;
+}
+#body #container
+#content .wrap:nth-child(odd) {background-color: #f4f4f3;}
+#body #container
+#content .wrap .block h3 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	width:			auto;
+	height:			52px;
+	font-size:		36px;
+	line-height:	70px;
+	margin:			0;
+	padding:		0;
+	color:			#4f5d73;
+	font-weight:	bold;
+	vertical-align:	bottom;
+	text-transform:	uppercase;
+}
+#body #container
+#content #addresses ol {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	margin:			0;
+	padding:		2em 3.4em 1em;
+}
+#body #container
+#content #addresses ol li {
+	position:		relative;
+	padding:		.6em 0;
+	color:			black;
+	line-height:	36px;
+	font-size:		36px;
+	font-family:	Helvetica, Arial, Verdana, Geneva Tahoma, sans-serif;
+}
+#body #container
+#content #addresses ol li a {
+	position:			relative;
+	display:			inline-block;
+	max-width:			800px;
+	height:				36px;
+	line-height:		36px;
+	vertical-align:		top;
+	color:				#ca482f;
+	outline:			none;
+	cursor:				pointer;
+	text-decoration:	none;
+	overflow:			hidden;
+	text-overflow:		ellipsis;
+}
+#body #container
+#content #addresses ol li a:hover {text-decoration: underline;}
+#body #container
+#content #addresses hr {
+	position:	relative;
+	display:	block;
+	top:		0;
+	left:		0;
+	width:		100%;
+	height:		2px;
+	background:	#64aa1f;
+	border:		none;
+}
+#body #container
+#content #addresses h4 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	height:			24px;
+	font-size:		24px;
+	line-height:	24px;
+	font-weight:	bold;
+	margin:			0;
+	padding:		1em 0;
+	color:			#4f5d73;
+}
+#body #container
+#content #addresses h4 span {font-weight: normal;}
+#body #container
+#content #addresses a[href*="mailto:"] {
+	position:			relative;
+	display:			inline-block;
+	top:				0;
+	left:				0;
+	height:				24px;
+	font-size:			24px;
+	line-height:		24px;
+	padding-bottom:		40px;
+	color:				#ca482f;
+	vertical-align:		top;
+	outline:			none;
+	cursor:				pointer;
+	text-decoration:	none;
+}
+#body #container
+#content #addresses a[href*="mailto:"]:hover {text-decoration: underline;}
+#body #container
+#content #altaddresses {
+	color:			black;
+	font-size:		24px;
+	line-height:	1.2em;
+}
+#body #container
+#content #altaddresses a {
+	position:			relative;
+	display:			inline-block;
+	max-width:			800px;
+	height:				36px;
+	line-height:		36px;
+	font-size:			36px;
+	margin-bottom:		1em;
+	vertical-align:		top;
+	color:				#ca482f;
+	outline:			none;
+	cursor:				pointer;
+	text-decoration:	none;
+	overflow:			hidden;
+	text-overflow:		ellipsis;
+}
+#body #container
+#content #altaddresses a:hover {text-decoration: underline;}
+/* Footer */
+#body #footer .copyright {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	width:			auto;
+	height:			58px;
+	line-height:	58px;
+	text-align:		center;
+	font-size:		14px;
+	color:			white;
+	vertical-align:	middle;
+}
+#body #footer .copyright a {
+	color:				white;
+	cursor:				pointer;
+	outline:			none;
+	text-decoration:	none;
+}
+#body #footer .copyright a:hover {text-decoration: underline;}

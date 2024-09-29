@@ -1,0 +1,188 @@
+#body .block {
+	position:	relative;
+	top:		0;
+	left:		0;
+	width:		952px;
+	margin:		0 auto;
+	padding:	0 36px;
+}
+/* Header */
+#body .block .head {
+	position:	relative;
+	display:	block;
+	top:		0;
+	left:		0;
+	width:		952px;
+	height:		500px;
+	padding:	32px 0;
+}
+#body .block .head .text {
+	position:	absolute;
+	top:		0;
+	left:		auto;
+	right:		0;
+	width:		572px;
+	height:		354px;
+}
+#body .block .head .text h1 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	height:			22px;
+	line-height:	22px;
+	font-size:		24px;
+	font-weight:	bold;
+	margin:			0;
+	padding:		40px 0 20px;
+	color:			#4f5d73;
+	vertical-align:	top;
+	text-align:		left;
+	text-transform:	uppercase;
+}
+#body .block .head .text h2 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	font-size:		24px;
+	font-weight:	500;
+	margin:			0;
+	padding:		20px 0;
+	color:			#64aa1f;
+	vertical-align:	top;
+	text-align:		left;
+	line-height:	1.2em;
+}
+#body .block .head .text h3 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	font-size:		24px;
+	font-weight:	500;
+	margin:			0;
+	padding:		0;
+	color:			#ca482f;
+	vertical-align:	top;
+	text-align:		left;
+	line-height:	22px;
+}
+#body .block .head .text h3 a {
+	color:				#ca482f;
+	cursor:				pointer;
+	outline:			none;
+	text-decoration:	none;
+}
+#body .block .head .text h3 a:hover {
+	text-decoration: underline;
+}
+/* Content */
+#body #container #content .wrap {
+	position:			relative;
+	top:				0;
+	left:				0;
+	background-color:	white;
+}
+#body #container #content .wrap:nth-child(odd) {
+	background-color: #fbfbfb;
+}
+#body #container #content .wrap .block {
+	padding: 20px 36px;
+}
+#body #container #content .wrap .block h3 {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	width:			auto;
+	height:			52px;
+	font-size:		24px;
+	line-height:	70px;
+	margin:			0;
+	padding:		0;
+	color:			#4f5d73;
+	font-weight:	bold;
+	vertical-align:	bottom;
+	text-transform:	uppercase;
+}
+#body #container #content .wrap .block .hidden {
+	display: none;
+}
+#body #container #content .wrap .block .button {
+	padding: 0 0 10px;
+}
+#body #container #content .wrap .block .CodeMirror {
+	height: 505px;
+}
+#body #container #content .wrap .block .card > .nav {
+	font-size:	small;
+	padding:	5px 10px;
+}
+#body #container #content .wrap .block .card > .spinner-border {
+	position:	absolute;
+	top:		10px;
+	right:		10px;
+}
+#body #container #content .wrap .block .CodeMirror span.cm-string {
+	color: #c13c98;
+}
+#body #container #content .wrap .block .CodeMirror span.cm-property {
+	color: #1d55d4;
+}
+#body #container #content .wrap .block #grok-template .CodeMirror {
+	height: 322px;
+}
+#body #container #content .wrap .block
+.CodeMirror pre.CodeMirror-line,
+#body #container #content .wrap .block
+.CodeMirror pre.CodeMirror-line-like {
+	font-size: small;
+}
+/* Основной контент */
+#body #container #content p {
+	position:		relative;
+	display:		block;
+	top:			0;
+	left:			0;
+	font-size:		18px;
+	color:			black;
+	padding:		14px 0;
+	margin:			0;
+	line-height:	1.5em;
+	word-spacing:	.2em;
+}
+/* Footer */
+#body .block .foot {
+	position:	relative;
+	display:	block;
+	top:		0;
+	left:		0;
+	width:		952px;
+	height:		20px;
+	padding:	30px 0;
+	font-size:	18px;
+}
+#body #footer .block {
+	padding: 0;
+}
+#body #footer .copyright {
+	position:	relative;
+	display:	block;
+	top:		0;
+	left:		0;
+	width:		auto;
+	height:		20px;
+	text-align:	center;
+	font-size:	14px;
+	color:		black;
+}
+#body #footer .copyright a {
+	color:				black;
+	cursor:				pointer;
+	outline:			none;
+	text-decoration:	none;
+}
+#body #footer .copyright a:hover {
+	text-decoration: underline;
+}
