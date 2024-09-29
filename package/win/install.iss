@@ -47,7 +47,7 @@ DisableDirPage=yes
 ChangesAssociations=yes
 ChangesEnvironment=yes
 DisableProgramGroupPage=yes
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesInstallIn64BitMode=x64compatible
 ; SetupIconFile="{#MyDir}\icon.ico"
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
