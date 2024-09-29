@@ -116,31 +116,31 @@ $ cmake --build .
 
 ### Example convert JSON to XML
 ```bash
-$ echo '{"Hello": "World!!!"}' | acu -from json -to xml -pretty
+$ echo '{"Hello": "World!!!"}' | acu -from json -to xml -prettify
 ```
 
 ---
 
 ### Example convert JSON to XML from file
 ```bash
-$ acu -from json -to xml -src ./example.json -pretty
+$ acu -from json -to xml -src ./example.json -prettify
 ```
 
 #### OR
 ```bash
-$ acu -from json -to xml -src ./example.json -dest ./result -pretty
+$ acu -from json -to xml -src ./example.json -dest ./result -prettify
 ```
 
 ---
 
 ### Example convert CSV to XML from file
 ```bash
-$ acu -from csv -to xml -src ./example.csv -header -pretty
+$ acu -from csv -to xml -src ./example.csv -header -prettify
 ```
 
 #### OR
 ```bash
-$ acu -from csv -to xml -src ./example.csv -dest ./result -header -pretty
+$ acu -from csv -to xml -src ./example.csv -dest ./result -header -prettify
 ```
 
 ---
@@ -159,41 +159,41 @@ $ acu -from json -to csv -src ./example.json -dest ./result -delim ","
 
 ### Example convert CEF to XML from file
 ```bash
-$ acu -from cef -to xml -src ./example.txt -cef low -pretty
+$ acu -from cef -to xml -src ./example.txt -cef low -prettify
 ```
 
 #### OR
 ```bash
-$ acu -from cef -to xml -src ./example.txt -dest ./result -cef low -pretty
+$ acu -from cef -to xml -src ./example.txt -dest ./result -cef low -prettify
 ```
 
 ---
 
 ### Example convert GROK to XML without patterns from file
 ```bash
-$ acu -from grok -to xml -src ./example.txt -express ./express.txt -pretty
+$ acu -from grok -to xml -src ./example.txt -express ./express.txt -prettify
 ```
 
 #### OR
 ```bash
-$ acu -from grok -to xml -src ./example.txt -express ./express.txt -dest ./result -pretty
+$ acu -from grok -to xml -src ./example.txt -express ./express.txt -dest ./result -prettify
 ```
 
 ---
 
 ### Example convert GROK to XML with patterns from file
 ```bash
-$ acu -from grok -to xml -src ./example.txt -express ./express.txt -patterns ./patterns.json -pretty
+$ acu -from grok -to xml -src ./example.txt -express ./express.txt -patterns ./patterns.json -prettify
 ```
 
 #### OR
 ```bash
-$ acu -from grok -to xml -src ./example.txt -express ./express.txt -patterns ./patterns.json -dest ./result -pretty
+$ acu -from grok -to xml -src ./example.txt -express ./express.txt -patterns ./patterns.json -dest ./result -prettify
 ```
 
 ---
 
 ### Example convert JSON to XML from folder
 ```bash
-$ acu -from json -to xml -src ./input -dest ./result -pretty
+$ acu -from json -to xml -src ./input -dest ./result -prettify
 ```
