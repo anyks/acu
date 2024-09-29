@@ -4,7 +4,16 @@
 		
 		/**
 		 * console.log("+++++++", window.k11.getValue());
+		 * 
+		 * 
 		 */
+
+		(async () => {
+
+			let k = await navigator.userAgentData.getHighEntropyValues(['architecture']);
+		
+			console.log(k.architecture, "==", k.platform);
+		})();
 
 		// Блок подсветки синтаксиса шаблонов GROK
 		let grokEditor = null;
