@@ -84,9 +84,9 @@ Root: HKCU; Subkey: "Console"; ValueType: dword; ValueName: "FontSize"; ValueDat
 Root: HKCU; Subkey: "Console"; ValueType: dword; ValueName: "CodePage"; ValueData: 65001
 Root: HKCU; Subkey: "Console"; ValueType: string; ValueName: "FaceName"; ValueData: "Lucida Console"
 
-[Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico";
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
+;[Icons]
+;Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico";
+;Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
 
 ;[Run]
 ;Filename: "REG"; Parameters: "ADD HKCU\Console /v CodePage /t REG_DWORD /d 65001 /f"; Flags: runasoriginaluser postinstall runhidden hidewizard dontlogparameters waituntilidle
