@@ -62,9 +62,6 @@ WizardStyle=modern
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-
 [Files]
 Source: "{#MyDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyDir}\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
@@ -83,6 +80,9 @@ Root: HKCU; Subkey: "Console"; ValueType: dword; ValueName: "QuickEdit"; ValueDa
 Root: HKCU; Subkey: "Console"; ValueType: dword; ValueName: "FontSize"; ValueData: 12
 Root: HKCU; Subkey: "Console"; ValueType: dword; ValueName: "CodePage"; ValueData: 65001
 Root: HKCU; Subkey: "Console"; ValueType: string; ValueName: "FaceName"; ValueData: "Lucida Console"
+
+;[Tasks]
+;Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 ;[Icons]
 ;Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico";
