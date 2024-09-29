@@ -95,6 +95,25 @@
 					fromEditor.setOption("mode", "shell");
 					// Активируем вывод номеров строк
 					fromEditor.setOption("lineNumbers", false);
+					// Блокируем вкладку конвертера
+					$("#to > li > a[href=#INI]").addClass("disabled");
+					$("#to > li > a[href=#CSV]").addClass("disabled");
+					$("#to > li > a[href=#CEF]").addClass("disabled");
+					$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+					// Получаем активный элемент
+					switch($("#to > li > a.active").text()){
+						// Если ковертер выбран INI
+						case "INI":
+						// Если ковертер выбран CSV
+						case "CSV":
+						// Если ковертер выбран CEF
+						case "CEF":
+						// Если ковертер выбран SYSLOG
+						case "SYSLOG":
+							// Переключаем на вкладку по умолчанию
+							$("#to > li > a[href=#JSON]").click();
+						break;
+					}
 				// Если мы работаем с другими парсерами
 				} else {
 					// Если блок ввода шаблонов GROK не скрыт
@@ -116,6 +135,11 @@
 							fromEditor.setOption("mode", "xml");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Снимаем блокировку вкладки конвертера
+							$("#to > li > a[href=#INI]").removeClass("disabled");
+							$("#to > li > a[href=#CSV]").removeClass("disabled");
+							$("#to > li > a[href=#CEF]").removeClass("disabled");
+							$("#to > li > a[href=#SYSLOG]").removeClass("disabled");
 						} break;
 						// Если ковертер выбран JSON
 						case "JSON": {
@@ -123,6 +147,11 @@
 							fromEditor.setOption("mode", "javascript");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Снимаем блокировку вкладки конвертера
+							$("#to > li > a[href=#INI]").removeClass("disabled");
+							$("#to > li > a[href=#CSV]").removeClass("disabled");
+							$("#to > li > a[href=#CEF]").removeClass("disabled");
+							$("#to > li > a[href=#SYSLOG]").removeClass("disabled");
 						} break;
 						// Если ковертер выбран YAML
 						case "YAML": {
@@ -130,6 +159,11 @@
 							fromEditor.setOption("mode", "yaml");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Снимаем блокировку вкладки конвертера
+							$("#to > li > a[href=#INI]").removeClass("disabled");
+							$("#to > li > a[href=#CSV]").removeClass("disabled");
+							$("#to > li > a[href=#CEF]").removeClass("disabled");
+							$("#to > li > a[href=#SYSLOG]").removeClass("disabled");
 						} break;
 						// Если ковертер выбран INI
 						case "INI": {
@@ -137,6 +171,24 @@
 							fromEditor.setOption("mode", "toml");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Снимаем блокировку вкладки конвертера
+							$("#to > li > a[href=#INI]").removeClass("disabled");
+							// Блокируем вкладку конвертера
+							$("#to > li > a[href=#CSV]").addClass("disabled");
+							$("#to > li > a[href=#CEF]").addClass("disabled");
+							$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+							// Получаем активный элемент
+							switch($("#to > li > a.active").text()){
+								// Если ковертер выбран CSV
+								case "CSV":
+								// Если ковертер выбран CEF
+								case "CEF":
+								// Если ковертер выбран SYSLOG
+								case "SYSLOG":
+									// Переключаем на вкладку по умолчанию
+									$("#to > li > a[href=#JSON]").click();
+								break;
+							}
 						} break;
 						// Если ковертер выбран CSV
 						case "CSV": {
@@ -144,6 +196,24 @@
 							fromEditor.setOption("mode", "shell");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Снимаем блокировку вкладки конвертера
+							$("#to > li > a[href=#CSV]").removeClass("disabled");
+							// Блокируем вкладку конвертера
+							$("#to > li > a[href=#INI]").addClass("disabled");
+							$("#to > li > a[href=#CEF]").addClass("disabled");
+							$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+							// Получаем активный элемент
+							switch($("#to > li > a.active").text()){
+								// Если ковертер выбран INI
+								case "INI":
+								// Если ковертер выбран CEF
+								case "CEF":
+								// Если ковертер выбран SYSLOG
+								case "SYSLOG":
+									// Переключаем на вкладку по умолчанию
+									$("#to > li > a[href=#JSON]").click();
+								break;
+							}
 						} break;
 						// Если ковертер выбран любой другой
 						default: {
@@ -151,6 +221,25 @@
 							fromEditor.setOption("mode", "shell");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", false);
+							// Блокируем вкладку конвертера
+							$("#to > li > a[href=#INI]").addClass("disabled");
+							$("#to > li > a[href=#CSV]").addClass("disabled");
+							$("#to > li > a[href=#CEF]").addClass("disabled");
+							$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+							// Получаем активный элемент
+							switch($("#to > li > a.active").text()){
+								// Если ковертер выбран INI
+								case "INI":
+								// Если ковертер выбран CSV
+								case "CSV":
+								// Если ковертер выбран CEF
+								case "CEF":
+								// Если ковертер выбран SYSLOG
+								case "SYSLOG":
+									// Переключаем на вкладку по умолчанию
+									$("#to > li > a[href=#JSON]").click();
+								break;
+							}
 						} break;
 					}
 				}
