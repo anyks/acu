@@ -8,13 +8,6 @@
 		 * 
 		 */
 
-		(async () => {
-
-			let k = await navigator.userAgentData.getHighEntropyValues(['architecture']);
-		
-			console.log(k.architecture, "==", k.platform);
-		})();
-
 		// Блок подсветки синтаксиса шаблонов GROK
 		let grokEditor = null;
 		// Выполняем инициализацию блока подсветки синтаксиса для редактора формата из которого производится конвертация

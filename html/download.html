@@ -14,11 +14,15 @@
 		<script src="js/general/jquery.min.js"></script>
 		<script src="js/general/codemirror.js"></script>
 		<script src="js/general/mode/shell.js"></script>
+		<script src="js/main/jquery.download.js"></script>
+		<script src="js/main/popper.min.js"></script>
 		<script src="js/main/bootstrap.min.js"></script>
-		<script src="js/main/bootstrap.bundle.min.js"></script>
 		<style>
+			.hidden {display: none;}
 			.CodeMirror {height: auto;}
 		</style>
+		<meta name="description" content="Скачать утилиту ACU">
+		<meta name="keywords" content="acu скачать, скачать утилиту acu, скачать acu на компьютер, скачать acu под windows, скачать acu под macos, скачать acu под freebsd, скачать acu под linux, скачать acu tar.gz, скачать acu rpm, скачать acu deb, скачать acu pkg, скачать acu exe">
 	</head>
 	<body>
 		<div class="col-lg-8 mx-auto p-4 py-md-5">
@@ -158,7 +162,13 @@
 					<div class="row row-cols-1 row-cols-md-2 align-items-md-center g-5 py-5">
 						<div class="col d-flex flex-column align-items-start gap-2">
 							<p class="text-body-secondary">Утилитой конвертации текстовых форматов <strong>ACU</strong>, вы сможете запустить пакетную обработку без ограничений и абсолютно бесплатно, а также выполнять структурирование неструктурированных данных с помощью <strong>GROK</strong>.</p>
-							<a href="#" class="btn btn-primary btn-lg">Скачать</a>
+							<a class="btn btn-primary btn-lg" id="download" href="#">Скачать</a>
+							<div class="btn-group hidden" id="download_some">
+								<button class="btn btn-primary btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+									Скачать
+								</button>
+								<ul class="dropdown-menu"></ul>
+							</div>
 						</div>
 						<div class="col">
 							<div class="row row-cols-1 row-cols-sm-2 g-4">
@@ -172,8 +182,8 @@
 											<button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 												Скачать
 											</button>
-											<ul class="dropdown-menu">
-												<li><a class="dropdown-item" href="#" pkg="exe" architecture="x86_64">x86_64 <strong>[exe]</strong></a></li>
+											<ul class="dropdown-menu" id="windows">
+												<li><a class="dropdown-item" href="#win64" pkg="exe" architecture="x86_64">x86_64 <strong>[exe]</strong></a></li>
 											</ul>
 										</div>
 									</div>
@@ -189,10 +199,10 @@
 											<button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 												Скачать
 											</button>
-											<ul class="dropdown-menu">
-												<li><a class="dropdown-item" href="#" pkg="pkg" architecture="arm">arm <strong>[pkg]</strong></a></li>
+											<ul class="dropdown-menu" id="macos">
+												<li><a class="dropdown-item" href="#macARM" pkg="pkg" architecture="arm">arm <strong>[pkg]</strong></a></li>
 												<li><hr class="dropdown-divider"></li>
-												<li><a class="dropdown-item" href="#" pkg="pkg" architecture="intel">intel <strong>[pkg]</strong></a></li>
+												<li><a class="dropdown-item" href="#macIntel" pkg="pkg" architecture="intel">intel <strong>[pkg]</strong></a></li>
 											</ul>
 										</div>
 									</div>
@@ -210,7 +220,7 @@
 											<button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 												Скачать
 											</button>
-											<ul class="dropdown-menu">
+											<ul class="dropdown-menu" id="linux">
 												<li><a class="dropdown-item" href="#" pkg="deb" architecture="arm64">arm64 <strong>[deb]</strong></a></li>
 												<li><hr class="dropdown-divider"></li>
 												<li><a class="dropdown-item" href="#" pkg="deb" architecture="amd64">amd64 <strong>[deb]</strong></a></li>
@@ -236,8 +246,8 @@
 											<button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 												Скачать
 											</button>
-											<ul class="dropdown-menu">
-												<li><a class="dropdown-item" pkg="tar.gz" architecture="x86_64" href="#">x86_64 <strong>[tar.gz]</strong></a></li>
+											<ul class="dropdown-menu" id="freebsd">
+												<li><a class="dropdown-item" pkg="tar.gz" architecture="x86_64" href="#freebsd">x86_64 <strong>[tar.gz]</strong></a></li>
 											</ul>
 										</div>
 									</div>
