@@ -29,31 +29,36 @@ using namespace anyks;
 
 /**
  * help Функция вывода справки
+ * @param name название приложения
  */
-static void help() noexcept {
-	// Формируем строку справки
-	const string msg = "\r\n\x1B[32m\x1B[1musage:\x1B[0m acu [-V | --version] [-H | --info] [<args>]\r\n\r\n\r\n"
-	"\x1B[34m\x1B[1m[FLAGS]\x1B[0m\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Flag for generating headers when parsing CSV files: \x1B[1m[-header | --header]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Flag for generating a readable file format (XML or JSON): \x1B[1m[-prettify | --prettify]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Display application version: \x1B[1m[-version | --version | -V]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Display information about available application functions: \x1B[1m[-info | --info | -H]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m[ARGS]\x1B[0m\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Separator for parsing CSV files (default: \";\"): \x1B[1m[-delim <value> | --delim=<value>]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Log generation date format (if required): \x1B[1m[-formatDate <value> | --formatDate=<value>]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m CEF file parsing mode: \x1B[1m[-cef <value> | --cef=<value>]\x1B[0m\r\n"
-	"\x1B[32m\x1B[1m  -\x1B[0m (LOW | MEDIUM | STRONG)\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m File format to which the writing is made: \x1B[1m[-to <value> | --to=<value>]\x1B[0m\r\n"
-	"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG)\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Format of the file from which reading is performed: \x1B[1m[-from <value> | --from=<value>]\x1B[0m\r\n"
-	"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK)\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m File or directory address for saving converted files: \x1B[1m[-dest <value> | --dest=<value>]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m File address for writing trade logs (if required): \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Address of the file or directory with files to convert: \x1B[1m[-src <value> | --src=<value>]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Address of the file in JSON format with GROK templates: \x1B[1m[-patterns <value> | --patterns=<value>]\x1B[0m\r\n\r\n"
-	"\x1B[34m\x1B[1m*\x1B[0m Address of the file with the regular expression in GROK format: \x1B[1m[-express <value> | --express=<value>]\x1B[0m\r\n\r\n";
-	// Выводим сообщение справки
-	cout << msg << endl;
+static void help(const string & name) noexcept {
+	// Если название приложения получено
+	if(!name.empty()){
+		// Формируем строку справки
+		const string msg = "\r\n\x1B[32m\x1B[1musage:\x1B[0m %s [-V | --version] [-H | --info] [<args>]\r\n\r\n\r\n"
+		"\x1B[34m\x1B[1m[FLAGS]\x1B[0m\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Flag for generating headers when parsing CSV files: \x1B[1m[-header | --header]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Flag for generating a readable file format (XML or JSON): \x1B[1m[-prettify | --prettify]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Display application version: \x1B[1m[-version | --version | -V]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Display information about available application functions: \x1B[1m[-info | --info | -H]\x1B[0m\r\n\r\n"
+		"\x1B[34m\x1B[1m[ARGS]\x1B[0m\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Separator for parsing CSV files (default: \";\"): \x1B[1m[-delim <value> | --delim=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Format date: \x1B[1m[-formatDate \"<value>\" | --formatDate=\"<value>\"]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m ( %%m/%%d/%%Y %%H:%%M:%%S | %%H:%%M:%%S %%d.%%m.%%Y | ... )\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m CEF file parsing mode: \x1B[1m[-cef <value> | --cef=<value>]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m (LOW | MEDIUM | STRONG)\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m File format to which the writing is made: \x1B[1m[-to <value> | --to=<value>]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG)\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Format of the file from which reading is performed: \x1B[1m[-from <value> | --from=<value>]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK)\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m File or directory address for saving converted files: \x1B[1m[-dest <value> | --dest=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m File address for writing trade logs (if required): \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Address of the file or directory with files to convert: \x1B[1m[-src <value> | --src=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Address of the file in JSON format with GROK templates: \x1B[1m[-patterns <value> | --patterns=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Address of the file with the regular expression in GROK format: \x1B[1m[-express <value> | --express=<value>]\x1B[0m\r\n\r\n";
+		// Выводим сообщение справки
+		printf(msg.c_str(), name.c_str());
+	}
 }
 /**
  * version Функция вывода версии приложения
@@ -167,8 +172,8 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 		env_t env(ACU_SHORT_NAME, "text", &fmk, &log);
 		// Устанавливаем название сервиса
 		log.name(ACU_SHORT_NAME);
-		// Текстовое значение полученное из потока
-		string text = "";
+		// Название приложения и текстовое значение полученное из потока
+		string name = "", text = "";
 		// Создаём формат даты
 		string formatDate = DATE_FORMAT;
 		// Считываем строку из буфера stdin
@@ -189,14 +194,46 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 		 * Выполняем работу для Windows
 		 */
 		#if defined(_WIN32) || defined(_WIN64)
-			// Выполняем инициализацию переданных параметров
-			env.init(reinterpret_cast <const wchar_t **> (params), static_cast <uint8_t> (count));
+			{
+				// Получаем компоненты адреса приложения
+				const auto & components = fs.components(fmk.convert(wstring{params[0]}), false);
+				// Если расширение файла установлено а названия нет, выполняем корректировку
+				if(!components.second.empty() && components.first.empty()){
+					// Устанавливаем название файла
+					name.append(1, '.');
+					// Устанавливаем основное название файла
+					name.append(components.second);
+				// Если название файла и расширение получено
+				} else if(!components.first.empty() && !components.second.empty())
+					// Формируем название приложения
+					name = fmk.format("%s.%s", components.first.c_str(), components.second.c_str());
+				// Устанавливаем название файла как оно есть
+				else name = components.first;
+				// Выполняем инициализацию переданных параметров
+				env.init(reinterpret_cast <const wchar_t **> (params), static_cast <uint8_t> (count));
+			}
 		/**
 		 * Выполняем работу для Unix
 		 */
 		#else
-			// Выполняем инициализацию переданных параметров
-			env.init(reinterpret_cast <const char **> (params), static_cast <uint8_t> (count));
+			{
+				// Получаем компоненты адреса приложения
+				const auto & components = fs.components(string{params[0]}, false);
+				// Если расширение файла установлено а названия нет, выполняем корректировку
+				if(!components.second.empty() && components.first.empty()){
+					// Устанавливаем название файла
+					name.append(1, '.');
+					// Устанавливаем основное название файла
+					name.append(components.second);
+				// Если название файла и расширение получено
+				} else if(!components.first.empty() && !components.second.empty())
+					// Формируем название приложения
+					name = fmk.format("%s.%s", components.first.c_str(), components.second.c_str());
+				// Устанавливаем название файла как оно есть
+				else name = components.first;
+				// Выполняем инициализацию переданных параметров
+				env.init(reinterpret_cast <const char **> (params), static_cast <uint8_t> (count));
+			}
 		#endif
 		// Если формат вывода лога передан
 		if(env.is("formatDate", true))
@@ -207,7 +244,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 		// Если нужно вывести справочную помощь
 		if(!env.size() || (env.is("info") || env.is("H"))){
 			// Выводим справочную информацию
-			help();
+			help(name);
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
 		// Если версия получена

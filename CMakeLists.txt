@@ -169,6 +169,7 @@ set(SOURCE_FILES
     "${CMAKE_SOURCE_DIR}/src/grok.cpp"
     "${CMAKE_SOURCE_DIR}/src/syslog.cpp"
     "${CMAKE_SOURCE_DIR}/src/parser.cpp"
+    "${CMAKE_SOURCE_DIR}/src/server.cpp"
 )
 
 # Задаем именя библиотеки и бинарника
@@ -203,12 +204,12 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
     # Выполняем создание приложений
     add_executable(${ACU_APP_NAME} app/acu.cpp ${RES_FILES})
-    # add_executable(${SERVER_APP_NAME} app/server.cpp ${RES_FILES})
+    add_executable(${SERVER_APP_NAME} app/server.cpp ${RES_FILES})
 # Если операционной системой является Linux, FreeBSD, MacOS X
 else()
     # Выполняем создание приложений
     add_executable(${ACU_APP_NAME} app/acu.cpp)
-    # add_executable(${SERVER_APP_NAME} app/server.cpp)
+    add_executable(${SERVER_APP_NAME} app/server.cpp)
 endif()
 
 # Выполняем восстановление названия приложения
@@ -239,12 +240,12 @@ if(CMAKE_SHARED_BUILD_LIB)
         )
 
         # Выполняем сборку приложения сервера
-        # target_link_libraries(
-        #     ${SERVER_APP_NAME}
-        #     ${ACU_LIB_NAME}
-        #     ${WINFLAGS}
-        #     ${AWH_IDN}
-        # )
+        target_link_libraries(
+            ${SERVER_APP_NAME}
+            ${ACU_LIB_NAME}
+            ${WINFLAGS}
+            ${AWH_IDN}
+        )
 
     # Если операционной системой является Linux, FreeBSD, MacOS X
     else()
@@ -265,10 +266,10 @@ if(CMAKE_SHARED_BUILD_LIB)
         )
 
         # Выполняем сборку приложения сервера
-        # target_link_libraries(
-        #     ${SERVER_APP_NAME}
-        #     ${ACU_LIB_NAME}
-        # )
+        target_link_libraries(
+            ${SERVER_APP_NAME}
+            ${ACU_LIB_NAME}
+        )
 
     endif()
 # Если нужно собрать и статическую библиотеку
@@ -288,15 +289,15 @@ else(CMAKE_SHARED_BUILD_LIB)
         )
 
         # Выполняем сборку приложения сервера
-        # target_link_libraries(
-        #     ${SERVER_APP_NAME}
-        #     ${ACU_LIB_NAME}
-        #     ${XML_LIBRARY}
-        #     ${YAML_LIBRARY}
-        #     ${AWH_LIBRARIES}
-        #     ${WINFLAGS}
-        #     ${AWH_IDN}
-        # )
+        target_link_libraries(
+            ${SERVER_APP_NAME}
+            ${ACU_LIB_NAME}
+            ${XML_LIBRARY}
+            ${YAML_LIBRARY}
+            ${AWH_LIBRARIES}
+            ${WINFLAGS}
+            ${AWH_IDN}
+        )
 
     # Если операционной системой является Linux, FreeBSD, MacOS X
     else()
@@ -311,13 +312,13 @@ else(CMAKE_SHARED_BUILD_LIB)
         )
 
         # Выполняем сборку приложения сервера
-        # target_link_libraries(
-        #     ${SERVER_APP_NAME}
-        #     ${ACU_LIB_NAME}
-        #     ${XML_LIBRARY}
-        #     ${YAML_LIBRARY}
-        #     ${AWH_LIBRARIES}
-        # )
+        target_link_libraries(
+            ${SERVER_APP_NAME}
+            ${ACU_LIB_NAME}
+            ${XML_LIBRARY}
+            ${YAML_LIBRARY}
+            ${AWH_LIBRARIES}
+        )
 
     endif()
 endif(CMAKE_SHARED_BUILD_LIB)
@@ -333,11 +334,11 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
             VERBATIM
         )
 
-        # add_custom_command(TARGET "${SERVER_APP_NAME}" POST_BUILD
-        #     COMMAND bash "${CMAKE_SOURCE_DIR}/core_dump.sh" "$<TARGET_FILE:${SERVER_APP_NAME}>" "${entitlements_file}"
-        #     COMMENT "Sign target \"${SERVER_APP_NAME}\" to enable core dump on MacOS X"
-        #     VERBATIM
-        # )
+        add_custom_command(TARGET "${SERVER_APP_NAME}" POST_BUILD
+            COMMAND bash "${CMAKE_SOURCE_DIR}/core_dump.sh" "$<TARGET_FILE:${SERVER_APP_NAME}>" "${entitlements_file}"
+            COMMENT "Sign target \"${SERVER_APP_NAME}\" to enable core dump on MacOS X"
+            VERBATIM
+        )
 
     endif()
     # Сборка модуля CMAKE_ENABLED_PVS
@@ -352,7 +353,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
         include("${pvs_cmakemodule_SOURCE_DIR}/PVS-Studio.cmake")
         # Выполняем анализ собранных приложений
         pvs_studio_add_target(TARGET ${ACU_APP_NAME}.analyze ALL OUTPUT FORMAT json ANALYZE ${ACU_APP_NAME} MODE GA:1,2 LOG target.err ARGS -e ${CMAKE_CURRENT_BINARY_DIR})
-        # pvs_studio_add_target(TARGET ${SERVER_APP_NAME}.analyze ALL OUTPUT FORMAT json ANALYZE ${SERVER_APP_NAME} MODE GA:1,2 LOG target.err ARGS -e ${CMAKE_CURRENT_BINARY_DIR})
+        pvs_studio_add_target(TARGET ${SERVER_APP_NAME}.analyze ALL OUTPUT FORMAT json ANALYZE ${SERVER_APP_NAME} MODE GA:1,2 LOG target.err ARGS -e ${CMAKE_CURRENT_BINARY_DIR})
     endif(CMAKE_ENABLED_PVS)
 endif()
 
@@ -380,4 +381,4 @@ install(TARGETS ${ACU_LIB_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
 
 # Устанавливаем исполнительные файлы
 install(TARGETS ${ACU_APP_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/${CMAKE_PROJECT_NAME}")
-# install(TARGETS ${SERVER_APP_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/${CMAKE_PROJECT_NAME}")
+install(TARGETS ${SERVER_APP_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/${CMAKE_PROJECT_NAME}")

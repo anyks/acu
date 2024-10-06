@@ -1,0 +1,46 @@
+{
+	
+	"ssl": {
+		"key": "",
+		"cert": "",
+		"verify": false
+	},
+	"net": {
+		"ipv": 4,
+		"sonet": "tcp",
+		"host": "127.0.0.1",
+		"port": 2222,
+		"proto": "http2",
+		"unixSocket": "",
+		"total": 100,
+		"ipv6": false,
+		"filter": {
+			"type": "mac",
+			"black": [],
+			"white": []
+		},
+		"compress": [
+			"ZSTD",
+			"BROTLI",
+			"GZIP",
+			"DEFLATE"
+		],
+		"authentication": {
+			"enabled": false,
+			"auth": "Basic",
+			"digest": "MD5",
+			"users": {"admin": "admin"}
+		},
+		"bandwidth": {
+			"read": "20Mbps",
+			"write": "20Mbps"
+		}
+	},
+	"daemon": false,
+	"root": "./html",
+	"log": "./acu.log",
+	"pidfile": "acu.pid",
+	"favicon": "./icons/icon.ico",
+	"origin": "https://anyks.com",
+	"formatDate": "%H:%M:%S %d.%m.%Y"
+}
