@@ -42,17 +42,19 @@ static void help(const string & name) noexcept {
 		"\x1B[33m\x1B[1m+\x1B[0m Display application version: \x1B[1m[-version | --version | -V]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Display information about available application functions: \x1B[1m[-info | --info | -H]\x1B[0m\r\n\r\n"
 		"\x1B[34m\x1B[1m[ARGS]\x1B[0m\r\n"
-		"\x1B[33m\x1B[1m+\x1B[0m Separator for parsing CSV files (default: \";\"): \x1B[1m[-delim <value> | --delim=<value>]\x1B[0m\r\n\r\n"
-		"\x1B[33m\x1B[1m+\x1B[0m Format date: \x1B[1m[-formatDate \"<value>\" | --formatDate=\"<value>\"]\x1B[0m\r\n"
-		"\x1B[32m\x1B[1m  -\x1B[0m ( %%m/%%d/%%Y %%H:%%M:%%S | %%H:%%M:%%S %%d.%%m.%%Y | ... )\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m CEF file parsing mode: \x1B[1m[-cef <value> | --cef=<value>]\x1B[0m\r\n"
 		"\x1B[32m\x1B[1m  -\x1B[0m (LOW | MEDIUM | STRONG)\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m File format to which the writing is made: \x1B[1m[-to <value> | --to=<value>]\x1B[0m\r\n"
 		"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG)\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Format of the file from which reading is performed: \x1B[1m[-from <value> | --from=<value>]\x1B[0m\r\n"
 		"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK)\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Format date (if required): \x1B[1m[-formatDate \"<value>\" | --formatDate=\"<value>\"]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m ( %%m/%%d/%%Y %%H:%%M:%%S | %%H:%%M:%%S %%d.%%m.%%Y | ... )\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Logging level (if required): \x1B[1m[-logLevel <value> | --logLevel=<value>]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m ( 0 = NONE | 1 = INFO | 2 = WARNING | 3 = CRITICAL | 4 = INFO and WARNING | 5 = INFO and CRITICAL | 6 = WARNING CRITICAL | 7 = ALL)\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m File address for writing logs (if required): \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m File or directory address for saving converted files: \x1B[1m[-dest <value> | --dest=<value>]\x1B[0m\r\n\r\n"
-		"\x1B[33m\x1B[1m+\x1B[0m File address for writing trade logs (if required): \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Separator for parsing CSV files (default: \";\"): \x1B[1m[-delim <value> | --delim=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Address of the file or directory with files to convert: \x1B[1m[-src <value> | --src=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Address of the file in JSON format with GROK templates: \x1B[1m[-patterns <value> | --patterns=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Address of the file with the regular expression in GROK format: \x1B[1m[-express <value> | --express=<value>]\x1B[0m\r\n\r\n";
@@ -265,6 +267,14 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
 		}
+		// Если уровень логирования передан
+		if(env.isNumber("logLevel"))
+			// Выполняем установку уровня логирования
+			log.level(static_cast <log_t::level_t> (env.get <uint8_t> ("logLevel")));
+		// Если уровень логирования прописан в конфигурационном файле
+		else if(env.isNumber("logLevel", true))
+			// Выполняем установку уровня логирования из конфигурационного файла
+			log.level(static_cast <log_t::level_t> (env.get <uint8_t> ("logLevel", true)));
 		// Если указанны форматы конвертирования
 		if(env.isString("from") && env.isString("to")){
 			// Регулярное выражение в формате GROK
