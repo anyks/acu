@@ -235,6 +235,23 @@ void anyks::Server::config(const json & config) noexcept {
 			if(config.contains("root") && config.at("root").is_string())
 				// Выполняем установку корневого адреса
 				this->_root = config.at("root").get <string> ();
+			// Если количество воркеров получено
+			if(config.contains("workers") && config.at("workers").is_number()){
+				// Получаем количество доступных потоков
+				const int16_t count = config.at("workers").get <uint16_t> ();
+				// Если количество воркеров установлено
+				if(count >= 0){
+					// Получаем количество доступных потоков
+					const uint16_t threads = std::thread::hardware_concurrency();
+					// Если количество потоков больше одного
+					if(threads > 1){
+						// Разрешаем выполняем автоматический перезапуск упавшего процесса
+						this->_core.clusterAutoRestart(true);
+						// Активируем максимальное количество рабочих процессов
+						this->_core.cluster(awh::scheme_t::mode_t::ENABLED, (count > 0 ? count : (threads / 2)));
+					}
+				}
+			}
 			// Если сетевые параметры работы с сервером присутствуют в конфиге
 			if(config.contains("net") && config.at("net").is_object()){
 				// Если максимальное количество подключений указано в конфиге

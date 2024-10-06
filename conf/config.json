@@ -36,6 +36,7 @@
 			"write": "20Mbps"
 		}
 	},
+	"workers": 0,
 	"daemon": false,
 	"root": "./html",
 	"log": "./acu.log",
