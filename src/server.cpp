@@ -504,6 +504,10 @@ void anyks::Server::config(const json & config) noexcept {
 						this->_awh.opaque(this->_fmk->hash(std::to_string(::time(nullptr)), fmk_t::hash_t::MD5));
 					}
 				}
+				// Если время ожидания получения сообщения передано
+				if(config.at("net").contains("wait") && config.at("net").at("wait").is_number())
+					// Выполняем установку времени ожидания получения сообщения
+					this->_awh.waitMessage(config.at("net").at("wait").get <time_t> ());
 				// Если фильтры доступа к серверу переданы
 				if(config.at("net").contains("filter") && config.at("net").at("filter").is_object()){
 					// Создаём объект для работы с IP-адресами

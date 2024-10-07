@@ -7,6 +7,7 @@
 	},
 	"net": {
 		"ipv": 4,
+		"wait": 15,
 		"sonet": "tcp",
 		"host": "127.0.0.1",
 		"port": 2222,
