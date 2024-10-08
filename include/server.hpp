@@ -26,6 +26,7 @@
 /**
  * Модули AWH
  */
+#include <client/awh.hpp>
 #include <server/awh.hpp>
 #include <nlohmann/json.hpp>
 
@@ -64,11 +65,15 @@ namespace anyks {
 				Bandwidth() noexcept : read{"100Mbps"}, write{"100Mbps"} {}
 			} bandwidth_t;
 		private:
-			// Модуль работы с файловой системой
+			// Объект работы с файловой системой
 			fs_t _fs;
+			// Объект работы с URI параметрами
+			uri_t _uri;
 		private:
 			// Адрес корневого каталога с сайтом
 			string _root;
+			// Адрес файла по умолчанию
+			string _index;
 			// Адрес сайта которому разрешён доступ к ресурсу
 			string _origin;
 			// Адрес хранения favicon.ico
@@ -98,6 +103,9 @@ namespace anyks {
 			// Список запрещённых IP-адресов для DNS
 			unordered_map <string, string> _dnsBlack;
 		private:
+			// Кэш контента содержимого сайта
+			unordered_map <string, vector <char>> _cache;
+		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;
 			// Объект работы с логами
@@ -108,6 +116,14 @@ namespace anyks {
 			 * @param sig номер сигнала операционной системы
 			 */
 			void crash(const int sig) noexcept;
+			/**
+			 * error Метод генерации ошибки
+			 * @param sid  идентификатор потока
+			 * @param bid  идентификатор брокера
+			 * @param code код ответа сервера
+			 * @param mess сообщение ответа клиенту
+			 */
+			void error(const int32_t sid, const uint64_t bid, const uint16_t code, const string & mess) noexcept;
 		private:
 			/**
 			 * password Метод извлечения пароля (для авторизации методом Digest)

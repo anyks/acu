@@ -1,3 +1,5 @@
+/* Основная разметка */
+#body {font-family: "Nunito Sans";}
 #body .block {
 	position:	relative;
 	top:		0;
@@ -6,7 +8,7 @@
 	margin:		0 auto;
 	padding:	0 36px;
 }
-/* Header */
+/* Заголовок */
 #body .block .head {
 	position:	relative;
 	display:	block;
@@ -74,22 +76,16 @@
 	outline:			none;
 	text-decoration:	none;
 }
-#body .block .head .text h3 a:hover {
-	text-decoration: underline;
-}
-/* Content */
+#body .block .head .text h3 a:hover {text-decoration: underline;}
+/* Контент */
 #body #container #content .wrap {
 	position:			relative;
 	top:				0;
 	left:				0;
 	background-color:	white;
 }
-#body #container #content .wrap:nth-child(odd) {
-	background-color: #fbfbfb;
-}
-#body #container #content .wrap .block {
-	padding: 20px 36px;
-}
+#body #container #content .wrap:nth-child(odd) {background-color: #fbfbfb;}
+#body #container #content .wrap .block {padding: 20px 36px;}
 #body #container #content .wrap .block h3 {
 	position:		relative;
 	display:		block;
@@ -106,15 +102,9 @@
 	vertical-align:	bottom;
 	text-transform:	uppercase;
 }
-#body #container #content .wrap .block .hidden {
-	display: none;
-}
-#body #container #content .wrap .block .button {
-	padding: 0 0 10px;
-}
-#body #container #content .wrap .block .CodeMirror {
-	height: 505px;
-}
+#body #container #content .wrap .block .hidden {display: none;}
+#body #container #content .wrap .block .button {padding: 0 0 10px;}
+#body #container #content .wrap .block .CodeMirror {height: 505px;}
 #body #container #content .wrap .block .card > .nav {
 	font-size:	small;
 	padding:	5px 10px;
@@ -124,15 +114,9 @@
 	top:		10px;
 	right:		10px;
 }
-#body #container #content .wrap .block .CodeMirror span.cm-string {
-	color: #c13c98;
-}
-#body #container #content .wrap .block .CodeMirror span.cm-property {
-	color: #1d55d4;
-}
-#body #container #content .wrap .block #grok-template .CodeMirror {
-	height: 322px;
-}
+#body #container #content .wrap .block .CodeMirror span.cm-string {color: #c13c98;}
+#body #container #content .wrap .block .CodeMirror span.cm-property {color: #1d55d4;}
+#body #container #content .wrap .block #grok-template .CodeMirror {height: 322px;}
 #body #container #content .wrap .block
 .CodeMirror pre.CodeMirror-line,
 #body #container #content .wrap .block
@@ -152,7 +136,7 @@
 	line-height:	1.5em;
 	word-spacing:	.2em;
 }
-/* Footer */
+/* Подвал */
 #body .block .foot {
 	position:	relative;
 	display:	block;
@@ -163,9 +147,7 @@
 	padding:	30px 0;
 	font-size:	18px;
 }
-#body #footer .block {
-	padding: 0;
-}
+#body #footer .block {padding: 0;}
 #body #footer .copyright {
 	position:	relative;
 	display:	block;
@@ -183,6 +165,4 @@
 	outline:			none;
 	text-decoration:	none;
 }
-#body #footer .copyright a:hover {
-	text-decoration: underline;
-}
+#body #footer .copyright a:hover {text-decoration: underline;}

@@ -35,6 +35,51 @@ void anyks::Server::crash(const int sig) noexcept {
 	::exit(sig);
 }
 /**
+ * error Метод генерации ошибки
+ * @param sid  идентификатор потока
+ * @param bid  идентификатор брокера
+ * @param code код ответа сервера
+ * @param mess сообщение ответа клиенту
+ */
+void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t code, const string & mess) noexcept {
+	// Если текст и код ошибки переданы
+	if((code > 400) && !mess.empty()){
+		// Формируем адрес файла
+		const string & filename = this->_fs.realPath(this->_fmk->format("%s/%u.html", this->_root.c_str(), code), false);
+		// Выполняем поиск запрошенного файла в кэше
+		auto i = this->_cache.find(filename);
+		// Если запрошенный файл в кэше найден
+		if(i != this->_cache.end()){
+			// Отправляем сообщение клиенту
+			this->_awh.send(sid, bid, code, mess, i->second, {
+				{"Accept-Ranges", "bytes"},
+				{"Vary", "Accept-Encoding"},
+				{"Content-Type", "text/html; charset=utf-8"},
+				{"Access-Control-Request-Headers", "Content-Type"},
+				{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+				{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+			});
+		// Если в кэше данные не обнаружены, но есть в файловой системе
+		} else if(this->_fs.isFile(filename)) {
+			// Выполняем чтение запрошенного файла
+			const auto & buffer = this->_fs.read(filename);
+			// Выполняем добавление файла в кэш
+			this->_cache.emplace(filename, buffer);
+			// Отправляем сообщение клиенту
+			this->_awh.send(sid, bid, code, mess, buffer, {
+				{"Accept-Ranges", "bytes"},
+				{"Vary", "Accept-Encoding"},
+				{"Content-Type", "text/html; charset=utf-8"},
+				{"Access-Control-Request-Headers", "Content-Type"},
+				{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+				{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+			});
+		}
+		// Выводим сообщение инициализации метода класса скрипта сервера
+		this->_log->print("Response: %s", log_t::flag_t::CRITICAL, mess.c_str());
+	}
+}
+/**
  * password Метод извлечения пароля (для авторизации методом Digest)
  * @param bid   идентификатор брокера (клиента)
  * @param login логин пользователя
@@ -148,7 +193,10 @@ void anyks::Server::active(const uint64_t bid, const server::web_t::mode_t mode)
  * @param agent идентификатор агента клиента
  */
 void anyks::Server::handshake(const int32_t sid, const uint64_t bid, const server::web_t::agent_t agent) noexcept {
-	
+	// Если агентом не является HTTP-клиент
+	if(agent != server::web_t::agent_t::HTTP)
+		// Выпоолняем генерацию ошибки запроса
+		this->error(sid, bid, 403, "Unauthorized connection attempt");
 }
 /**
  * request Метод вывода входящего запроса
@@ -162,19 +210,9 @@ void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::we
 	// Если выполняем поиска заголовка Origin
 	auto i = headers.find("origin");
 	// Если заголовок не получен
-	if(!this->_origin.empty() && ((i != headers.end()) && !this->_fmk->compare(this->_origin, i->second))){
-		// Получаем строку текста ошибки
-		const string message = "This resource is denied access to the API trading platform";
-		// Формируем тело ответа
-		const string & body = this->_fmk->format("<html>\n<head>\n<title>%u %s</title>\n</head>\n<body>\n<h2>%u %s</h2>\n</body>\n</html>\n", 403, message.c_str(), 403, message.c_str());
-		// Отправляем сообщение клиенту
-		this->_awh.send(sid, bid, 403, "Broken request", vector <char> (body.begin(), body.end()), {
-			{"Connection", "Close"},
-			{"Access-Control-Request-Headers", "Content-Type"},
-			{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
-			{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
-		});
-	}
+	if(!this->_origin.empty() && (method == awh::web_t::method_t::POST) && ((i != headers.end()) && !this->_fmk->compare(this->_origin, i->second)))
+		// Выпоолняем генерацию ошибки запроса
+		this->error(sid, bid, 403, "This resource is denied access to the API trading platform");
 }
 /**
  * complete Метод завершения получения запроса клиента
@@ -190,23 +228,191 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 	 * Выполняем перехват ошибок
 	 */
 	try {
-
+		// Результат отправки ответа
+		bool result = false;
+		// Формируем адрес запроса
+		string addr = this->_uri.joinPath(url.path);
+		// Определяем метод входящего запроса
+		switch(static_cast <uint8_t> (method)){
+			// Если мы получили GET запрос
+			case static_cast <uint8_t> (awh::web_t::method_t::GET): {
+				// Если браузер запрашивает иконку приложения
+				if(!this->_favicon.empty() && this->_fmk->compare("/favicon.ico", addr)){
+					// Если файл существует в файловой системе
+					if(this->_fs.isFile(this->_favicon)){
+						// Выполняем чтение favicon
+						const auto & buffer = this->_fs.read(this->_favicon);
+						// Если буфер бинарных данных сформирован
+						if((result = !buffer.empty())){
+							// Создаём объект HTTP-парсера
+							client::http_t http(this->_fmk, this->_log);
+							// Выполняем получение штампа времени даты компиляции приложения
+							const time_t date = this->_fmk->str2time(this->_fmk->format("%s %s", __DATE__, __TIME__), "%b %d %Y %H:%M:%S");
+							// Отправляем сообщение клиенту
+							this->_awh.send(sid, bid, 200, "OK", buffer, {
+								{"Etag", "65d46266-47e"},
+								{"Accept-Ranges", "bytes"},
+								{"Vary", "Accept-Encoding"},
+								{"Content-Type", "image/x-icon"},
+								{"Last-Modified", http.date(date)},
+								{"Access-Control-Request-Headers", "Content-Type"},
+								{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+								{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+							});
+						}
+					}
+				// Если был запрошен другой файл
+				} else {
+					// Тип отдаваемого контента
+					string contentType = "text/plain";
+					// Если адрес указан как корень
+					if(this->_fmk->compare("/", addr))
+						// Устанавливаем адрес файла по умолчанию
+						addr = this->_fmk->format("/%s", this->_index.c_str());
+					// Определяем расширение запрашиваемого файла
+					const string & extension = this->_fs.components(addr, false).second;
+					// Формируем адрес файла
+					const string & filename = this->_fs.realPath(this->_fmk->format("%s%s", this->_root.c_str(), addr.c_str()), false);
+					// Если запрашиваемый файл является HTML
+					if(this->_fmk->compare("html", extension))
+						// Выполняем установку типа контента
+						contentType = "text/html; charset=utf-8";
+					// Если запрашиваемый файл является CSS
+					else if(this->_fmk->compare("css", extension))
+						// Выполняем установку типа контента
+						contentType = "text/css; charset=utf-8";
+					// Если запрашиваемый файл является JS
+					else if(this->_fmk->compare("js", extension))
+						// Выполняем установку типа контента
+						contentType = "application/javascript; charset=utf-8";
+					// Если запрашиваемый файл является WOFF2
+					else if(this->_fmk->compare("woff2", extension))
+						// Выполняем установку типа контента
+						contentType = "font/woff2";
+					// Если запрашиваемый файл является PNG
+					else if(this->_fmk->compare("png", extension))
+						// Выполняем установку типа контента
+						contentType = "image/png";
+					// Если запрашиваемый файл является GIF
+					else if(this->_fmk->compare("gif", extension))
+						// Выполняем установку типа контента
+						contentType = "image/gif";
+					// Если запрашиваемый файл является WEBP
+					else if(this->_fmk->compare("webp", extension))
+						// Выполняем установку типа контента
+						contentType = "image/webp";
+					// Если запрашиваемый файл является SVG
+					else if(this->_fmk->compare("svg", extension))
+						// Выполняем установку типа контента
+						contentType = "image/svg+xml";
+					// Если запрашиваемый файл является ICO
+					else if(this->_fmk->compare("ico", extension))
+						// Выполняем установку типа контента
+						contentType = "image/vnd.microsoft.icon";
+					// Если запрашиваемый файл является ZIP
+					else if(this->_fmk->compare("zip", extension))
+						// Выполняем установку типа контента
+						contentType = "application/zip";
+					// Если запрашиваемый файл является XML
+					else if(this->_fmk->compare("xml", extension))
+						// Выполняем установку типа контента
+						contentType = "application/xml";
+					// Если запрашиваемый файл является JSON
+					else if(this->_fmk->compare("json", extension))
+						// Выполняем установку типа контента
+						contentType = "application/json";
+					// Если запрашиваемый файл является YAML
+					else if(this->_fmk->compare("yaml", extension))
+						// Выполняем установку типа контента
+						contentType = "application/x-yaml";
+					// Если запрашиваемый файл является RPM
+					else if(this->_fmk->compare("rpm", extension))
+						// Выполняем установку типа контента
+						contentType = "application/x-rpm";
+					// Если запрашиваемый файл является BIN
+					else if(this->_fmk->compare("bin", extension))
+						// Выполняем установку типа контента
+						contentType = "application/octet-stream";
+					// Если запрашиваемый файл является DEB
+					else if(this->_fmk->compare("deb", extension))
+						// Выполняем установку типа контента
+						contentType = "application/x-debian-package";
+					// Если запрашиваемый файл является DMG
+					else if(this->_fmk->compare("dmg", extension))
+						// Выполняем установку типа контента
+						contentType = "application/x-apple-diskimage";
+					// Если запрашиваемый файл является TAR.GZ
+					else if(this->_fmk->compare("gz", extension))
+						// Выполняем установку типа контента
+						contentType = "application/tar+gzip";
+					// Если запрашиваемый файл является MPKG
+					else if(this->_fmk->compare("mpkg", extension))
+						// Выполняем установку типа контента
+						contentType = "application/vnd.apple.installer+xml";
+					// Если запрашиваемый файл является EXE
+					else if(this->_fmk->compare("exe", extension))
+						// Выполняем установку типа контента
+						contentType = "application/vnd.microsoft.portable-executable";
+					// Если запрашиваемый файл является JPG
+					else if(this->_fmk->compare("jpg", extension) || this->_fmk->compare("jpeg", extension))
+						// Выполняем установку типа контента
+						contentType = "image/jpeg";
+					// Выполняем поиск запрошенного файла в кэше
+					auto i = this->_cache.find(filename);
+					// Если запрошенный файл в кэше найден
+					if((result = (i != this->_cache.end()))){
+						// Отправляем сообщение клиенту
+						this->_awh.send(sid, bid, 200, "OK", i->second, {
+							{"Accept-Ranges", "bytes"},
+							{"Vary", "Accept-Encoding"},
+							{"Content-Type", contentType},
+							{"Access-Control-Request-Headers", "Content-Type"},
+							{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+							{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+						});
+					// Если в кэше данные не обнаружены, но есть в файловой системе
+					} else if((result = this->_fs.isFile(filename))) {
+						// Выполняем чтение запрошенного файла
+						const auto & buffer = this->_fs.read(filename);
+						// Выполняем добавление файла в кэш
+						this->_cache.emplace(filename, buffer);
+						// Отправляем сообщение клиенту
+						this->_awh.send(sid, bid, 200, "OK", buffer, {
+							{"Accept-Ranges", "bytes"},
+							{"Vary", "Accept-Encoding"},
+							{"Content-Type", contentType},
+							{"Access-Control-Request-Headers", "Content-Type"},
+							{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+							{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+						});
+					}
+				}
+			} break;
+			// Если мы получили POST запрос
+			case static_cast <uint8_t> (awh::web_t::method_t::POST): {
+				// cout << " +++++++++++++ " << url << " === " << addr << endl;
+			} break;
+			// Если мы получили OPTIONS запрос
+			case static_cast <uint8_t> (awh::web_t::method_t::OPTIONS):
+				// Выводим результат со список разрешённых методов
+				this->_awh.send(sid, bid, 200, "Supported Methods", {}, {{"Allow", "GET, POST, OPTIONS"}});
+			break;
+		}
+		// Если ответ не отправлен
+		if(!result){
+			// Если нужно отправить тело графика
+			if(method != awh::web_t::method_t::HEAD)
+				// Выпоолняем генерацию ошибки запроса
+				this->error(sid, bid, 404, this->_fmk->format("Page %s is not found", addr.c_str()));
+			// Если тело графика отправлять не нужно
+			else this->_awh.send(sid, bid, 404, this->_fmk->format("Page %s is not found", addr.c_str()));
+		}
 	/**
 	 * Если возникает ошибка
 	 */
 	} catch(const std::ios_base::failure & error) {
-		// Получаем строку текста ошибки
-		const string message = error.what();
-		// Формируем тело ответа
-		const string & body = this->_fmk->format("<html>\n<head>\n<title>%u %s</title>\n</head>\n<body>\n<h2>%u %s</h2>\n</body>\n</html>\n", 403, message.c_str(), 403, message.c_str());
-		// Отправляем сообщение клиенту
-		this->_awh.send(sid, bid, 403, "Broken request", vector <char> (body.begin(), body.end()), {
-			{"Access-Control-Request-Headers", "Content-Type"},
-			{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
-			{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
-		});
-		// Выводим сообщение инициализации метода класса скрипта сервера
-		this->_log->print("Request: %s", log_t::flag_t::CRITICAL, message.c_str());
+		// Выпоолняем генерацию ошибки запроса
+		this->error(sid, bid, 403, error.what());
 	}
 }
 /**
@@ -235,6 +441,10 @@ void anyks::Server::config(const json & config) noexcept {
 			if(config.contains("root") && config.at("root").is_string())
 				// Выполняем установку корневого адреса
 				this->_root = config.at("root").get <string> ();
+			// Если файл по умолчанию который должен выводиться по запросу корня
+			if(config.contains("index") && config.at("index").is_string())
+				// Выполняем установку название файла по умолчанию
+				this->_index = config.at("index").get <string> ();
 			// Если количество воркеров получено
 			if(config.contains("workers") && config.at("workers").is_number()){
 				// Получаем количество доступных потоков
@@ -613,6 +823,10 @@ void anyks::Server::config(const json & config) noexcept {
  * stop Метод остановки работы сервера
  */
 void anyks::Server::stop() noexcept {
+	// Очищаем кэш запросов
+	this->_cache.clear();
+	// Выполняем очищение выделенной ранее памяти
+	unordered_map <string, vector <char>> ().swap(this->_cache);
 	// Запрещаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::DISABLED);
 	// Выполняем остановку сервера
@@ -637,7 +851,7 @@ void anyks::Server::start() noexcept {
  * @param log объект для работы с логами
  */
 anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
- _fs(fmk, log), _root{""}, _origin{""}, _favicon{""},
+ _fs(fmk, log), _uri(fmk), _root{""}, _index{""}, _origin{""}, _favicon{""},
  _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
 	// Выполняем установку идентификатора клиента
 	this->_awh.ident(AWH_SHORT_NAME, AWH_NAME, AWH_VERSION);

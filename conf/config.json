@@ -42,6 +42,7 @@
 	"root": "./html",
 	"log": "./acu.log",
 	"pidfile": "acu.pid",
+	"index": "index.html",
 	"favicon": "./icons/icon.ico",
 	"origin": "https://anyks.com",
 	"formatDate": "%H:%M:%S %d.%m.%Y"
