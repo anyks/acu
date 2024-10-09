@@ -787,12 +787,8 @@ json anyks::Grok::dump() const noexcept {
 	if(!this->_mapping.empty()){
 		// Выполняем сборку объекта результатов
 		for(auto & item : this->_mapping){
-			// Если результат получен в виде числа с плавающей точкой
-			if(this->_fmk->is(item.second, fmk_t::check_t::DECIMAL))
-				// Выполняем конвертацию в число с плавающей точкой
-				result.emplace(item.first, std::stod(item.second));
 			// Если результат получен в виде обычного числа
-			else if(this->_fmk->is(item.second, fmk_t::check_t::NUMBER)) {
+			if(this->_fmk->is(item.second, fmk_t::check_t::NUMBER)){
 				// Получаем переданное число
 				const long long number = std::stoll(item.second);
 				// Если число положительное
@@ -801,8 +797,12 @@ json anyks::Grok::dump() const noexcept {
 					result.emplace(item.first, std::stoull(item.second));
 				// Выполняем конвертацию в число
 				else result.emplace(item.first, number);
+			// Если результат получен в виде числа с плавающей точкой
+			} else if(this->_fmk->is(item.second, fmk_t::check_t::DECIMAL))
+				// Выполняем конвертацию в число с плавающей точкой
+				result.emplace(item.first, std::stod(item.second));
 			// Формируем результат в формате JSON
-			} else result.emplace(item.first, item.second);
+			else result.emplace(item.first, item.second);
 		}
 	}
 	// Выводим результат
