@@ -638,45 +638,6 @@ nlohmann::json anyks::Parser::grok(const string & text, const string & pattern) 
 	return nlohmann::json::object();
 }
 /**
- * csv Метод конвертации объекта JSON в текст в формате CSV
- * @param data  данные в объекте JSON
- * @param delim используемый разделитель
- * @return      текст после конвертации
- */
-string anyks::Parser::csv(const nlohmann::json & data, const char delim) noexcept {
-	// Результат работы функции
-	string result = "";
-	// Если данные переданы
-	if(data.is_object() && !data.empty()){
-		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
-		/**
-		 * Выполняем отлов ошибок
-		 */
-		try {
-			// Выполняем очистку контейнера
-			this->_csv.clear();
-			// Выполняем загрузку данных
-			this->_csv.dump(data);
-			// Выполняем перебор полученного количества строк
-			for(size_t i = 0; i < this->_csv.rows(); i++){
-				// Получаем данные для добавления в файл
-				result.append(this->_csv.row(i, delim));
-				// Добавляем разделитель строки
-				result.append("\r\n");
-			}
-		/**
-		 * Если возникает ошибка
-		 */
-		} catch(const std::exception & error) {
-			// Выводим переданный лог
-			this->_log->print("Parser: \"%s\" - %s [%s]", log_t::flag_t::CRITICAL, "CSV", error.what(), data.dump(4).c_str());
-		}
-	}
-	// Выводим результат по умолчанию
-	return result;
-}
-/**
  * csv Метод конвертации текста в формате CSV в объект JSON
  * @param text   текст для конвертации
  * @param header флаг формирования заголовков
@@ -709,6 +670,48 @@ nlohmann::json anyks::Parser::csv(const string & text, const bool header) noexce
 	}
 	// Выводим результат по умолчанию
 	return nlohmann::json::object();
+}
+/**
+ * csv Метод конвертации объекта JSON в текст в формате CSV
+ * @param data   данные в объекте JSON
+ * @param header флаг формирования заголовков
+ * @param delim  используемый разделитель
+ * @return       текст после конвертации
+ */
+string anyks::Parser::csv(const nlohmann::json & data, const bool header, const char delim) noexcept {
+	// Результат работы функции
+	string result = "";
+	// Если данные переданы
+	if((data.is_object() || data.is_array()) && !data.empty()){
+		// Выполняем блокировку потока
+		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем очистку контейнера
+			this->_csv.clear();
+			// Работаем с заголовком
+			this->_csv.header(header);
+			// Выполняем загрузку данных
+			this->_csv.dump(data);
+			// Выполняем перебор полученного количества строк
+			for(size_t i = 0; i < this->_csv.rows(); i++){
+				// Получаем данные для добавления в файл
+				result.append(this->_csv.row(i, delim));
+				// Добавляем разделитель строки
+				result.append("\r\n");
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			// Выводим переданный лог
+			this->_log->print("Parser: \"%s\" - %s [%s]", log_t::flag_t::CRITICAL, "CSV", error.what(), data.dump(4).c_str());
+		}
+	}
+	// Выводим результат по умолчанию
+	return result;
 }
 /**
  * xml Метод конвертации текста в формате XML в объект JSON
@@ -1466,7 +1469,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 							// Выводим беззнаковое число
 							else result.append(std::to_string(el.value().get <unsigned long long> ()));
 						// Если у числа имеется дробная часть
-						} else result.append(std::to_string(el.value().get <double> ()));
+						} else result.append(this->_fmk->noexp(el.value().get <double> (), true));
 						// Выполняем закрытие тега
 						result.append("</");
 						// Выполняем установку тега
@@ -1635,7 +1638,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 												// Выводим беззнаковое число
 												else value = std::to_string(item.value().get <unsigned long long> ());
 											// Если у числа имеется дробная часть
-											} else value = std::to_string(item.value().get <double> ());
+											} else value = this->_fmk->noexp(item.value().get <double> (), true);
 											// Продолжаем дальше
 											continue;
 										// Если значение является строкой
@@ -1680,7 +1683,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 										// Выводим беззнаковое число
 										else result.append(std::to_string(item.value().get <unsigned long long> ()));
 									// Если у числа имеется дробная часть
-									} else result.append(std::to_string(item.value().get <double> ()));
+									} else result.append(this->_fmk->noexp(item.value().get <double> (), true));
 									// Выполняем добавление экранирование параметра
 									result.append(1, '"');
 								// Если значение является строкой
@@ -1820,7 +1823,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Выводим беззнаковое число
 									else result.append(std::to_string(item.get <unsigned long long> ()));
 								// Если у числа имеется дробная часть
-								} else result.append(std::to_string(item.get <double> ()));
+								} else result.append(this->_fmk->noexp(item.get <double> (), true));
 								// Выполняем закрытие тега
 								result.append("</");
 								// Выполняем установку тега
@@ -1978,7 +1981,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 														// Выводим беззнаковое число
 														else value = std::to_string(el.value().get <unsigned long long> ());
 													// Если у числа имеется дробная часть
-													} else value = std::to_string(el.value().get <double> ());
+													} else value = this->_fmk->noexp(el.value().get <double> (), true);
 													// Продолжаем дальше
 													continue;
 												// Если значение является строкой
@@ -2023,7 +2026,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 												// Выводим беззнаковое число
 												else result.append(std::to_string(el.value().get <unsigned long long> ()));
 											// Если у числа имеется дробная часть
-											} else result.append(std::to_string(el.value().get <double> ()));
+											} else result.append(this->_fmk->noexp(el.value().get <double> (), true));
 											// Выполняем добавление экранирование параметра
 											result.append(1, '"');
 										// Если значение является строкой

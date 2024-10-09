@@ -556,7 +556,12 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								// Если формат входящих данных указан как CSV
 								case static_cast <uint8_t> (type_t::CSV):
 									// Выполняем конвертацию данных
-									answer = parser.csv(request.at("text").get <string> (), true);
+									answer = parser.csv(
+										request.at("text").get <string> (),
+										request.contains("header") &&
+										request.at("header").is_boolean() &&
+										request.at("header").get <bool> ()
+									);
 								break;
 								// Если формат входящих данных указан как GROK
 								case static_cast <uint8_t> (type_t::GROK):
@@ -611,10 +616,15 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										text = parser.cef(answer, cef_t::mode_t::LOW);
 									break;
 									// Если формат входящих данных указан как CSV
-									case static_cast <uint8_t> (type_t::CSV):
+									case static_cast <uint8_t> (type_t::CSV): {
 										// Выполняем конвертирование в формат CSV
-										text = parser.csv(answer);
-									break;
+										text = parser.csv(
+											answer,
+											request.contains("header") &&
+											request.at("header").is_boolean() &&
+											request.at("header").get <bool> ()
+										);
+									} break;
 									// Если формат входящих данных указан как SysLog
 									case static_cast <uint8_t> (type_t::SYSLOG):
 										// Выполняем конвертирование в формат SysLog

@@ -102,6 +102,19 @@
 	vertical-align:	bottom;
 	text-transform:	uppercase;
 }
+#body #container #content .wrap .block > .mb-3 {
+	position:	relative;
+	display:	block;
+}
+#body #container #content .wrap .block > .mb-3 > input {
+	width:		95%;
+	font-size:	.8em;
+}
+#body #container #content .wrap .block > .mb-3 > .btn-close {
+	position:	absolute;
+	top:		5px;
+	right:		10px;
+}
 #body #container #content .wrap .block .hidden {display: none;}
 #body #container #content .wrap .block .button {padding: 0 0 10px;}
 #body #container #content .wrap .block .CodeMirror {height: 505px;}
@@ -109,6 +122,7 @@
 	font-size:	small;
 	padding:	5px 10px;
 }
+#body #container #content .wrap .block .card > .btn-close,
 #body #container #content .wrap .block .card > .spinner-border {
 	position:	absolute;
 	top:		10px;

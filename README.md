@@ -9,9 +9,9 @@
 | **JSON**   | Yes     | Yes      | Yes      | Yes     | Yes     | Yes     | Yes        | Yes      |
 | **YAML**   | Yes     | Yes      | Yes      | Yes     | Yes     | Yes     | Yes        | Yes      |
 | **INI**    | Yes     | Yes      | Yes      | Yes     | No      | No      | No         | No       |
-| **CSV**    | Yes     | Yes      | Yes      | No      | Yes     | No      | No         | No       |
-| **CEF**    | Yes     | Yes      | Yes      | No      | No      | No      | No         | No       |
-| **SYSLOG** | Yes     | Yes      | Yes      | No      | No      | No      | No         | No       |
+| **CSV**    | NO      | Yes      | Yes      | No      | Yes     | No      | No         | No       |
+| **CEF**    | NO      | Yes      | Yes      | No      | No      | No      | No         | No       |
+| **SYSLOG** | NO      | Yes      | Yes      | No      | No      | No      | No         | No       |
 
 ## Requirements
 

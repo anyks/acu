@@ -477,7 +477,7 @@ json anyks::CSV::dump() const noexcept {
 					// Если индекс соответствует номеру записи
 					if(index < this->_mapping.at(i).size()){
 						// Получаем запись для проверки
-						string item = this->_mapping.at(i).at(index);
+						const string item = this->_mapping.at(i).at(index);
 						// Выполняем приведение строки к нижнему регистру
 						this->_fmk->transform(item, fmk_t::transform_t::LOWER);
 						// Если запись является числом
@@ -509,8 +509,47 @@ json anyks::CSV::dump() const noexcept {
 				// Выполняем смещение индекса
 				index++;
 			}
-		// Создаём массив как основной результат
-		} else result = this->_mapping;
+		// Если формировать заголовок не требуется
+		} else {
+			// Выполняем создание массива
+			result = json::array();
+			// Выполняем перебор всего списка собранной карты
+			for(size_t i = 0; i < this->_mapping.size(); i++){
+				// Выполняем добавление нового массива
+				result.push_back(json::array());
+				// Выполняем перебор всего списка строк
+				for(auto j = 0; j < this->_mapping.at(i).size(); j++){
+					// Получаем строку значения
+					const string item = this->_mapping.at(i).at(j);
+					// Выполняем приведение строки к нижнему регистру
+					this->_fmk->transform(item, fmk_t::transform_t::LOWER);
+					// Если запись является числом
+					if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
+						// Получаем переданное число
+						const long long number = std::stoll(item);
+						// Если число положительное
+						if(number > 0)
+							// Добавляем полученное значение в массив
+							result.back().push_back(::stoull(item));
+						// Добавляем полученное значение в массив
+						else result.back().push_back(number);
+					// Если запись является числом с плавающей точкой
+					} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL))
+						// Добавляем полученное значение в массив
+						result.back().push_back(::stod(item));
+					// Если число является булевым истинным значением
+					else if(item.compare("true") == 0)
+						// Добавляем полученное значение в массив
+						result.back().push_back(true);
+					// Если число является булевым ложным значением
+					else if(item.compare("false") == 0)
+						// Добавляем полученное значение в массив
+						result.back().push_back(false);
+					// Добавляем полученное значение в массив
+					else result.back().push_back(this->_mapping.at(i).at(j));
+				}
+			}
+		}
 	}
 	// Выводим результат
 	return result;
@@ -532,22 +571,39 @@ void anyks::CSV::dump(const json & dump) noexcept {
 			if(el.value().is_array()){
 				// Добавляем заголовочные записи
 				this->_mapping.front().push_back(el.key());
-				// Выполняем добавляем новый список ключей
-				this->_mapping.push_back(vector <string> ());
-				// Выполняем перебор всего списка массива
-				for(auto & item : el.value()){
+				// Переходим по всем элементам массива
+				for(size_t i = 0; i < el.value().size(); i++){
+					// Если индекс нулевой
+					if((i + 1) == this->_mapping.size())
+						// Выполняем добавляем новый список ключей
+						this->_mapping.push_back(vector <string> ());
+					// Получаем значение записи
+					const json & item = el.value().at(i);
 					// Если запись является строкой
 					if(item.is_string())
 						// Выполняем добавление всех записей
-						this->_mapping.back().push_back(item.get <string> ());
+						this->_mapping.at(i + 1).push_back(item.get <string> ());
 					// Если запись является числом
-					else if(item.is_number())
-						// Выполняем добавление всех записей
-						this->_mapping.back().push_back(to_string(item.get <double> ()));
+					else if(item.is_number()) {
+						// Временное значение переменной
+						double intpart = 0;
+						// Выполняем извлечение числа
+						const double number = item.get <double> ();
+						// Выполняем проверку есть ли дробная часть у числа
+						if(::modf(number, &intpart) == 0){
+							// Если число является положительным
+							if(number > 0.)
+								// Преобразуем значение в тип INT64
+								this->_mapping.at(i + 1).push_back(std::to_string(item.get <uint64_t> ()));
+							// Если число является отрицательным
+							else this->_mapping.at(i + 1).push_back(std::to_string(item.get <int64_t> ()));
+						// Если у числа имеется дробная часть
+						} else this->_mapping.at(i + 1).push_back(this->_fmk->noexp(number, true));
 					// Если запись является булевым значением
-					else if(item.is_boolean())
+					} else if(item.is_boolean())
 						// Выполняем добавление всех записей
-						this->_mapping.back().push_back(item.get <bool> () ? "true" : "false");
+						this->_mapping.at(i + 1).push_back(item.get <bool> () ? "true" : "false");
+				
 				}
 			}
 		}
@@ -564,11 +620,23 @@ void anyks::CSV::dump(const json & dump) noexcept {
 					// Выполняем добавление всех записей
 					this->_mapping.back().push_back(item2.get <string> ());
 				// Если запись является числом
-				else if(item2.is_number())
-					// Выполняем добавление всех записей
-					this->_mapping.back().push_back(to_string(item2.get <double> ()));
+				else if(item2.is_number()) {
+					// Временное значение переменной
+					double intpart = 0;
+					// Выполняем извлечение числа
+					const double number = item2.get <double> ();
+					// Выполняем проверку есть ли дробная часть у числа
+					if(::modf(number, &intpart) == 0){
+						// Если число является положительным
+						if(number > 0.)
+							// Преобразуем значение в тип INT64
+							this->_mapping.back().push_back(std::to_string(item2.get <uint64_t> ()));
+						// Если число является отрицательным
+						else this->_mapping.back().push_back(std::to_string(item2.get <int64_t> ()));
+					// Если у числа имеется дробная часть
+					} else this->_mapping.back().push_back(this->_fmk->noexp(number, true));
 				// Если запись является булевым значением
-				else if(item2.is_boolean())
+				} else if(item2.is_boolean())
 					// Выполняем добавление всех записей
 					this->_mapping.back().push_back(item2.get <bool> () ? "true" : "false");
 			}

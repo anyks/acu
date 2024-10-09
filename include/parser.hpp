@@ -145,19 +145,20 @@ namespace anyks {
 			nlohmann::json grok(const string & text, const string & pattern) noexcept;
 		public:
 			/**
-			 * csv Метод конвертации объекта JSON в текст в формате CSV
-			 * @param data  данные в объекте JSON
-			 * @param delim используемый разделитель
-			 * @return      текст после конвертации
-			 */
-			string csv(const nlohmann::json & data, const char delim = ';') noexcept;
-			/**
 			 * csv Метод конвертации текста в формате CSV в объект JSON
 			 * @param text   текст для конвертации
 			 * @param header флаг формирования заголовков
 			 * @return       объект в формате JSON
 			 */
 			nlohmann::json csv(const string & text, const bool header = true) noexcept;
+			/**
+			 * csv Метод конвертации объекта JSON в текст в формате CSV
+			 * @param data   данные в объекте JSON
+			 * @param header флаг формирования заголовков
+			 * @param delim  используемый разделитель
+			 * @return       текст после конвертации
+			 */
+			string csv(const nlohmann::json & data, const bool header = true, const char delim = ';') noexcept;
 		public:
 			/**
 			 * xml Метод конвертации текста в формате XML в объект JSON

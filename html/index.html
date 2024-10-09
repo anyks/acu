@@ -114,15 +114,23 @@
 								<label class="form-check-label" for="prettify">Prettify</label>
 							</div>
 							<!-- Кнопка переключателя КОНЕЦ -->
+							<!-- Кнопка переключателя НАЧАЛО -->
+							<div class="form-check form-switch hidden" style="float: left; padding-right: 60px;">
+								<input class="form-check-input" type="checkbox" role="switch" id="csv-header">
+								<label class="form-check-label" for="csv-header">Header</label>
+							</div>
+							<!-- Кнопка переключателя КОНЕЦ -->
 							<!-- Кнопка отправки запроса НАЧАЛО -->
 							<div class="button d-grid gap-2 d-md-flex justify-content-md-end">
 								<button type="button" class="btn btn-success" id="submit">Конвертировать</button>
-								<!-- <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#alert" id="submit">Конвертировать</button> -->
 							</div>
 							<!-- Кнопка отправки запроса КОНЕЦ -->
 							<!-- Блок ввода регулярного выражения GROK НАЧАЛО -->
 							<div class="mb-3 hidden">
 								<input type="text" class="form-control" id="grok-expression" placeholder="GROK Expression">
+								<!-- Кнопка очистки поля НАЧАЛО -->
+								<button type="button" class="btn-close" aria-label="Close"></button>
+								<!-- Кнопка очистки поля КОНЕЦ -->
 							</div>
 							<!-- Блок ввода регулярного выражения GROK КОНЕЦ -->
 							<!-- Блоки текстовых полей НАЧАЛО -->
@@ -159,6 +167,9 @@
 											</ul>
 											<!-- Блок выбора форматов КОНЕЦ -->
 											<div class="card-body" id="code-editor-from"></div>
+											<!-- Кнопка очистки поля НАЧАЛО -->
+											<button type="button" class="btn-close hidden" aria-label="Close"></button>
+											<!-- Кнопка очистки поля КОНЕЦ -->
 										</div>
 									</div>
 								</div>
@@ -180,19 +191,19 @@
 													<a class="nav-link" href="#INI">INI</a>
 												</li>
 												<li class="nav-item">
-													<a class="nav-link" href="#CSV">CSV</a>
+													<a class="nav-link disabled" href="#CSV">CSV</a>
 												</li>
 												<li class="nav-item">
-													<a class="nav-link" href="#CEF">CEF</a>
+													<a class="nav-link disabled" href="#CEF">CEF</a>
 												</li>
 												<li class="nav-item">
-													<a class="nav-link" href="#SYSLOG">SYSLOG</a>
+													<a class="nav-link disabled" href="#SYSLOG">SYSLOG</a>
 												</li>
 											</ul>
 											<!-- Блок выбора форматов КОНЕЦ -->
 											<div class="card-body" id="code-editor-to"></div>
 											<!-- Блок спиннера загрузки НАЧАЛО -->
-											<div class="spinner-border text-success hidden" role="status">
+											<div class="spinner-border text-success hidden" role="status" id="spinner">
 												<span class="visually-hidden">Loading...</span>
 											</div>
 											<!-- Блок спиннера загрузки КОНЕЦ -->
@@ -205,6 +216,9 @@
 							<div class="card hidden" id="grok-template">
 								<div class="card-header"><strong>GROK Templates (JSON)</strong></div>
 								<div class="card-body" id="code-editor-grok"></div>
+								<!-- Кнопка очистки поля НАЧАЛО -->
+								<button type="button" class="btn-close hidden" aria-label="Close"></button>
+								<!-- Кнопка очистки поля КОНЕЦ -->
 							</div>
 							<!-- Блок подсветки синтаксиса шаблонов GROK КОНЕЦ -->
 						</div>

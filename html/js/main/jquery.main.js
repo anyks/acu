@@ -15,12 +15,41 @@
 			tabSize: 4,
 			theme: 'eclipse',
 			mode: 'javascript',
+			readOnly: true,
 			lineNumbers: true
+		});
+		// Устанавливаем событие на изменение поля из которого следует выполнять конвертацию
+		$("> .CodeMirror", "#code-editor-from")
+		.unbind("keyup")
+		.bind("keyup", function(){
+			// Получаем идентификатор кнопки
+			const button = $(".btn-close", $(this).parent().parent());
+			// Если поле содержит данные
+			if(fromEditor.getValue().length > 0)
+				// Выполняем отображение кнопки очистки поля
+				button.removeClass("hidden");
+			// Выполняем скрытие кнопки очистки
+			else button.addClass("hidden");
+			// Устанавливаем событие на клик по кнопке
+			button
+			.unbind('click')
+			.bind('click', function(){
+				// Выполняем очистку текстового поля
+				fromEditor.setValue("");
+				// Выполняем скрытие кнопки
+				$(this).addClass("hidden");
+				// Запрещаем дальнейшее событие для кнопки
+				return false;
+			});
+			// Запрещаем выполнение дальнейшего события
+			return false;
 		});
 		// Устанавливаем событие на кнопку отправки запроса
 		$("#submit")
 		.unbind('click')
 		.bind('click', function(){
+			// Включаем индикатор загрузки
+			$("#spinner").removeClass("hidden");
 			/**
 			 * Формируем функцию выполнения запроса на удалённый сервер
 			 */
@@ -96,7 +125,8 @@
 							// Формируем объект тело запроса
 							const body = {
 								to, from, text, express, patterns,
-								prettify: ((from !== "grok") ? $("#prettify").is(":checked") : undefined)
+								prettify: $("#prettify").is(":checked"),
+								header: (((from === "csv") || (to === "csv")) ? $("#csv-header").is(":checked") : undefined)
 							};
 							// Выполняем запрос на сервер
 							const response = await fetch("/exec", {
@@ -148,8 +178,10 @@
 					$(".modal-body", "#alert").html(error);
 					// Отображаем всплывающее сообщение
 					$("#alert").modal('show');
-				} 
+				}
 			})();
+			// Выключаем индикатор загрузки
+			$("#spinner").addClass("hidden");
 			// Запрещаем дальнейшие действия для ссылки
 			return false;
 		});
@@ -169,6 +201,8 @@
 				.attr("aria-current", "page");
 				// Удаляем текст в текстовом окне
 				fromEditor.setValue("");
+				// Выполняем скрытие кнопки очитски
+				$(".btn-close", $("#code-editor-from").parent()).addClass("hidden");
 				// Получаем название парсера
 				const name = $(this).text();
 				// Если мы работаем с парсером GROK
@@ -188,6 +222,14 @@
 					fromEditor.setOption("mode", "shell");
 					// Активируем вывод номеров строк
 					fromEditor.setOption("lineNumbers", false);
+					// Выполняем подключение переноса строк
+					fromEditor.setOption("lineWrapping", true);
+					// Если заголовок CSV не активен
+					if($("#to > li > a[href=#CSV]").hasClass("active"))
+						// Отображаем переключатель вывода заголовков
+						$("#csv-header").parent().removeClass("hidden");
+					// Скрываем переключатель формирования заголовков
+					else $("#csv-header").parent().addClass("hidden");
 					// Блокируем вкладку конвертера
 					$("#to > li > a[href=#INI]").addClass("disabled");
 					$("#to > li > a[href=#CSV]").addClass("disabled");
@@ -207,6 +249,41 @@
 							$("#to > li > a[href=#JSON]").click();
 						break;
 					}
+					// Устанавливаем событие на клик по кнопке
+					$("#grok-expression").parent()
+					.unbind('click')
+					.bind('click', function(){
+						// Выполняем очистку текстового поля
+						$("#grok-expression").val("");
+						// Запрещаем дальнейшее событие для кнопки
+						return false;
+					});
+					// Устанавливаем событие на изменение поля для ввода шаблонов GROK
+					$("> .CodeMirror", "#code-editor-grok")
+					.unbind("keyup")
+					.bind("keyup", function(){
+						// Получаем идентификатор кнопки
+						const button = $(".btn-close", $(this).parent().parent());
+						// Если поле содержит данные
+						if((grokEditor !== null) && (grokEditor.getValue().length > 0))
+							// Выполняем отображение кнопки очистки поля
+							button.removeClass("hidden");
+						// Выполняем скрытие кнопки очистки
+						else button.addClass("hidden");
+						// Устанавливаем событие на клик по кнопке
+						button
+						.unbind('click')
+						.bind('click', function(){
+							// Выполняем очистку текстового поля
+							grokEditor.setValue("");
+							// Выполняем скрытие кнопки
+							$(this).addClass("hidden");
+							// Запрещаем дальнейшее событие для кнопки
+							return false;
+						});
+						// Запрещаем выполнение дальнейшего события
+						return false;
+					});
 				// Если мы работаем с другими парсерами
 				} else {
 					// Если блок ввода шаблонов GROK не скрыт
@@ -228,11 +305,20 @@
 							fromEditor.setOption("mode", "xml");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Выполняем отключение переноса строк
+							fromEditor.setOption("lineWrapping", false);
+							// Если заголовок CSV не активен
+							if($("#to > li > a[href=#CSV]").hasClass("active"))
+								// Отображаем переключатель вывода заголовков
+								$("#csv-header").parent().removeClass("hidden");
+							// Скрываем переключатель формирования заголовков
+							else $("#csv-header").parent().addClass("hidden");
+							// Блокируем вкладку конвертера
+							$("#to > li > a[href=#CSV]").addClass("disabled");
+							$("#to > li > a[href=#CEF]").addClass("disabled");
+							$("#to > li > a[href=#SYSLOG]").addClass("disabled");
 							// Снимаем блокировку вкладки конвертера
 							$("#to > li > a[href=#INI]").removeClass("disabled");
-							$("#to > li > a[href=#CSV]").removeClass("disabled");
-							$("#to > li > a[href=#CEF]").removeClass("disabled");
-							$("#to > li > a[href=#SYSLOG]").removeClass("disabled");
 						} break;
 						// Если ковертер выбран JSON
 						case "JSON": {
@@ -240,6 +326,14 @@
 							fromEditor.setOption("mode", "javascript");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Выполняем отключение переноса строк
+							fromEditor.setOption("lineWrapping", false);
+							// Если заголовок CSV не активен
+							if($("#to > li > a[href=#CSV]").hasClass("active"))
+								// Отображаем переключатель вывода заголовков
+								$("#csv-header").parent().removeClass("hidden");
+							// Скрываем переключатель формирования заголовков
+							else $("#csv-header").parent().addClass("hidden");
 							// Снимаем блокировку вкладки конвертера
 							$("#to > li > a[href=#INI]").removeClass("disabled");
 							$("#to > li > a[href=#CSV]").removeClass("disabled");
@@ -252,6 +346,14 @@
 							fromEditor.setOption("mode", "yaml");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Выполняем отключение переноса строк
+							fromEditor.setOption("lineWrapping", false);
+							// Если заголовок CSV не активен
+							if($("#to > li > a[href=#CSV]").hasClass("active"))
+								// Отображаем переключатель вывода заголовков
+								$("#csv-header").parent().removeClass("hidden");
+							// Скрываем переключатель формирования заголовков
+							else $("#csv-header").parent().addClass("hidden");
 							// Снимаем блокировку вкладки конвертера
 							$("#to > li > a[href=#INI]").removeClass("disabled");
 							$("#to > li > a[href=#CSV]").removeClass("disabled");
@@ -264,6 +366,14 @@
 							fromEditor.setOption("mode", "toml");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Выполняем подключение переноса строк
+							fromEditor.setOption("lineWrapping", true);
+							// Если заголовок CSV не активен
+							if($("#to > li > a[href=#CSV]").hasClass("active"))
+								// Отображаем переключатель вывода заголовков
+								$("#csv-header").parent().removeClass("hidden");
+							// Скрываем переключатель формирования заголовков
+							else $("#csv-header").parent().addClass("hidden");
 							// Снимаем блокировку вкладки конвертера
 							$("#to > li > a[href=#INI]").removeClass("disabled");
 							// Блокируем вкладку конвертера
@@ -289,6 +399,10 @@
 							fromEditor.setOption("mode", "shell");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", true);
+							// Выполняем отключение переноса строк
+							fromEditor.setOption("lineWrapping", false);
+							// Отображаем переключатель вывода заголовков
+							$("#csv-header").parent().removeClass("hidden");
 							// Снимаем блокировку вкладки конвертера
 							$("#to > li > a[href=#CSV]").removeClass("disabled");
 							// Блокируем вкладку конвертера
@@ -314,6 +428,14 @@
 							fromEditor.setOption("mode", "shell");
 							// Активируем вывод номеров строк
 							fromEditor.setOption("lineNumbers", false);
+							// Выполняем подключение переноса строк
+							fromEditor.setOption("lineWrapping", true);
+							// Если заголовок CSV не активен
+							if($("#to > li > a[href=#CSV]").hasClass("active"))
+								// Отображаем переключатель вывода заголовков
+								$("#csv-header").parent().removeClass("hidden");
+							// Скрываем переключатель формирования заголовков
+							else $("#csv-header").parent().addClass("hidden");
 							// Блокируем вкладку конвертера
 							$("#to > li > a[href=#INI]").addClass("disabled");
 							$("#to > li > a[href=#CSV]").addClass("disabled");
@@ -352,8 +474,12 @@
 			$(this)
 			.addClass("active")
 			.attr("aria-current", "page");
+			// Если текст для конвертации присутствует
+			if(fromEditor.getValue().length > 0)
+				// Выполняем загрузку новых данных
+				$("#submit").click();
 			// Удаляем текст в текстовом окне
-			toEditor.setValue("");
+			else toEditor.setValue("");
 			// Определяем тип конвертера
 			switch($(this).text()){
 				// Если ковертер выбран XML
@@ -363,7 +489,13 @@
 					// Активируем вывод номеров строк
 					toEditor.setOption("lineNumbers", true);
 					// Отображаем переключатель вывода сформированного кода в читаемом виде
-					$(".form-switch", "#formatter").removeClass("hidden");
+					$("#prettify").parent().removeClass("hidden");
+					// Если заголовок CSV не активен
+					if($("#from > li > a[href=#CSV]").hasClass("active"))
+						// Отображаем переключатель вывода заголовков
+						$("#csv-header").parent().removeClass("hidden");
+					// Скрываем переключатель формирования заголовков
+					else $("#csv-header").parent().addClass("hidden");
 				} break;
 				// Если ковертер выбран JSON
 				case "JSON": {
@@ -372,7 +504,13 @@
 					// Активируем вывод номеров строк
 					toEditor.setOption("lineNumbers", true);
 					// Отображаем переключатель вывода сформированного кода в читаемом виде
-					$(".form-switch", "#formatter").removeClass("hidden");
+					$("#prettify").parent().removeClass("hidden");
+					// Если заголовок CSV не активен
+					if($("#from > li > a[href=#CSV]").hasClass("active"))
+						// Отображаем переключатель вывода заголовков
+						$("#csv-header").parent().removeClass("hidden");
+					// Скрываем переключатель формирования заголовков
+					else $("#csv-header").parent().addClass("hidden");
 				} break;
 				// Если ковертер выбран YAML
 				case "YAML": {
@@ -381,7 +519,13 @@
 					// Активируем вывод номеров строк
 					toEditor.setOption("lineNumbers", true);
 					// Скрываем переключатель вывода сформированного кода в читаемом виде
-					$(".form-switch", "#formatter").addClass("hidden");
+					$("#prettify").parent().addClass("hidden");
+					// Если заголовок CSV не активен
+					if($("#from > li >a[href=#CSV]").hasClass("active"))
+						// Отображаем переключатель вывода заголовков
+						$("#csv-header").parent().removeClass("hidden");
+					// Скрываем переключатель формирования заголовков
+					else $("#csv-header").parent().addClass("hidden");
 				} break;
 				// Если ковертер выбран INI
 				case "INI": {
@@ -389,8 +533,16 @@
 					toEditor.setOption("mode", "toml");
 					// Активируем вывод номеров строк
 					toEditor.setOption("lineNumbers", true);
+					// Выполняем подключение переноса строк
+					toEditor.setOption("lineWrapping", true);
 					// Скрываем переключатель вывода сформированного кода в читаемом виде
-					$(".form-switch", "#formatter").addClass("hidden");
+					$("#prettify").parent().addClass("hidden");
+					// Если заголовок CSV не активен
+					if($("#from > li > a[href=#CSV]").hasClass("active"))
+						// Отображаем переключатель вывода заголовков
+						$("#csv-header").parent().removeClass("hidden");
+					// Скрываем переключатель формирования заголовков
+					else $("#csv-header").parent().addClass("hidden");
 				} break;
 				// Если ковертер выбран CSV
 				case "CSV": {
@@ -399,7 +551,9 @@
 					// Активируем вывод номеров строк
 					toEditor.setOption("lineNumbers", true);
 					// Скрываем переключатель вывода сформированного кода в читаемом виде
-					$(".form-switch", "#formatter").addClass("hidden");
+					$("#prettify").parent().addClass("hidden");
+					// Отображаем переключатель вывода заголовков
+					$("#csv-header").parent().removeClass("hidden");
 				} break;
 				// Если ковертер выбран любой другой
 				default: {
@@ -407,8 +561,16 @@
 					toEditor.setOption("mode", "shell");
 					// Активируем вывод номеров строк
 					toEditor.setOption("lineNumbers", false);
+					// Выполняем подключение переноса строк
+					toEditor.setOption("lineWrapping", true);
 					// Скрываем переключатель вывода сформированного кода в читаемом виде
-					$(".form-switch", "#formatter").addClass("hidden");
+					$("#prettify").parent().addClass("hidden");
+					// Если заголовок CSV не активен
+					if($("#from > li > a[href=#CSV]").hasClass("active"))
+						// Отображаем переключатель вывода заголовков
+						$("#csv-header").parent().removeClass("hidden");
+					// Скрываем переключатель формирования заголовков
+					else $("#csv-header").parent().addClass("hidden");
 				} break;
 			}
 			// Запрещаем дальнейшие действия для ссылки

@@ -716,7 +716,7 @@ string anyks::SysLog::syslog() const noexcept {
 				// Устанавливаем начало экранирования
 				result.append(1, '<');
 				// Устанавливаем значение приоритета
-				result.append(to_string(this->_pri));
+				result.append(std::to_string(this->_pri));
 				// Устанавливаем конец экранирования
 				result.append(1, '>');
 			}
@@ -747,7 +747,7 @@ string anyks::SysLog::syslog() const noexcept {
 					// Устанавливаем открытие экранирования
 					result.append(1, '[');
 					// Устанавливаем идентификатор процесса
-					result.append(to_string(this->_pid));
+					result.append(std::to_string(this->_pid));
 					// Устанавливаем закрытие экранирования
 					result.append(1, ']');
 				}
@@ -770,11 +770,11 @@ string anyks::SysLog::syslog() const noexcept {
 				// Устанавливаем начало экранирования
 				result.append(1, '<');
 				// Устанавливаем значение приоритета
-				result.append(to_string(this->_pri));
+				result.append(std::to_string(this->_pri));
 				// Устанавливаем конец экранирования
 				result.append(1, '>');
 				// Устанавливаем версию сообщения
-				result.append(to_string(this->_ver));
+				result.append(std::to_string(this->_ver));
 				// Устанавливаем разделитель
 				result.append(1, ' ');
 			}
@@ -805,7 +805,7 @@ string anyks::SysLog::syslog() const noexcept {
 			// Если идентификатор процесса передан
 			if(this->_pid > 0)
 				// Устанавливаем идентификатор процесса
-				result.append(to_string(this->_pid));
+				result.append(std::to_string(this->_pid));
 			// Устанавливаем пропуск
 			else result.append(1, '-');
 			// Устанавливаем разделитель

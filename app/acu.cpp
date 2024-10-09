@@ -541,7 +541,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Если формат входящих данных указан как CSV
 								case static_cast <uint8_t> (type_t::CSV):
 									// Выполняем конвертирование в формат CSV
-									buffer = parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';'));
+									buffer = parser.csv(result, env.is("header"), (env.isString("delim") ? env.get("delim").front() : ';'));
 								break;
 								// Если формат входящих данных указан как SysLog
 								case static_cast <uint8_t> (type_t::SYSLOG):

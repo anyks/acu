@@ -420,7 +420,7 @@ string anyks::Cef::cef() const noexcept {
 		// Добавляем формат CEF
 		} else result.append("CEF:");
 		// Добавляем версию контейнера
-		result.append(to_string(static_cast <uint16_t> (this->_version)));
+		result.append(std::to_string(static_cast <uint16_t> (this->_version)));
 		// Добавляем разделитель
 		result.append(1, '|');
 		// Добавляем поставщика данных
@@ -448,7 +448,7 @@ string anyks::Cef::cef() const noexcept {
 		   ((this->_event.severity.level >= 5) && (this->_event.severity.level <= 6)) ||
 		    (this->_event.severity.level == 8) || (this->_event.severity.level == 10))
 			// Добавляем важность события
-			result.append(to_string(static_cast <uint16_t> (this->_event.severity.level)));
+			result.append(std::to_string(static_cast <uint16_t> (this->_event.severity.level)));
 		// Иначе добавляем важность события в текстовом виде
 		else result.append(this->_event.severity.name);
 		// Добавляем разделитель
@@ -618,7 +618,7 @@ string anyks::Cef::cef() const noexcept {
 								// Добавляем разделитель
 								result.append(1, '=');
 								// Добавляем значение ключа
-								result.append(to_string(value));
+								result.append(std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else {
 								// Добавляем ключ расширения
@@ -642,7 +642,7 @@ string anyks::Cef::cef() const noexcept {
 								// Добавляем разделитель
 								result.append(1, '=');
 								// Добавляем значение ключа
-								result.append(to_string(value));
+								result.append(std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else {
 								// Добавляем ключ расширения
@@ -666,7 +666,7 @@ string anyks::Cef::cef() const noexcept {
 								// Добавляем разделитель
 								result.append(1, '=');
 								// Добавляем значение ключа
-								result.append(to_string(value));
+								result.append(std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else {
 								// Добавляем ключ расширения
@@ -690,7 +690,7 @@ string anyks::Cef::cef() const noexcept {
 								// Добавляем разделитель
 								result.append(1, '=');
 								// Добавляем значение ключа
-								result.append(to_string(value));
+								result.append(this->_fmk->noexp(value, true));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else {
 								// Добавляем ключ расширения
@@ -714,7 +714,7 @@ string anyks::Cef::cef() const noexcept {
 								// Добавляем разделитель
 								result.append(1, '=');
 								// Добавляем значение ключа
-								result.append(to_string(value));
+								result.append(this->_fmk->noexp(value, true));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else {
 								// Добавляем ключ расширения
@@ -763,7 +763,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(to_string(date));
+									result.append(std::to_string(date));
 								}
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else {
@@ -1241,34 +1241,34 @@ void anyks::Cef::dump(const json & dump) noexcept {
 							// Если тип ключа является LONG
 							case static_cast <uint8_t> (type_t::LONG):
 								// Выполняем добавление расширение
-								this->extension(el.key(), to_string(el.value().get <long> ()));
+								this->extension(el.key(), std::to_string(el.value().get <long> ()));
 							break;
 							// Если тип ключа является INT32
 							case static_cast <uint8_t> (type_t::INT32):
 								// Выполняем добавление расширение
-								this->extension(el.key(), to_string(el.value().get <int32_t> ()));
+								this->extension(el.key(), std::to_string(el.value().get <int32_t> ()));
 							break;
 							// Если тип ключа является INT64
 							case static_cast <uint8_t> (type_t::INT64):
 								// Выполняем добавление расширение
-								this->extension(el.key(), to_string(el.value().get <int64_t> ()));
+								this->extension(el.key(), std::to_string(el.value().get <int64_t> ()));
 							break;
 							// Если тип ключа является FLOAT
 							case static_cast <uint8_t> (type_t::FLOAT):
 								// Выполняем добавление расширение
-								this->extension(el.key(), to_string(el.value().get <float> ()));
+								this->extension(el.key(), this->_fmk->noexp(el.value().get <float> (), true));
 							break;
 							// Если тип ключа является DOUBLE
 							case static_cast <uint8_t> (type_t::DOUBLE):
 								// Выполняем добавление расширение
-								this->extension(el.key(), to_string(el.value().get <double> ()));
+								this->extension(el.key(), this->_fmk->noexp(el.value().get <double> (), true));
 							break;
 							// Если тип ключа является TIMESTAMP
 							case static_cast <uint8_t> (type_t::TIMESTAMP):
 								// Если переданное значение является числом
 								if(el.value().is_number())
 									// Выполняем добавление расширение
-									this->extension(el.key(), to_string(el.value().get <time_t> ()));
+									this->extension(el.key(), std::to_string(el.value().get <time_t> ()));
 								// Если значение является текстовой строкой
 								else if(el.value().is_string())
 									// Выполняем добавление расширение
@@ -1386,7 +1386,7 @@ unordered_map <string, string> anyks::Cef::events() const noexcept {
 	// Устанавливаем подпись события поставщика данных
 	result.emplace("signature", this->_event.signatureId);
 	// Устанавливаем числовое значение важности события
-	result.emplace("severity", to_string(this->_event.severity.level));
+	result.emplace("severity", std::to_string(this->_event.severity.level));
 	// Выводим результат
 	return result;
 }
@@ -1512,7 +1512,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Извлекаем из буфера данные числа
 								::memcpy(&value, extension.second.data(), extension.second.size());
 								// Устанавливаем значение ключа
-								result.emplace(extension.first, to_string(value));
+								result.emplace(extension.first, std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 						} break;
@@ -1525,7 +1525,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Извлекаем из буфера данные числа
 								::memcpy(&value, extension.second.data(), extension.second.size());
 								// Устанавливаем значение ключа
-								result.emplace(extension.first, to_string(value));
+								result.emplace(extension.first, std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 						} break;
@@ -1538,7 +1538,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Извлекаем из буфера данные числа
 								::memcpy(&value, extension.second.data(), extension.second.size());
 								// Устанавливаем значение ключа
-								result.emplace(extension.first, to_string(value));
+								result.emplace(extension.first, std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 						} break;
@@ -1551,7 +1551,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Извлекаем из буфера данные числа
 								::memcpy(&value, extension.second.data(), extension.second.size());
 								// Устанавливаем значение ключа
-								result.emplace(extension.first, to_string(value));
+								result.emplace(extension.first, this->_fmk->noexp(value, true));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 						} break;
@@ -1564,7 +1564,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Извлекаем из буфера данные числа
 								::memcpy(&value, extension.second.data(), extension.second.size());
 								// Устанавливаем значение ключа
-								result.emplace(extension.first, to_string(value));
+								result.emplace(extension.first, this->_fmk->noexp(value, true));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 						} break;
@@ -1595,7 +1595,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 									// Устанавливаем значение ключа
 									result.emplace(extension.first, transTime.str());
 								// Устанавливаем значение ключа
-								} else result.emplace(extension.first, to_string(date));
+								} else result.emplace(extension.first, std::to_string(date));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 						} break;
