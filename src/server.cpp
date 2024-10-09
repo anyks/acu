@@ -77,6 +77,25 @@ void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t 
 		}
 		// Выводим сообщение инициализации метода класса скрипта сервера
 		this->_log->print("Response: %s", log_t::flag_t::CRITICAL, mess.c_str());
+	// Если ошибка передана и текст сообщения тоже
+	} else if((code == 400) && !mess.empty()) {
+		// Выполняем формирование результата ответа
+		json answer = json::object();
+		// Выполняем формирование результата
+		answer.emplace("error", mess);
+		// Выполняем получение буфера данных для отправки
+		const string buffer = answer.dump();
+		// Отправляем сообщение клиенту
+		this->_awh.send(sid, bid, code, mess, vector <char> (buffer.begin(), buffer.end()), {
+			{"Accept-Ranges", "bytes"},
+			{"Vary", "Accept-Encoding"},
+			{"Content-Type", "application/json"},
+			{"Access-Control-Request-Headers", "Content-Type"},
+			{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+			{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+		});
+		// Выводим сообщение инициализации метода класса скрипта сервера
+		this->_log->print("Response: %s", log_t::flag_t::CRITICAL, mess.c_str());
 	}
 }
 /**
@@ -210,9 +229,12 @@ void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::we
 	// Если выполняем поиска заголовка Origin
 	auto i = headers.find("origin");
 	// Если заголовок не получен
-	if(!this->_origin.empty() && (method == awh::web_t::method_t::POST) && ((i != headers.end()) && !this->_fmk->compare(this->_origin, i->second)))
+	if(!this->_origin.empty() && (method == awh::web_t::method_t::POST) && ((i != headers.end()) && !this->_fmk->compare(this->_origin, i->second))){
 		// Выпоолняем генерацию ошибки запроса
 		this->error(sid, bid, 403, "This resource is denied access to the API trading platform");
+		// Выполняем закрытие подключения
+		this->_awh.close(bid);
+	}
 }
 /**
  * complete Метод завершения получения запроса клиента
@@ -390,8 +412,244 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 			} break;
 			// Если мы получили POST запрос
 			case static_cast <uint8_t> (awh::web_t::method_t::POST): {
-				// cout << " +++++++++++++ " << url << " === " << addr << endl;
-			} break;
+				// Если производится вызов метода /exec
+				if(this->_fmk->compare("/exec", addr)){
+					// Выполняем получение запроса
+					json request = json::parse(entity.begin(), entity.end());
+					// Если результат получен
+					if(request.is_object() && !request.empty()){
+						// Если поля указаны правильно
+						if(request.contains("text") && request.contains("from") && request.contains("to") &&
+						   request.at("text").is_string() && request.at("from").is_string() && request.at("to").is_string()){
+							// Регулярное выражение в формате GROK
+							string express = "";
+							// Выполняем инициализацию объекта парсера
+							parser_t parser(this->_fmk, this->_log);
+							// Тип обрабатываемого файла
+							type_t from = type_t::NONE, to = type_t::NONE;
+							// Если формат входящих данных указан как XML
+							if(this->_fmk->compare("xml", request.at("from").get <string> ()))
+								// Определяем тип файла
+								from = type_t::XML;
+							// Если формат входящих данных указан как JSON
+							else if(this->_fmk->compare("json", request.at("from").get <string> ()))
+								// Определяем тип файла
+								from = type_t::JSON;
+							// Если формат входящих данных указан как INI
+							else if(this->_fmk->compare("ini", request.at("from").get <string> ()))
+								// Определяем тип файла
+								from = type_t::INI;
+							// Если формат входящих данных указан как YAML
+							else if(this->_fmk->compare("yaml", request.at("from").get <string> ()))
+								// Определяем тип файла
+								from = type_t::YAML;
+							// Если формат входящих данных указан как CEF
+							else if(this->_fmk->compare("cef", request.at("from").get <string> ()))
+								// Определяем тип файла
+								from = type_t::CEF;
+							// Если формат входящих данных указан как CSV
+							else if(this->_fmk->compare("csv", request.at("from").get <string> ()))
+								// Определяем тип файла
+								from = type_t::CSV;
+							// Если формат входящих данных указан как GROK
+							else if(this->_fmk->compare("grok", request.at("from").get <string> ())) {
+								// Определяем тип файла
+								from = type_t::GROK;
+								// Выполняем очистку списка ранее установленных шаблонов
+								parser.clearPatterns();
+								// Если файл шаблона указан
+								if(request.contains("patterns") && request.at("patterns").is_object()){
+									// Выполняем перебор всего списка значений
+									for(auto & el : request.at("patterns").items()){
+										// Если значение является строкой
+										if(el.value().is_string())
+											// Выполняем добавление шаблона
+											parser.pattern(el.key(), el.value().get <string> ());
+									}
+								}
+								// Если регулярное выражение передано
+								if(request.contains("express") && request.at("express").is_string())
+									// Устанавливаем полученное регулярное выражение
+									express = request.at("express").get <string> ();
+								// Выводим сообщение об ошибке
+								else {
+									// Выпоолняем генерацию ошибки запроса
+									this->error(sid, bid, 400, "Regular expression in GROK format is not set");
+									// Выводим удачное завершение работы
+									return;
+								}
+							// Если формат входящих данных указан как SysLog
+							} else if(this->_fmk->compare("syslog", request.at("from").get <string> ()))
+								// Определяем тип файла
+								from = type_t::SYSLOG;
+							// Если формат не определён
+							else {
+								// Выпоолняем генерацию ошибки запроса
+								this->error(sid, bid, 400, "From format is not recognized");
+								// Выводим удачное завершение работы
+								return;
+							}
+							// Если формат исходящих данных указан как XML
+							if(this->_fmk->compare("xml", request.at("to").get <string> ()))
+								// Определяем тип файла
+								to = type_t::XML;
+							// Если формат исходящих данных указан как JSON
+							else if(this->_fmk->compare("json", request.at("to").get <string> ()))
+								// Определяем тип файла
+								to = type_t::JSON;
+							// Если формат исходящих данных указан как INI
+							else if(this->_fmk->compare("ini", request.at("to").get <string> ()))
+								// Определяем тип файла
+								to = type_t::INI;
+							// Если формат исходящих данных указан как YAML
+							else if(this->_fmk->compare("yaml", request.at("to").get <string> ()))
+								// Определяем тип файла
+								to = type_t::YAML;
+							// Если формат исходящих данных указан как CEF
+							else if(this->_fmk->compare("cef", request.at("to").get <string> ()))
+								// Определяем тип файла
+								to = type_t::CEF;
+							// Если формат исходящих данных указан как CSV
+							else if(this->_fmk->compare("csv", request.at("to").get <string> ()))
+								// Определяем тип файла
+								to = type_t::CSV;
+							// Если формат исходящих данных указан как SysLog
+							else if(this->_fmk->compare("syslog", request.at("to").get <string> ()))
+								// Определяем тип файла
+								to = type_t::SYSLOG;
+							// Если формат не определён
+							else {
+								// Выпоолняем генерацию ошибки запроса
+								this->error(sid, bid, 400, "To format is not recognized");
+								// Выводим удачное завершение работы
+								return;
+							}
+							// Объект ответа парсера в формате JSON
+							json answer = json::object();
+							// Определяем тип файла
+							switch(static_cast <uint8_t> (from)){
+								// Если формат входящих данных указан как XML
+								case static_cast <uint8_t> (type_t::XML):
+									// Выполняем конвертацию данных
+									answer = parser.xml(request.at("text").get <string> ());
+								break;
+								// Если формат входящих данных указан как JSON
+								case static_cast <uint8_t> (type_t::JSON):
+									// Выполняем конвертацию данных
+									answer = parser.json(request.at("text").get <string> ());
+								break;
+								// Если формат входящих данных указан как INI
+								case static_cast <uint8_t> (type_t::INI):
+									// Выполняем конвертацию данных
+									answer = parser.ini(request.at("text").get <string> ());
+								break;
+								// Если формат входящих данных указан как YAML
+								case static_cast <uint8_t> (type_t::YAML):
+									// Выполняем конвертацию данных
+									answer = parser.yaml(request.at("text").get <string> ());
+								break;
+								// Если формат входящих данных указан как CEF
+								case static_cast <uint8_t> (type_t::CEF):
+									// Выполняем конвертацию данных
+									answer = parser.cef(request.at("text").get <string> (), cef_t::mode_t::LOW);
+								break;
+								// Если формат входящих данных указан как CSV
+								case static_cast <uint8_t> (type_t::CSV):
+									// Выполняем конвертацию данных
+									answer = parser.csv(request.at("text").get <string> (), true);
+								break;
+								// Если формат входящих данных указан как GROK
+								case static_cast <uint8_t> (type_t::GROK):
+									// Выполняем конвертацию данных
+									answer = parser.grok(request.at("text").get <string> (), express);
+								break;
+								// Если формат входящих данных указан как SysLog
+								case static_cast <uint8_t> (type_t::SYSLOG):
+									// Выполняем конвертацию данных
+									answer = parser.syslog(request.at("text").get <string> ());
+								break;
+							}
+							// Если ответ парсера получен
+							if(!answer.empty()){
+								// Текст сформированного ответа
+								string text = "";
+								// Определяем тип файла
+								switch(static_cast <uint8_t> (to)){
+									// Если формат входящих данных указан как XML
+									case static_cast <uint8_t> (type_t::XML):
+										// Выполняем конвертирование в формат XML
+										text = parser.xml(
+											answer,
+											request.contains("prettify") &&
+											request.at("prettify").is_boolean() &&
+											request.at("prettify").get <bool> ()
+										);
+									break;
+									// Если формат входящих данных указан как JSON
+									case static_cast <uint8_t> (type_t::JSON):
+										// Выполняем конвертирование в формат JSON
+										text = parser.json(
+											answer,
+											request.contains("prettify") &&
+											request.at("prettify").is_boolean() &&
+											request.at("prettify").get <bool> ()
+										);
+									break;
+									// Если формат входящих данных указан как INI
+									case static_cast <uint8_t> (type_t::INI):
+										// Выполняем конвертирование в формат INI
+										text = parser.ini(answer);
+									break;
+									// Если формат входящих данных указан как YAML
+									case static_cast <uint8_t> (type_t::YAML):
+										// Выполняем конвертирование в формат YAML
+										text = parser.yaml(answer);
+									break;
+									// Если формат входящих данных указан как CEF
+									case static_cast <uint8_t> (type_t::CEF):
+										// Выполняем конвертирование в формат CEF
+										text = parser.cef(answer, cef_t::mode_t::LOW);
+									break;
+									// Если формат входящих данных указан как CSV
+									case static_cast <uint8_t> (type_t::CSV):
+										// Выполняем конвертирование в формат CSV
+										text = parser.csv(answer);
+									break;
+									// Если формат входящих данных указан как SysLog
+									case static_cast <uint8_t> (type_t::SYSLOG):
+										// Выполняем конвертирование в формат SysLog
+										text = parser.syslog(answer);
+									break;
+								}
+								// Если текст ответа получен
+								if((result = !text.empty())){
+									// Выполняем формирование результата ответа
+									json answer = json::object();
+									// Выполняем формирование результата
+									answer.emplace("result", text);
+									// Выполняем получение буфера данных для отправки
+									const string buffer = answer.dump();
+									// Отправляем сообщение клиенту
+									this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
+										{"Accept-Ranges", "bytes"},
+										{"Vary", "Accept-Encoding"},
+										{"Content-Type", "application/json"},
+										{"Access-Control-Request-Headers", "Content-Type"},
+										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+									});
+									// Выходим из функции
+									return;
+								}
+							}
+						}
+					}
+				}
+				// Выпоолняем генерацию ошибки запроса
+				this->error(sid, bid, 400, "Broken request");
+				// Выводим удачное завершение работы
+				return;
+			}
 			// Если мы получили OPTIONS запрос
 			case static_cast <uint8_t> (awh::web_t::method_t::OPTIONS):
 				// Выводим результат со список разрешённых методов

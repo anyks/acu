@@ -44,6 +44,6 @@
 	"pidfile": "acu.pid",
 	"index": "index.html",
 	"favicon": "./icons/icon.ico",
-	"origin": "https://anyks.com",
+	"origin": "http://127.0.0.1:2222",
 	"formatDate": "%H:%M:%S %d.%m.%Y"
 }

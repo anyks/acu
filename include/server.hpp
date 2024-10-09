@@ -34,7 +34,7 @@
  * Наши модули
  */
 #include <lib.hpp>
-#include <global.hpp>
+#include <parser.hpp>
 
 // Подписываемся на стандартное пространство имён
 using namespace std;
@@ -52,6 +52,19 @@ namespace anyks {
 	 * Server Класс сервера
 	 */
 	typedef class ACUSHARED_EXPORT Server {
+		private:
+			// Тип обрабатываемого файла
+			enum class type_t : uint8_t {
+				NONE   = 0x00, // Тип файла не обнаружен
+				XML    = 0x01, // Тип файла XML
+				INI    = 0x02, // Тип файла INI
+				CEF    = 0x03, // Тип файла CEF
+				CSV    = 0x04, // Тип файла CSV
+				JSON   = 0x05, // Тип файла JSON
+				YAML   = 0x06, // Тип файла YAML
+				GROK   = 0x07, // Тип файла GROK
+				SYSLOG = 0x08  // Тип файла SYSLOG
+			};
 		private:
 			/**
 			 * Bandwidth Структура параметров пропускной способности сети

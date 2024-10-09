@@ -1,13 +1,6 @@
 (function($){
 	// Активируем событие загрузки
 	$(document).ready(function(){
-		
-		/**
-		 * console.log("+++++++", window.k11.getValue());
-		 * 
-		 * 
-		 */
-
 		// Блок подсветки синтаксиса шаблонов GROK
 		let grokEditor = null;
 		// Выполняем инициализацию блока подсветки синтаксиса для редактора формата из которого производится конвертация
@@ -32,23 +25,130 @@
 			 * Формируем функцию выполнения запроса на удалённый сервер
 			 */
 			(async () => {
-				// Формируем объект тело запроса
-				const body = {
-					userId: 1,
-					title: "Fix my bugs",
-					completed: false
-				};
-				// Выполняем запрос на сервер
-				const response = await fetch("https://jsonplaceholder.typicode.com/todos", {
-					method: "POST",
-					body: JSON.stringify(body),
-					headers: {"Content-type": "application/json; charset=UTF-8"}
-				});
-				// Извлекаем полученный результат
-				const data = await response.json();
-
-				console.log("-----------", data.title);
-
+				/**
+				 * Выполняем перехват ошибки
+				 */
+				try {
+					// Получаем значение текста который необходимо сконвертировать
+					const text = fromEditor.getValue();
+					// Если текст для конвертации указан
+					if(text.length > 0){
+						// Название конвертера из которого и в который производится конвертация
+						let from = "", to = "";
+						// Определяем формат в который производится конвертация
+						switch($("a.active", "#to").attr("href")){
+							// Если если формат в который производится конвертация установлен как INI
+							case "#INI": to = "ini"; break;
+							// Если если формат в который производится конвертация установлен как XML
+							case "#XML": to = "xml"; break;
+							// Если если формат в который производится конвертация установлен как CSV
+							case "#CSV": to = "csv"; break;
+							// Если если формат в который производится конвертация установлен как CEF
+							case "#CEF": to = "cef"; break;
+							// Если если формат в который производится конвертация установлен как JSON
+							case "#JSON": to = "json"; break;
+							// Если если формат в который производится конвертация установлен как YAML
+							case "#YAML": to = "yaml"; break;
+							// Если если формат в который производится конвертация установлен как SYSLOG
+							case "#SYSLOG": to = "syslog"; break;
+						}
+						// Определяем формат с которого производится конвертация
+						switch($("a.active", "#from").attr("href")){
+							// Если если формат из которого производится конвертация установлен как INI
+							case "#INI": from = "ini"; break;
+							// Если если формат из которого производится конвертация установлен как XML
+							case "#XML": from = "xml"; break;
+							// Если если формат из которого производится конвертация установлен как CSV
+							case "#CSV": from = "csv"; break;
+							// Если если формат из которого производится конвертация установлен как CEF
+							case "#CEF": from = "cef"; break;
+							// Если если формат из которого производится конвертация установлен как JSON
+							case "#JSON": from = "json"; break;
+							// Если если формат из которого производится конвертация установлен как YAML
+							case "#YAML": from = "yaml"; break;
+							// Если если формат из которого производится конвертация установлен как GROK
+							case "#GROK": from = "grok"; break;
+							// Если если формат из которого производится конвертация установлен как SYSLOG
+							case "#SYSLOG": from = "syslog"; break;
+						}
+						// Получаем данные текстового поля регулярного выражения в формате GROK
+						const express = ((from === "grok") ? $("#grok-expression").val() : undefined);
+						// Если выбран формат GROK но регулярное выражение не запущено
+						if((from === "grok") && (express.length === 0)){
+							// Выполняем установку текста заголовка
+							$("#alertCaption").text("Ошибка конвертации");
+							// Выполняем установка текста сообщения
+							$(".modal-body", "#alert").html("Регулярное выражение <strong>в формате GROK</strong> не заполнено");
+							// Отображаем всплывающее сообщение
+							$("#alert").modal('show');
+						// Если всё хорошо то продолжаем дальше
+						} else {
+							// Получаем данные шаблонов
+							let patterns = ((from === "grok") && (grokEditor !== null) ? grokEditor.getValue() : undefined);
+							// Если выбран формат GROK и указаны шаблоны
+							if((from === "grok") && (patterns.length > 0))
+								// Выполняем парсинг блока шаблонов
+								patterns = JSON.parse(patterns);
+							// Если шаблон пустой
+							else if((from === "grok") && (patterns.length === 0))
+								// Выполняем удаление шаблонов
+								patterns = undefined;
+							// Формируем объект тело запроса
+							const body = {
+								to, from, text, express, patterns,
+								prettify: ((from !== "grok") ? $("#prettify").is(":checked") : undefined)
+							};
+							// Выполняем запрос на сервер
+							const response = await fetch("/exec", {
+								method: "POST",
+								body: JSON.stringify(body),
+								headers: {"Content-type": "application/json; charset=UTF-8"}
+							});
+							// Извлекаем полученный результат
+							const answer = await response.json();
+							// Если в ответе есть поле результата
+							if((answer.result !== null) && (answer.result !== undefined))
+								// Выполняем установку результата
+								toEditor.setValue(answer.result);
+							// Выводим сообщение об ошибке
+							else {
+								// Если получен текст ошибки
+								if((answer.error !== null) && (answer.error !== undefined)){
+									// Выполняем установку текста заголовка
+									$("#alertCaption").text("Ошибка запроса");
+									// Выполняем установка текста сообщения
+									$(".modal-body", "#alert").text(answer.error);
+								// Если текст ошибки не получен
+								} else {
+									// Выполняем установку текста заголовка
+									$("#alertCaption").text("Ответ не получен");
+									// Выполняем установка текста сообщения
+									$(".modal-body", "#alert").text("Ответ от сервера не содержит результата");
+								}
+								// Отображаем всплывающее сообщение
+								$("#alert").modal('show');
+							}
+						}
+					// Если текст для конвертации не заполнен
+					} else {
+						// Выполняем установку текста заголовка
+						$("#alertCaption").text("Ошибка конвертации");
+						// Выполняем установка текста сообщения
+						$(".modal-body", "#alert").text("Текст для конвертации не заполнен");
+						// Отображаем всплывающее сообщение
+						$("#alert").modal('show');
+					}
+				/**
+				 * Если ошибка перехвачена
+				 */
+				} catch(error) {
+					// Выполняем установку текста заголовка
+					$("#alertCaption").text("Ошибка синтаксиса");
+					// Выполняем установка текста сообщения
+					$(".modal-body", "#alert").html(error);
+					// Отображаем всплывающее сообщение
+					$("#alert").modal('show');
+				} 
 			})();
 			// Запрещаем дальнейшие действия для ссылки
 			return false;
