@@ -249,15 +249,33 @@
 							$("#to > li > a[href=#JSON]").click();
 						break;
 					}
+					// Устанавливаем событие на текстовое поле ввода регулярного адреса
+					$("#grok-expression")
+					.unbind("keyup")
+					.bind("keyup", function(){
+						// Получаем объект кнопки очистки текстового поля
+						const button = $(".btn-close", $(this).parent());
+						// Если текст введён в текстовое поле
+						if($(this).val().length > 0)
+							// Выполняем отображение кнопки очистки текстового поля
+							button.removeClass("hidden");
+						// Скрываем кнопку очистки текстового поля
+						else button.addClass("hidden");
+						// Запрещаем дальнейшее событие для кнопки
+						return false;
+					})
 					// Устанавливаем событие на клик по кнопке
-					$("#grok-expression").parent()
+					.parent()
+					.find(".btn-close")
 					.unbind('click')
 					.bind('click', function(){
+						// Скрываем кнопку очистки текстового поля
+						$(this).addClass("hidden");
 						// Выполняем очистку текстового поля
 						$("#grok-expression").val("");
 						// Запрещаем дальнейшее событие для кнопки
 						return false;
-					});
+					})
 					// Устанавливаем событие на изменение поля для ввода шаблонов GROK
 					$("> .CodeMirror", "#code-editor-grok")
 					.unbind("keyup")

@@ -107,13 +107,13 @@
 	display:	block;
 }
 #body #container #content .wrap .block > .mb-3 > input {
-	width:		95%;
-	font-size:	.8em;
+	font-size:		.8em;
+	padding-right:	45px;
 }
 #body #container #content .wrap .block > .mb-3 > .btn-close {
 	position:	absolute;
 	top:		5px;
-	right:		10px;
+	right:		5px;
 }
 #body #container #content .wrap .block .hidden {display: none;}
 #body #container #content .wrap .block .button {padding: 0 0 10px;}
