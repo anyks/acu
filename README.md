@@ -9,9 +9,9 @@
 | **JSON**   | Yes     | Yes      | Yes      | Yes     | Yes     | Yes     | Yes        | Yes      |
 | **YAML**   | Yes     | Yes      | Yes      | Yes     | Yes     | Yes     | Yes        | Yes      |
 | **INI**    | Yes     | Yes      | Yes      | Yes     | No      | No      | No         | No       |
-| **CSV**    | NO      | Yes      | Yes      | No      | Yes     | No      | No         | No       |
-| **CEF**    | NO      | Yes      | Yes      | No      | No      | No      | No         | No       |
-| **SYSLOG** | NO      | Yes      | Yes      | No      | No      | No      | No         | No       |
+| **CSV**    | No      | Yes      | Yes      | No      | Yes     | No      | No         | No       |
+| **CEF**    | No      | Yes      | Yes      | No      | No      | No      | No         | No       |
+| **SYSLOG** | No      | Yes      | Yes      | No      | No      | No      | No         | No       |
 
 ## Requirements
 
@@ -200,48 +200,48 @@ $ acu -from json -to xml -src ./input -dest ./result -prettify
 
 ---
 
-### Creating installation packages
+## Creating installation packages
 
-#### Creating a tar.gz archive
+### Creating a tar.gz archive
 ```bash
 $ ./make_tar_archive.sh
 ```
 
-#### Creating a deb package
+### Creating a deb package
 ```bash
 $ ./linux_make_deb.sh
 ```
 
-#### Creating an rpm package
+### Creating an rpm package
 ```bash
 $ ./linux_make_rpm.sh
 ```
 
-#### Creating an Installation Package for MacOS X
+### Creating an Installation Package for MacOS X
 ```bash
 $ ./make_installer_macos.sh
 ```
 > Installation package will be located in the directory **./package/MacOS/target/pkg**
 
-#### Create exe package
+### Create exe package
 ```bash
 $ ./windows_make_installer.sh
 ```
 > To create an installation package, you need to open the **install.iss** file from the **win** directory in the application [Inno Setup](https://jrsoftware.org/isinfo.php)
 
-### Installation from the installation package
+## Installation from the installation package
 
-#### Installation from tar.gz
+### Installation from tar.gz
 ```bash
 $ tar -xzvf ./acu_1.0.0_MacOSX_arm64.tar.gz -C /
 ```
 
-#### Installation from deb package
+### Installation from deb package
 ```bash
 $ sudo dpkg -i ./acu_1.0.0-1~buster_amd64.deb
 ```
 
-#### Installation from rpm package
+### Installation from rpm package
 ```bash
 $ sudo rpm -i ./acu-1.0.0-1.amd64.rpm
 ```
