@@ -92,6 +92,9 @@ namespace anyks {
 			// Адрес хранения favicon.ico
 			string _favicon;
 		private:
+			// Максимальное количество запросов на одного пользователя в сутки
+			uint16_t _maxRequests;
+		private:
 			// Объект сетевого ядра сервера
 			server::core_t _core;
 			// Объект WEB-сервера
@@ -118,6 +121,9 @@ namespace anyks {
 		private:
 			// Кэш контента содержимого сайта
 			unordered_map <string, vector <char>> _cache;
+		private:
+			// Каунтеры запросов клиентов
+			unordered_map <string, pair <uint16_t, time_t>> _counts;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;

@@ -38,7 +38,11 @@
 		}
 	},
 	"workers": 0,
+	"user": "auto",
+	"group": "auto",
+	"boost": true,
 	"daemon": false,
+	"maxRequests": 600,
 	"root": "./html",
 	"log": "./acu.log",
 	"pidfile": "acu.pid",

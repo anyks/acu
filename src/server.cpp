@@ -412,6 +412,31 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 			} break;
 			// Если мы получили POST запрос
 			case static_cast <uint8_t> (awh::web_t::method_t::POST): {
+				// Получаем значение IP-адреса
+				const string & ip = this->_awh.ip(bid);
+				// Выполняем получение каунтеров запроса клиента
+				auto i = this->_counts.find(ip);
+				// Если каунтер клиента получен
+				if(i != this->_counts.end()){
+					// Получаем текущее значение даты
+					const time_t date = this->_fmk->timestamp(fmk_t::stamp_t::MILLISECONDS);
+					// Выполняем проверку прошли ли сутки с момента предыдущего запроса
+					if((date - i->second.second) >= 86400000){
+						// Выполняем сброс количества выполненных запросов
+						i->second.first = 0;
+						// Выполняем обновление значение даты
+						i->second.second = date;
+					}
+					// Если количество запросов вышло за пределы
+					if(i->second.first >= this->_maxRequests){
+						// Выпоолняем генерацию ошибки запроса
+						this->error(sid, bid, 400, "Your daily request limit has been reached");
+						// Выводим удачное завершение работы
+						return;
+					// Увеличиваем количество выполненных запросов
+					} else i->second.first++;
+				// Выполняем заполнение списка количества запросов
+				} else this->_counts.emplace(ip, make_pair(1, this->_fmk->timestamp(fmk_t::stamp_t::MILLISECONDS)));
 				// Если производится вызов метода /exec
 				if(this->_fmk->compare("/exec", addr)){
 					// Выполняем получение запроса
@@ -713,6 +738,10 @@ void anyks::Server::config(const json & config) noexcept {
 			if(config.contains("index") && config.at("index").is_string())
 				// Выполняем установку название файла по умолчанию
 				this->_index = config.at("index").get <string> ();
+			// Если максимальное количество запросов на одного пользователя в сутки установлено
+			if(config.contains("maxRequests") && config.at("maxRequests").is_number())
+				// Выполняем установку максимального количества запросов на одного пользователя в сутки
+				this->_maxRequests = config.at("maxRequests").get <uint16_t> ();
 			// Если количество воркеров получено
 			if(config.contains("workers") && config.at("workers").is_number()){
 				// Получаем количество доступных потоков
@@ -1077,6 +1106,40 @@ void anyks::Server::config(const json & config) noexcept {
 						}
 					}
 				}
+			}{
+				// Создаём объект работы с операционной системой
+				os_t os;
+				// Если требуется перенастроить сервер на максимальную производительность
+				if(config.contains("boost") && config.at("boost").is_boolean() && config.at("boost").get <bool> ())
+					// Выполняем перенастрофку сервера на максимальную производительность
+					os.boost();
+				// Если пользователь получен
+				if(config.contains("user")){
+					// Если пользователь указан как число или как строка но не строка в виде "auto"
+					if(config.at("user").is_number() || (config.at("user").is_string() && !this->_fmk->compare("auto", config.at("user").get <string> ()))){
+						// Если пользователь указан как число
+						if(config.at("user").is_number()){
+							// Идентификатор группы
+							gid_t gid = 0;
+							// Если группа пользователя получена
+							if(config.contains("group") && config.at("group").is_number())
+								// Получаем идентификатор группы
+								gid = config.at("group").get <gid_t> ();
+							// Выполняем активацию пользователя
+							os.chown(config.at("user").get <uid_t> (), gid);
+						// Если пользователь указан как строка
+						} else {
+							// Название группы
+							string group = "";
+							// Если группа пользователя получена
+							if(config.contains("group") && (config.at("group").is_string() && !this->_fmk->compare("auto", config.at("group").get <string> ())))
+								// Получаем название группы
+								group = config.at("group").get <string> ();
+							// Выполняем активацию пользователя
+							os.chown(config.at("user").get <string> (), group);
+						}
+					}
+				}
 			}
 		}
 	/**
@@ -1120,7 +1183,7 @@ void anyks::Server::start() noexcept {
  */
 anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
  _fs(fmk, log), _uri(fmk), _root{""}, _index{""}, _origin{""}, _favicon{""},
- _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
+ _maxRequests(100), _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
 	// Выполняем установку идентификатора клиента
 	this->_awh.ident(AWH_SHORT_NAME, AWH_NAME, AWH_VERSION);
 	// Устанавливаем функцию извлечения пароля пользователя для авторизации

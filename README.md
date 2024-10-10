@@ -197,3 +197,242 @@ $ acu -from grok -to xml -src ./example.txt -express ./express.txt -patterns ./p
 ```bash
 $ acu -from json -to xml -src ./input -dest ./result -prettify
 ```
+
+---
+
+### Creating installation packages
+
+#### Creating a tar.gz archive
+```bash
+$ ./make_tar_archive.sh
+```
+
+#### Creating a deb package
+```bash
+$ ./linux_make_deb.sh
+```
+
+#### Creating an rpm package
+```bash
+$ ./linux_make_rpm.sh
+```
+
+#### Creating an Installation Package for MacOS X
+```bash
+$ ./make_installer_macos.sh
+```
+> Installation package will be located in the directory **./package/MacOS/target/pkg**
+
+#### Create exe package
+```bash
+$ ./windows_make_installer.sh
+```
+> To create an installation package, you need to open the **install.iss** file from the **win** directory in the application [Inno Setup](https://jrsoftware.org/isinfo.php)
+
+### Installation from the installation package
+
+#### Installation from tar.gz
+```bash
+$ tar -xzvf ./acu_1.0.0_MacOSX_arm64.tar.gz -C /
+```
+
+#### Installation from deb package
+```bash
+$ sudo dpkg -i ./acu_1.0.0-1~buster_amd64.deb
+```
+
+#### Installation from rpm package
+```bash
+$ sudo rpm -i ./acu-1.0.0-1.amd64.rpm
+```
+
+---
+
+## Basic launch parameters
+
+### Getting the version application
+```bash
+$ acu -V
+
+## Result:
+# 
+# ANYKS - conversion utility 1.0.0 (built: Oct 10 2024 01:20:36)
+# awh: 4.2.6
+# target: MacOS X
+# installed dir: /opt/acu/bin
+# 
+# *
+# * site:     https://acu.anyks.com
+# * email:    info@anyks.com
+# * telegram: @forman
+# *
+#
+```
+> There are several ways to get the version of an application, the short version is **"-V"** or the full version is **"--version"**.
+
+### Getting reference information
+```bash
+$ acu -H
+
+## Result:
+# 
+# usage: acu [-V | --version] [-H | --info] [<args>]
+# 
+# 
+# [FLAGS]
+# + Flag for generating headers when parsing CSV files: [-header | --header]
+# 
+# + Flag for generating a readable file format (XML or JSON): [-prettify | --prettify]
+# 
+# + Display application version: [-version | --version | -V]
+# 
+# + Display information about available application functions: [-info | --info | -H]
+# 
+# [ARGS]
+# + CEF file parsing mode: [-cef <value> | --cef=<value>]
+#   - (LOW | MEDIUM | STRONG)
+# 
+# + File format to which the writing is made: [-to <value> | --to=<value>]
+#   - (XML | JSON | INI | YAML | CSV | CEF | SYSLOG)
+# 
+# + Format of the file from which reading is performed: [-from <value> | --from=<value>]
+#   - (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK)
+# 
+# + Format date (if required): [-formatDate "<value>" | --formatDate="<value>"]
+#   - ( %m/%d/%Y %H:%M:%S | %H:%M:%S %d.%m.%Y | ... )
+# 
+# + Logging level (if required): [-logLevel <value> | --logLevel=<value>]
+#   - ( 0 = NONE | 1 = INFO | 2 = WARNING | 3 = CRITICAL | 4 = INFO and WARNING | 5 = INFO and CRITICAL | 6 = WARNING CRITICAL | 7 = ALL)
+# 
+# + File address for writing logs (if required): [-log <value> | --log=<value>]
+# 
+# + File or directory address for saving converted files: [-dest <value> | --dest=<value>]
+# 
+# + Separator for parsing CSV files (default: ";"): [-delim <value> | --delim=<value>]
+# 
+# + Address of the file or directory with files to convert: [-src <value> | --src=<value>]
+# 
+# + Address of the file in JSON format with GROK templates: [-patterns <value> | --patterns=<value>]
+# 
+# + Address of the file with the regular expression in GROK format: [-express <value> | --express=<value>]
+# 
+```
+> There are several ways to get help information, the short version is **"-H"** or the full version is **"--info"**.
+
+### General concepts
+
+It should be explained in advance that the launch parameters can be specified in any order; there is a full and short form for setting the launch parameters.
+
+- **Full form:** --<NAME>=<VALUE>
+- **Short form:** -<NAME> <VALUE>
+> For example, the entries **--config=config.json** and **-config config.json** are equivalent.
+
+To simplify work with **ACU Server**, there is a configuration file in **JSON** format, all startup parameters can be specified in this configuration file. By default, each operating system has its own set of paths by which **ACU Server** searches for the configuration file. The path by which **ACU Server** will search for the configuration file is specified in the **[PATHS]** section of the reference information. The address of the configuration file can be specified independently using the **config** parameter.
+
+For **UNIX-like** operating systems, parameters can be specified using environment variables with the **ACU_** prefix.
+
+---
+
+## Description of the ACU Server configuration file
+
+### Configuration file example
+```json
+{
+	
+	"ssl": {
+		"key": "",
+		"cert": "",
+		"verify": false
+	},
+	"net": {
+		"ipv": 4,
+		"wait": 15,
+		"sonet": "tcp",
+		"host": "127.0.0.1",
+		"port": 2222,
+		"proto": "http2",
+		"unixSocket": "",
+		"total": 100,
+		"ipv6": false,
+		"filter": {
+			"type": "mac",
+			"black": [],
+			"white": []
+		},
+		"compress": [
+			"ZSTD",
+			"BROTLI",
+			"GZIP",
+			"DEFLATE"
+		],
+		"authentication": {
+			"enabled": false,
+			"auth": "Basic",
+			"digest": "MD5",
+			"users": {"admin": "admin"}
+		},
+		"bandwidth": {
+			"read": "20Mbps",
+			"write": "20Mbps"
+		}
+	},
+	"workers": 0,
+	"user": "auto",
+	"group": "auto",
+	"boost": true,
+	"daemon": false,
+	"maxRequests": 600,
+	"root": "./html",
+	"log": "./acu.log",
+	"pidfile": "acu.pid",
+	"index": "index.html",
+	"favicon": "./icons/icon.ico",
+	"origin": "http://127.0.0.1:2222",
+	"formatDate": "%H:%M:%S %d.%m.%Y"
+}
+```
+
+### Description of configuration file parameters
+| **Parameter name**     | **Parameter Description** |
+|------------------------|---------------------------|
+| **ssl** | Object of parameters for **secure network SSL connection** to network services. |
+| **ssl.verify** | Parameter for activating the **SSL certificate validity check** mode. |
+| **ssl.key** | Key of the certificate file in the file system, for working in secure server mode. |
+| **ssl.cert** | Certificate file in the file system, for working in secure server mode. |
+| **server** | Server parameters |
+| **server.ipv** | Supported Internet Protocol Type **IPv4** or **IPv6**. |
+| **server.wait** | Time to wait for data to be received from the client in seconds. |
+| **server.sone** | Internet connection protocol (TCP, TLS, SCTP). |
+| **server.host** | Server host through which the connection is made. |
+| **server.port** | Server port through which the connection is made. |
+| **server.proto** | Default server application protocol (http or http2). |
+| **server.unixSocket** | Name of the **Unix socket** in the file system, through which the connection to the server will be made. The Unix socket will be located in the **/tmp** directory. |
+| **server.total** | Number of clients simultaneously connected to one server. |
+| **server.ipv6** | Perform server communication only via **IPv6**. |
+| **server.filter** | An object that filters the list of clients connecting to the server. |
+| **server.filter.type** | Filter clients by **MAC** or **IP** address. |
+| **server.filter.black** | List of clients that are prohibited from connecting to the server. |
+| **server.filter.white** | List of clients that are only allowed to connect to the server. |
+| **server.compres** | List of compressors supported by the server, in priority order (ZSTD, BROTLI, GZIP, DEFLATE, LZ4, LZMA, BZIP2). |
+| **server.authentication** | Server authorization parameters object. |
+| **server.authentication.enabled** | Parameter for activating the authorization mode on the server. |
+| **server.authentication.auth** | Server authorization method **Basic** or **Digest**. |
+| **server.authentication.digest** | Hash type for the **Digest** authentication method (**MD5**, **SHA1**, **SHA256**, **SHA512**). |
+| **server.authentication.username** | Username for authorization on the server. |
+| **server.authentication.password** | User password for authorization on the server. |
+| **server.bandwidth** | Object of network connection speed limit parameters for the server. |
+| **server.bandwidth.read** | Maximum data transfer rate in read mode. |
+| **server.bandwidth.write** | Maximum data transfer rate in recording mode. |
+| **workers** | Number of cluster processes, if the value is not set or set to -1, the cluster will not be activated. Set to 0, the cluster will automatically create the number of processes for your machine. |
+| **user** | Name or user ID under which the application should be launched. The "auto" parameter sets the current user. |
+| **group** | Name or identifier of the user group under which the application should be launched. The "auto" parameter sets the current user group. |
+| **boost** | Flag for activating reconfiguration of the operating system kernel for maximum network protocol performance. |
+| **daemon** | Parameter for activating the server in daemon mode, this parameter is necessary for disconnecting from the parent thread. |
+| **maxRequests** | Maximum number of requests to the server per day available to one specific user. |
+| **root** | Catalog with the site location in HTML format. |
+| **log** | Address of the log file where the processes occurring on the server will be recorded. |
+| **pidfile** | Name of the **PID file** located in the **/var/run** directory to record the identifier of the active process in a unix-like operating system. |
+| **index** | An index HTML file that is opened by default by the server when a client's root request occurs. |
+| **favicon** | Address to the site icon file. |
+| **origin** | Website address that the client must send to the server in the **Origin** HTTP header. |
+| **formatDate** | Format of the date and time displayed when logging processes on the server. |
