@@ -139,11 +139,6 @@ if(AWH_FOUND)
     message(STATUS "OpenSSL include dir found: " ${OPENSSL_INCLUDE_DIR})
     message(STATUS "Brotli include dir found: " ${BROTLI_INCLUDE_ENCODE_DIR} " " ${BROTLI_INCLUDE_DECODE_DIR})
 
-    # Если операцинная система не относится к MS Windows
-    if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-        message(STATUS "JeMalloc include dir found: " ${JEMALLOC_INCLUDE_DIR})
-    endif()
-
     # Сборка модуля AWH_IDN, если операционной системой не является Windows
     if(CMAKE_BUILD_IDN AND (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows"))
         message(STATUS "IDN2 include dir found: " ${IDN2_INCLUDE_DIR})
