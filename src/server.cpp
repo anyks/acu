@@ -703,7 +703,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 	/**
 	 * Если возникает ошибка
 	 */
-	} catch(const std::ios_base::failure & error) {
+	} catch(const std::exception & error) {
 		// Выпоолняем генерацию ошибки запроса
 		this->error(sid, bid, 403, error.what());
 	}
@@ -726,7 +726,7 @@ void anyks::Server::config(const json & config) noexcept {
 			// Если адрес установлен ресурс с которого разрешено выполнять доступ к API-сервера
 			if(config.contains("origin") && config.at("origin").is_string()){
 				// Выполняем установку ресурса с которого разрешено выполнять доступ к API-сервера
-				this->_origin = this->_fs.realPath(config.at("origin").get <string> ());
+				this->_origin = config.at("origin").get <string> ();
 				// Выполняем установку Origin сервера
 				this->_awh.addOrigin(this->_origin);
 			}
@@ -1145,7 +1145,7 @@ void anyks::Server::config(const json & config) noexcept {
 	/**
 	 * Если возникает ошибка
 	 */
-	} catch(const exception & error) {
+	} catch(const std::exception & error) {
 		// Выводим сообщение об ошибке
 		this->_log->print("Config: %s", log_t::flag_t::CRITICAL, error.what());
 	}
