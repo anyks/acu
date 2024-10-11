@@ -213,9 +213,12 @@ void anyks::Server::active(const uint64_t bid, const server::web_t::mode_t mode)
  */
 void anyks::Server::handshake(const int32_t sid, const uint64_t bid, const server::web_t::agent_t agent) noexcept {
 	// Если агентом не является HTTP-клиент
-	if(agent != server::web_t::agent_t::HTTP)
+	if(agent != server::web_t::agent_t::HTTP){
 		// Выпоолняем генерацию ошибки запроса
 		this->error(sid, bid, 403, "Unauthorized connection attempt");
+		// Выполняем закрытие подключения
+		this->_awh.close(bid);
+	}
 }
 /**
  * request Метод вывода входящего запроса
