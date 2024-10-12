@@ -51,7 +51,7 @@ void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t 
 		// Если запрошенный файл в кэше найден
 		if(i != this->_cache.end()){
 			// Отправляем сообщение клиенту
-			this->_awh.send(sid, bid, code, mess, i->second, {
+			this->_awh.send(sid, bid, code, mess, i->second.second, {
 				{"Accept-Ranges", "bytes"},
 				{"Vary", "Accept-Encoding"},
 				{"Content-Type", "text/html; charset=utf-8"},
@@ -64,7 +64,7 @@ void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t 
 			// Выполняем чтение запрошенного файла
 			const auto & buffer = this->_fs.read(filename);
 			// Выполняем добавление файла в кэш
-			this->_cache.emplace(filename, buffer);
+			this->_cache.emplace(filename, std::make_pair(13, buffer));
 			// Отправляем сообщение клиенту
 			this->_awh.send(sid, bid, code, mess, buffer, {
 				{"Accept-Ranges", "bytes"},
@@ -228,7 +228,7 @@ void anyks::Server::handshake(const int32_t sid, const uint64_t bid, const serve
  * @param url     адрес входящего запроса
  * @param headers заголовки запроса
  */
-void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const unordered_multimap <string, string> & headers) noexcept {
+void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const std::unordered_multimap <string, string> & headers) noexcept {
 	// Если выполняем поиска заголовка Origin
 	auto i = headers.find("origin");
 	// Если заголовок не получен
@@ -248,7 +248,7 @@ void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::we
  * @param entity  тело запроса
  * @param headers заголовки запроса
  */
-void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const unordered_multimap <string, string> & headers) noexcept {
+void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const std::unordered_multimap <string, string> & headers) noexcept {
 	/**
 	 * Выполняем перехват ошибок
 	 */
@@ -269,8 +269,6 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						const auto & buffer = this->_fs.read(this->_favicon);
 						// Если буфер бинарных данных сформирован
 						if((result = !buffer.empty())){
-							// Создаём объект HTTP-парсера
-							client::http_t http(this->_fmk, this->_log);
 							// Выполняем получение штампа времени даты компиляции приложения
 							const time_t date = this->_fmk->str2time(this->_fmk->format("%s %s", __DATE__, __TIME__), "%b %d %Y %H:%M:%S");
 							// Отправляем сообщение клиенту
@@ -279,7 +277,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								{"Accept-Ranges", "bytes"},
 								{"Vary", "Accept-Encoding"},
 								{"Content-Type", "image/x-icon"},
-								{"Last-Modified", http.date(date)},
+								{"Last-Modified", this->_http.date(date)},
 								{"Access-Control-Request-Headers", "Content-Type"},
 								{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
 								{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
@@ -382,30 +380,82 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 					else if(this->_fmk->compare("jpg", extension) || this->_fmk->compare("jpeg", extension))
 						// Выполняем установку типа контента
 						contentType = "image/jpeg";
+					// Выполняем получение штампа времени даты компиляции приложения
+					const time_t date = this->_fmk->str2time(this->_fmk->format("%s %s", __DATE__, __TIME__), "%b %d %Y %H:%M:%S");
 					// Выполняем поиск запрошенного файла в кэше
 					auto i = this->_cache.find(filename);
 					// Если запрошенный файл в кэше найден
 					if((result = (i != this->_cache.end()))){
+						// Выполняем поиск заголовка проверки ETag
+						auto j = headers.find("if-none-match");
+						// Если заголовок с хештегом найден
+						if(j != headers.end()){
+							// Получаем заголовко запроса
+							const string header(j->second.begin() + 1, j->second.end() - 1);
+							// Выводим значение заголовка
+							if(i->second.first == ::stoull(header)){
+								// Отправляем сообщение клиенту
+								this->_awh.send(sid, bid, 304, "Not Modified", {}, {
+									{"Vary", "Accept-Encoding"},
+									{"Last-Modified", this->_http.date(date)},
+									{"Date", this->_http.date(::time(nullptr))},
+									{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+									{"ETag", this->_fmk->format("\"%llu\"", i->second.first)},
+									{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+								});
+								// Выходим из функции
+								return;
+							}
+						}
 						// Отправляем сообщение клиенту
-						this->_awh.send(sid, bid, 200, "OK", i->second, {
+						this->_awh.send(sid, bid, 200, "OK", i->second.second, {
 							{"Accept-Ranges", "bytes"},
 							{"Vary", "Accept-Encoding"},
 							{"Content-Type", contentType},
+							{"Last-Modified", this->_http.date(date)},
+							{"Date", this->_http.date(::time(nullptr))},
 							{"Access-Control-Request-Headers", "Content-Type"},
 							{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+							{"ETag", this->_fmk->format("\"%llu\"", i->second.first)},
 							{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
 						});
 					// Если в кэше данные не обнаружены, но есть в файловой системе
 					} else if((result = this->_fs.isFile(filename))) {
 						// Выполняем чтение запрошенного файла
 						const auto & buffer = this->_fs.read(filename);
+						// Получаем хэш буфера данных
+						const uint64_t etag = CityHash64(buffer.data(), buffer.size());
 						// Выполняем добавление файла в кэш
-						this->_cache.emplace(filename, buffer);
+						this->_cache.emplace(filename, std::make_pair(etag, buffer));
+						// Выполняем поиск заголовка проверки ETag
+						auto j = headers.find("if-none-match");
+						// Если заголовок с хештегом найден
+						if(j != headers.end()){
+							// Получаем заголовко запроса
+							const string header(j->second.begin() + 1, j->second.end() - 1);
+							// Выводим значение заголовка
+							if(etag == ::stoull(header)){
+								// Отправляем сообщение клиенту
+								this->_awh.send(sid, bid, 304, "Not Modified", {}, {
+									{"Vary", "Accept-Encoding"},
+									{"Last-Modified", this->_http.date(date)},
+									{"Date", this->_http.date(::time(nullptr))},
+									{"ETag", this->_fmk->format("\"%llu\"", etag)},
+									{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+									{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+								});
+								// Выходим из функции
+								return;
+							}
+						}
 						// Отправляем сообщение клиенту
 						this->_awh.send(sid, bid, 200, "OK", buffer, {
 							{"Accept-Ranges", "bytes"},
 							{"Vary", "Accept-Encoding"},
 							{"Content-Type", contentType},
+							{"Last-Modified", this->_http.date(date)},
+							{"Date", this->_http.date(::time(nullptr))},
+							{"ETag", this->_fmk->format("\"%llu\"", etag)},
 							{"Access-Control-Request-Headers", "Content-Type"},
 							{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
 							{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
@@ -1160,7 +1210,7 @@ void anyks::Server::stop() noexcept {
 	// Очищаем кэш запросов
 	this->_cache.clear();
 	// Выполняем очищение выделенной ранее памяти
-	unordered_map <string, vector <char>> ().swap(this->_cache);
+	std::unordered_map <string, pair <uint64_t, vector <char>>> ().swap(this->_cache);
 	// Запрещаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::DISABLED);
 	// Выполняем остановку сервера
@@ -1186,7 +1236,7 @@ void anyks::Server::start() noexcept {
  */
 anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
  _fs(fmk, log), _uri(fmk), _root{""}, _index{""}, _origin{""}, _favicon{""},
- _maxRequests(100), _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
+ _http(fmk, log), _maxRequests(100), _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
 	// Выполняем установку идентификатора клиента
 	this->_awh.ident(AWH_SHORT_NAME, AWH_NAME, AWH_VERSION);
 	// Устанавливаем функцию извлечения пароля пользователя для авторизации
@@ -1200,9 +1250,9 @@ anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
 	// Установливаем функцию обратного вызова на событие запуска или остановки подключения
 	this->_awh.callback <void (const uint64_t, const server::web_t::mode_t)> ("active", std::bind(static_cast <void (server_t::*)(const uint64_t, const server::web_t::mode_t)> (&server_t::active), this, _1, _2));
 	// Устанавливаем функцию обратного вызова на получение входящих сообщений запросов
-	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const unordered_multimap <string, string> &)> ("headers", std::bind(&server_t::headers, this, _1, _2, _3, _4, _5));
+	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const std::unordered_multimap <string, string> &)> ("headers", std::bind(&server_t::headers, this, _1, _2, _3, _4, _5));
 	// Установливаем функцию обратного вызова на событие получения полного запроса клиента
-	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const unordered_multimap <string, string> &)> ("complete", std::bind(&server_t::complete, this, _1, _2, _3, _4, _5, _6));
+	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const std::unordered_multimap <string, string> &)> ("complete", std::bind(&server_t::complete, this, _1, _2, _3, _4, _5, _6));
 }
 /**
  * ~Server деструктор

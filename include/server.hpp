@@ -92,6 +92,9 @@ namespace anyks {
 			// Адрес хранения favicon.ico
 			string _favicon;
 		private:
+			// Объект работы с HTTP протоколом
+			client::http_t _http;
+		private:
 			// Максимальное количество запросов на одного пользователя в сутки
 			uint16_t _maxRequests;
 		private:
@@ -104,26 +107,23 @@ namespace anyks {
 			bandwidth_t _bandwidth;
 		private:
 			// Чёрный список для IP-адресов 
-			unordered_set <string> _ipBlack;
+			std::unordered_set <string> _ipBlack;
 			// Белый список для IP-адресов
-			unordered_set <string> _ipWhite;
+			std::unordered_set <string> _ipWhite;
 		private:
 			// Чёрный список для MAC адресов
-			unordered_set <string> _macBlack;
+			std::unordered_set <string> _macBlack;
 			// Белый список для MAC адресов
-			unordered_set <string> _macWhite;
+			std::unordered_set <string> _macWhite;
 		private:
 			// Список пользователей для авторизации клиента
-			unordered_map <string, string> _users;
-		private:
-			// Список запрещённых IP-адресов для DNS
-			unordered_map <string, string> _dnsBlack;
-		private:
-			// Кэш контента содержимого сайта
-			unordered_map <string, vector <char>> _cache;
+			std::unordered_map <string, string> _users;
 		private:
 			// Каунтеры запросов клиентов
-			unordered_map <string, pair <uint16_t, time_t>> _counts;
+			std::unordered_map <string, pair <uint16_t, time_t>> _counts;
+		private:
+			// Кэш контента содержимого сайта
+			std::unordered_map <string, pair <uint64_t, vector <char>>> _cache;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;
@@ -196,7 +196,7 @@ namespace anyks {
 			 * @param url     адрес входящего запроса
 			 * @param headers заголовки запроса
 			 */
-			void headers(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const unordered_multimap <string, string> & headers) noexcept;
+			void headers(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const std::unordered_multimap <string, string> & headers) noexcept;
 			/**
 			 * complete Метод завершения получения запроса клиента
 			 * @param sid     идентификатор потока
@@ -206,7 +206,7 @@ namespace anyks {
 			 * @param entity  тело запроса
 			 * @param headers заголовки запроса
 			 */
-			void complete(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const unordered_multimap <string, string> & headers) noexcept;
+			void complete(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const std::unordered_multimap <string, string> & headers) noexcept;
 		public:
 			/**
 			 * config Метод установки конфигурационных параметров в формате JSON
