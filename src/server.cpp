@@ -899,7 +899,7 @@ void anyks::Server::config(const json & config) noexcept {
 						// Устанавливаем порт сервера
 						port = config.at("net").at("port").get <uint32_t> ();
 						// Если порт сервера указан неправильно
-						if((port < 1024) || (port > 49151)){
+						if((port < 80) || (port > 49151)){
 							// Выполняем сброс порта сервера
 							port = SERVER_PORT;
 							// Иначе выводим сообщение об ошибке
