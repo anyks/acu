@@ -18,6 +18,32 @@
 			readOnly: true,
 			lineNumbers: true
 		});
+		/**
+		 * alert Функция вывода всплывающего сообщения
+		 * @param {String} caption заголовок сообщения
+		 * @param {String} data    текст сообщения
+		 */
+		const alert = (caption, data) => {
+			// Шаблон всплывающего сообщения
+			const template = `<div class="modal fade" id="alert" tabindex="-1" aria-labelledby="alertCaption" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="alertCaption"></h1><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Ok</button></div></div></div></div>`;
+			// Выполняем добавление шаблона всплывающего сообщения
+			$("body").append(template);
+			// Устанавливаем событие на скрытие всплывающего сообщения
+			$("#alert")
+			.unbind("hidden.bs.modal")
+			.bind("hidden.bs.modal", function() {
+				// Выполняем удаление всплывающего сообщения
+				$(this).remove();
+				// Выходим из функции
+				return false;
+			});
+			// Выполняем установку текста заголовка
+			$("#alertCaption").text(caption);
+			// Выполняем установка текста сообщения
+			$(".modal-body", "#alert").html(data);
+			// Отображаем всплывающее сообщение
+			$("#alert").modal('show');
+		};
 		// Устанавливаем событие на изменение поля из которого следует выполнять конвертацию
 		$("> .CodeMirror", "#code-editor-from")
 		.unbind("keyup")
@@ -103,15 +129,11 @@
 						// Получаем данные текстового поля регулярного выражения в формате GROK
 						const express = ((from === "grok") ? $("#grok-expression").val() : undefined);
 						// Если выбран формат GROK но регулярное выражение не запущено
-						if((from === "grok") && (express.length === 0)){
-							// Выполняем установку текста заголовка
-							$("#alertCaption").text("Ошибка конвертации");
-							// Выполняем установка текста сообщения
-							$(".modal-body", "#alert").html("Регулярное выражение <strong>в формате GROK</strong> не заполнено");
+						if((from === "grok") && (express.length === 0))
 							// Отображаем всплывающее сообщение
-							$("#alert").modal('show');
+							alert("Ошибка конвертации", "Регулярное выражение <strong>в формате GROK</strong> не заполнено");
 						// Если всё хорошо то продолжаем дальше
-						} else {
+						else {
 							// Получаем данные шаблонов
 							let patterns = ((from === "grok") && (grokEditor !== null) ? grokEditor.getValue() : undefined);
 							// Если выбран формат GROK и указаны шаблоны
@@ -143,41 +165,21 @@
 							// Выводим сообщение об ошибке
 							else {
 								// Если получен текст ошибки
-								if((answer.error !== null) && (answer.error !== undefined)){
-									// Выполняем установку текста заголовка
-									$("#alertCaption").text("Ошибка запроса");
-									// Выполняем установка текста сообщения
-									$(".modal-body", "#alert").text(answer.error);
+								if((answer.error !== null) && (answer.error !== undefined))
+									// Отображаем всплывающее сообщение
+									alert("Ошибка запроса", answer.error);
 								// Если текст ошибки не получен
-								} else {
-									// Выполняем установку текста заголовка
-									$("#alertCaption").text("Ответ не получен");
-									// Выполняем установка текста сообщения
-									$(".modal-body", "#alert").text("Ответ от сервера не содержит результата");
-								}
-								// Отображаем всплывающее сообщение
-								$("#alert").modal('show');
+								else alert("Ответ не получен", "Ответ от сервера не содержит результата");
 							}
 						}
 					// Если текст для конвертации не заполнен
-					} else {
-						// Выполняем установку текста заголовка
-						$("#alertCaption").text("Ошибка конвертации");
-						// Выполняем установка текста сообщения
-						$(".modal-body", "#alert").text("Текст для конвертации не заполнен");
-						// Отображаем всплывающее сообщение
-						$("#alert").modal('show');
-					}
+					} else alert("Ошибка конвертации", "Текст для конвертации не заполнен");
 				/**
 				 * Если ошибка перехвачена
 				 */
 				} catch(error) {
-					// Выполняем установку текста заголовка
-					$("#alertCaption").text("Ошибка синтаксиса");
-					// Выполняем установка текста сообщения
-					$(".modal-body", "#alert").html(error);
 					// Отображаем всплывающее сообщение
-					$("#alert").modal('show');
+					alert("Ошибка синтаксиса", error);
 				}
 			})();
 			// Выключаем индикатор загрузки
