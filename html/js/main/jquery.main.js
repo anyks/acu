@@ -24,25 +24,29 @@
 		 * @param {String} data    текст сообщения
 		 */
 		const alert = (caption, data) => {
-			// Шаблон всплывающего сообщения
-			const template = `<div class="modal fade" id="alert" tabindex="-1" aria-labelledby="alertCaption" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="alertCaption"></h1><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Ok</button></div></div></div></div>`;
-			// Выполняем добавление шаблона всплывающего сообщения
-			$("body").append(template);
-			// Устанавливаем событие на скрытие всплывающего сообщения
-			$("#alert")
-			.unbind("hidden.bs.modal")
-			.bind("hidden.bs.modal", function() {
-				// Выполняем удаление всплывающего сообщения
-				$(this).remove();
-				// Выходим из функции
-				return false;
-			});
-			// Выполняем установку текста заголовка
-			$("#alertCaption").text(caption);
-			// Выполняем установка текста сообщения
-			$(".modal-body", "#alert").html(data);
-			// Отображаем всплывающее сообщение
-			$("#alert").modal('show');
+			// Если размер окнша выше 767 пикселей
+			if($(window).width() >= 768){
+				// Шаблон всплывающего сообщения
+				const template = `<div class="modal fade" id="alert" tabindex="-1" aria-labelledby="alertCaption" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="alertCaption"></h1><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Ok</button></div></div></div></div>`;
+				// Выполняем добавление шаблона всплывающего сообщения
+				$("body").append(template);
+				// Устанавливаем событие на скрытие всплывающего сообщения
+				$("#alert")
+				.unbind("hidden.bs.modal")
+				.bind("hidden.bs.modal", function() {
+					// Выполняем удаление всплывающего сообщения
+					$(this).remove();
+					// Выходим из функции
+					return false;
+				});
+				// Выполняем установку текста заголовка
+				$("#alertCaption").text(caption);
+				// Выполняем установка текста сообщения
+				$(".modal-body", "#alert").html(data);
+				// Отображаем всплывающее сообщение
+				$("#alert").modal('show');
+			// Выводим нативное всплывающее сообщение
+			} else window.alert(data);
 		};
 		// Устанавливаем событие на изменение поля из которого следует выполнять конвертацию
 		$("> .CodeMirror", "#code-editor-from")
