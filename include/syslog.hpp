@@ -25,6 +25,7 @@
 #include <ctime>
 #include <cmath>
 #include <stack>
+#include <mutex>
 #include <vector>
 #include <string>
 #include <iomanip>
@@ -39,6 +40,7 @@
  */
 #include <sys/fmk.hpp>
 #include <sys/log.hpp>
+#include <sys/reg.hpp>
 
 // Объявляем пространство имен
 using namespace std;
@@ -64,6 +66,28 @@ namespace anyks {
 				RFC3164 = 0x01, // Стандарт RFC 3164
 				RFC5424 = 0x02  // Стандарт RFC 5424
 			};
+			/**
+			 * Поддерживаемые режимы парсинга
+			 */
+			enum class mode_t : uint8_t {
+				NONE   = 0x00, // Режим парсинга не установлен
+				NATIVE = 0x01, // Режим парсинга установлен как нативный
+				REGEXP = 0x02  // Режим парсинга установлен как регулярные выражения
+			};
+		private:
+			/**
+			 * RegExp Структура регулярных выражений
+			 */
+			typedef struct RegExp {
+				regexp_t::exp_t mess;    // Регулярное выражение для извлечения сообщений для RFC5424
+				regexp_t::exp_t items;   // Регулярное выражение для извлечения параметров сообщения RFC5424
+				regexp_t::exp_t date1;   // Регулярное выражение для распознавания формат даты (Sat Jan  8 20:07:41 2011)
+				regexp_t::exp_t date2;   // Регулярное выражение для распознавания формат даты (2024-10-04 13:29:47)
+				regexp_t::exp_t date3;   // Регулярное выражение для распознавания формат даты (2003-10-11T22:14:15.003Z)
+				regexp_t::exp_t params;  // Регулярное выражение для извлечения параметров сообщений RFC5424
+				regexp_t::exp_t rfc3164; // Регулярное выражение для парсинга всего сообщения RFC3164
+				regexp_t::exp_t rfc5424; // Регулярное выражение для парсинга части сообщения RFC5424
+			} exp_t;
 		private:
 			// Поддерживаемый стандарт
 			std_t _std;
@@ -72,6 +96,9 @@ namespace anyks {
 			uint8_t _ver;
 			// Приоритет сообщения
 			uint16_t _pri;
+		private:
+			// Режим парсинга
+			mode_t _mode;
 		private:
 			// Название сообщения
 			string _app;
@@ -91,8 +118,16 @@ namespace anyks {
 			// Штамп времени сообщения
 			time_t _timestamp;
 		private:
+			// Объект собранных регулярных выражений
+			exp_t _exp;
+			// Объект работы с регулярными выражениями
+			regexp_t _reg;
+		private:
+			// Мютекс для блокировки потока
+			std::recursive_mutex _mtx;
+		private:
 			// Список структурированных данных
-			unordered_map <string, unordered_map <string, string>> _sd;
+			std::unordered_map <string, std::unordered_map <string, string>> _sd;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;
@@ -140,13 +175,13 @@ namespace anyks {
 			 * @param id идентификатор структурированных данных
 			 * @return   список структурированных данных
 			 */
-			const unordered_map <string, string> & sd(const string & id) const noexcept;
+			const std::unordered_map <string, string> & sd(const string & id) const noexcept;
 			/**
 			 * sd Метод установки структурированных данных
 			 * @param id идентификатор структурированных данных
 			 * @param sd список структурированных данных
 			 */
-			void sd(const string & id, const unordered_map <string, string> & sd) noexcept;
+			void sd(const string & id, const std::unordered_map <string, string> & sd) noexcept;
 		public:
 			/**
 			 * std Метод получения стандарта сообщения
@@ -279,6 +314,17 @@ namespace anyks {
 			void dump(const json & dump) noexcept;
 		public:
 			/**
+			 * mode Метод получения установленного режима парсинга
+			 * @return установленный режим парсинга
+			 */
+			mode_t mode() const noexcept;
+			/**
+			 * mode Метод установки режима парсинга
+			 * @param mode режим парсинга для установки
+			 */
+			void mode(const mode_t mode) noexcept;
+		public:
+			/**
 			 * Оператор вывода данные контейнера в качестве строки
 			 * @return данные контейнера в качестве строки
 			 */
@@ -315,9 +361,7 @@ namespace anyks {
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
-			SysLog(const fmk_t * fmk, const log_t * log) noexcept :
-			 _std(std_t::AUTO), _ver(1), _pri(0), _app{"-"}, _host{"-"}, _pid(0),
-			 _mid{"-"}, _message{""}, _format{FORMAT}, _timestamp(0), _fmk(fmk), _log(log) {}
+			SysLog(const fmk_t * fmk, const log_t * log) noexcept;
 	} syslog_t;
 	/**
 	 * Оператор [>>] чтения из потока SysLog контейнера

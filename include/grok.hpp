@@ -31,9 +31,9 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
+#include <pcre2posix.h>
 #include <cityhash/city.h>
 #include <nlohmann/json.hpp>
-#include <pcre2posix.h>
 
 /**
  * Модули AWH
@@ -84,9 +84,9 @@ namespace anyks {
 			 * Mutex структура рабочих мютексов
 			 */
 			typedef struct Mutex {
-				mutex cache;    // Мютекс контроля кэша
-				mutex mapping;  // Мютекс контроля собранных соответствий
-				mutex patterns; // Мютекс контроля собранных шаблонов
+				std::mutex cache;    // Мютекс контроля кэша
+				std::mutex mapping;  // Мютекс контроля собранных соответствий
+				std::mutex patterns; // Мютекс контроля собранных шаблонов
 			} mtx_t;
 			/**
 			 * Var Класс работы с переменными
@@ -99,7 +99,7 @@ namespace anyks {
 					friend class Grok;
 				private:
 					// Мютекс для блокировки потока
-					mutex _mtx;
+					std::mutex _mtx;
 				private:
 					// Список имён переменных
 					vector <string> _names;
@@ -157,15 +157,15 @@ namespace anyks {
 			mutable var_t _variables;
 		private:
 			// Список ключей добавленных шаблонов
-			set <string> _keys;
+			std::set <string> _keys;
 		private:
 			// Схема соответствий ключей
-			unordered_map <string, string> _mapping;
+			std::unordered_map <string, string> _mapping;
 			// Список шаблонов для работы
-			unordered_map <string, string> _patterns;
+			std::unordered_map <string, string> _patterns;
 		private:
 			// Объект кэша работы модуля
-			map <uint64_t, unique_ptr <cache_t>> _cache;
+			std::map <uint64_t, std::unique_ptr <cache_t>> _cache;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;
@@ -250,7 +250,7 @@ namespace anyks {
 			 * mapping Метод извлечения карты полученных значений
 			 * @return карта полученных значений 
 			 */
-			const unordered_map <string, string> & mapping() const noexcept;
+			const std::unordered_map <string, string> & mapping() const noexcept;
 		public:
 			/**
 			 * get Метод извлечения записи по ключу

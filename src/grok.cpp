@@ -20,7 +20,7 @@
  */
 void anyks::Grok::Var::reset() noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <mutex> lock(this->_mtx);
+	const lock_guard <std::mutex> lock(this->_mtx);
 	// Выполняем удаление названий переменных
 	this->_names.clear();
 	// Выполняем очистку шаблонов переменных
@@ -56,7 +56,7 @@ string anyks::Grok::Var::get(const string & text, const uint8_t index) noexcept 
 				// Получаем строку текста для поиска
 				const char * str = text.c_str();
 				// Создаём объект матчинга
-				unique_ptr <regmatch_t []> match(new regmatch_t [i->second.re_nsub + 1]);
+				std::unique_ptr <regmatch_t []> match(new regmatch_t [i->second.re_nsub + 1]);
 				// Выполняем разбор регулярного выражения
 				if(pcre2_regexec(&i->second, str, i->second.re_nsub + 1, match.get(), REG_NOTEMPTY) == 0){
 					// Название полученной переменной
@@ -104,7 +104,7 @@ void anyks::Grok::Var::push(const string & name, const string & pattern) noexcep
 	// Если название переменной и шаблон регулярного выражения переданы
 	if(!name.empty() && !pattern.empty()){
 		// Выполняем блокировку потока
-		const lock_guard <mutex> lock(this->_mtx);
+		const lock_guard <std::mutex> lock(this->_mtx);
 		// Добавляем название переменной
 		this->_names.push_back(name);
 		// Добавляем шаблон регулярного выражения
@@ -142,7 +142,7 @@ void anyks::Grok::Var::push(const string & name, const string & pattern) noexcep
  */
 void anyks::Grok::init() noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <mutex> lock(this->_mtx.patterns);
+	const lock_guard <std::mutex> lock(this->_mtx.patterns);
 	// Если список шаблонов не собран
 	if(this->_patterns.empty()){
 		// Выполняем добавление базовых шаблонов
@@ -218,7 +218,7 @@ void anyks::Grok::clear() noexcept {
 	// Выполняем сброс собранных данных
 	this->reset();
 	// Выполняем блокировку потока
-	const lock_guard <mutex> lock(this->_mtx.patterns);
+	const lock_guard <std::mutex> lock(this->_mtx.patterns);
 	// Выполняем удаление списка ключей
 	this->_keys.clear();
 	// Очищаем список шаблонов
@@ -229,7 +229,7 @@ void anyks::Grok::clear() noexcept {
  */
 void anyks::Grok::reset() noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <mutex> lock(this->_mtx.mapping);
+	const lock_guard <std::mutex> lock(this->_mtx.mapping);
 	// Очищаем схему соответствий ключей
 	this->_mapping.clear();
 	// Выполняем сброс параметров переменной
@@ -242,7 +242,7 @@ void anyks::Grok::clearPatterns() noexcept {
 	// Если список ключей существует
 	if(!this->_keys.empty()){
 		// Выполняем блокировку потока
-		const lock_guard <mutex> lock(this->_mtx.patterns);
+		const lock_guard <std::mutex> lock(this->_mtx.patterns);
 		// Выполняем перебор списка ключей
 		for(auto i = this->_keys.begin(); i != this->_keys.end();){
 			// Выполняем удаление шаблона
@@ -261,7 +261,7 @@ void anyks::Grok::pattern(const string & key, const string & val) noexcept {
 	// Если параметры шаблона переданы
 	if(!key.empty() && !val.empty()){
 		// Выполняем блокировку потока
-		const lock_guard <mutex> lock(this->_mtx.patterns);
+		const lock_guard <std::mutex> lock(this->_mtx.patterns);
 		// Выполняем добавление шаблона
 		this->_keys.emplace(key);
 		// Выполняем добавление шаблона
@@ -357,7 +357,7 @@ uint64_t anyks::Grok::build(string & text, const bool pure, const bool init, con
 					// Получаем строку текста для поиска
 					const char * str = text.c_str();
 					// Создаём объект матчинга
-					unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg1.re_nsub + 1]);
+					std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg1.re_nsub + 1]);
 					// Если возникла ошибка
 					if(pcre2_regexec(&this->_reg1, str, this->_reg1.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
 						// Выходим из цикла корректировки
@@ -384,7 +384,7 @@ uint64_t anyks::Grok::build(string & text, const bool pure, const bool init, con
 					// Получаем строку текста для поиска
 					const char * str = text.c_str();
 					// Создаём объект матчинга
-					unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg2.re_nsub + 1]);
+					std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg2.re_nsub + 1]);
 					// Если возникла ошибка
 					if(pcre2_regexec(&this->_reg2, str, this->_reg2.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
 						// Выходим из цикла корректировки
@@ -484,7 +484,7 @@ uint64_t anyks::Grok::build(string & text, const bool pure, const bool init, con
 									// Выполняем блокировку потока
 									this->_mtx.cache.lock();
 									// Выполняем создании записи кэша
-									auto ret = const_cast <grok_t *> (this)->_cache.emplace(cid, unique_ptr <cache_t> (new cache_t));
+									auto ret = const_cast <grok_t *> (this)->_cache.emplace(cid, std::unique_ptr <cache_t> (new cache_t));
 									// Выполняем разблокировку потока
 									this->_mtx.cache.unlock();
 									// Выполняем установку регулярного выражения
@@ -627,7 +627,7 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
 				// Получаем строку текста для поиска
 				const char * str = text.c_str();
 				// Создаём объект матчинга
-				unique_ptr <regmatch_t []> match(new regmatch_t [i->second->reg.re_nsub + 1]);
+				std::unique_ptr <regmatch_t []> match(new regmatch_t [i->second->reg.re_nsub + 1]);
 				// Выполняем разбор регулярного выражения
 				const int error = pcre2_regexec(&i->second->reg, str, i->second->reg.re_nsub + 1, match.get(), REG_NOTEMPTY);
 				// Если ошибок не получено
@@ -647,7 +647,7 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
 								// Если название переменной получено
 								if(!key.empty()){
 									// Выполняем блокировку потока
-									const lock_guard <mutex> lock(this->_mtx.mapping);
+									const lock_guard <std::mutex> lock(this->_mtx.mapping);
 									// Выполняем добавления полученных данных в схему соответствий
 									this->_mapping.emplace(key, value);
 								}
@@ -726,7 +726,7 @@ bool anyks::Grok::parse(const string & text, const string & rule) noexcept {
 				// Получаем строку текста для поиска
 				const char * str = text.c_str();
 				// Создаём объект матчинга
-				unique_ptr <regmatch_t []> match(new regmatch_t [reg.re_nsub + 1]);
+				std::unique_ptr <regmatch_t []> match(new regmatch_t [reg.re_nsub + 1]);
 				// Выполняем разбор регулярного выражения
 				const int error = pcre2_regexec(&reg, str, reg.re_nsub + 1, match.get(), REG_NOTEMPTY);
 				// Если ошибок не получено
@@ -746,7 +746,7 @@ bool anyks::Grok::parse(const string & text, const string & rule) noexcept {
 								// Если название переменной получено
 								if(!key.empty()){
 									// Выполняем блокировку потока
-									const lock_guard <mutex> lock(this->_mtx.mapping);
+									const lock_guard <std::mutex> lock(this->_mtx.mapping);
 									// Выполняем добавления полученных данных в схему соответствий
 									this->_mapping.emplace(key, value);
 								}
@@ -812,7 +812,7 @@ json anyks::Grok::dump() const noexcept {
  * mapping Метод извлечения карты полученных значений
  * @return карта полученных значений 
  */
-const unordered_map <string, string> & anyks::Grok::mapping() const noexcept {
+const std::unordered_map <string, string> & anyks::Grok::mapping() const noexcept {
 	// Выводим список полученных значений
 	return this->_mapping;
 }

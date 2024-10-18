@@ -495,11 +495,11 @@ json anyks::CSV::dump() const noexcept {
 							// Добавляем полученное значение в массив
 							result[key].push_back(::stod(item));
 						// Если число является булевым истинным значением
-						else if(item.compare("true") == 0)
+						else if(this->_fmk->compare("true", item))
 							// Добавляем полученное значение в массив
 							result[key].push_back(true);
 						// Если число является булевым ложным значением
-						else if(item.compare("false") == 0)
+						else if(this->_fmk->compare("false", item))
 							// Добавляем полученное значение в массив
 							result[key].push_back(false);
 						// Добавляем полученное значение в массив
@@ -520,9 +520,7 @@ json anyks::CSV::dump() const noexcept {
 				// Выполняем перебор всего списка строк
 				for(auto j = 0; j < this->_mapping.at(i).size(); j++){
 					// Получаем строку значения
-					const string item = this->_mapping.at(i).at(j);
-					// Выполняем приведение строки к нижнему регистру
-					this->_fmk->transform(item, fmk_t::transform_t::LOWER);
+					const string & item = this->_mapping.at(i).at(j);
 					// Если запись является числом
 					if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
 						// Получаем переданное число
@@ -538,15 +536,15 @@ json anyks::CSV::dump() const noexcept {
 						// Добавляем полученное значение в массив
 						result.back().push_back(::stod(item));
 					// Если число является булевым истинным значением
-					else if(item.compare("true") == 0)
+					else if(this->_fmk->compare("true", item))
 						// Добавляем полученное значение в массив
 						result.back().push_back(true);
 					// Если число является булевым ложным значением
-					else if(item.compare("false") == 0)
+					else if(this->_fmk->compare("false", item))
 						// Добавляем полученное значение в массив
 						result.back().push_back(false);
 					// Добавляем полученное значение в массив
-					else result.back().push_back(this->_mapping.at(i).at(j));
+					else result.back().push_back(item);
 				}
 			}
 		}
