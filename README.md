@@ -17,7 +17,7 @@
 
 - [AWH](https://github.com/anyks/awh)
 - [LibXML2](https://github.com/GNOME/libxml2)
-- [YAML-CPPT](https://github.com/jbeder/yaml-cppt)
+- [YAML-CPP](https://github.com/jbeder/yaml-cpp)
 
 ## To build and launch the project
 
