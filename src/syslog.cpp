@@ -716,13 +716,15 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 											// Выполняем извлечение всех сообщений
 											for(;;){
 												// Выполняем получение списка сообщений
-												const auto & messages = this->_reg.exec(item.substr(offset), this->_exp.mess);
+												const auto & messages = this->_reg.match(item.c_str() + offset, this->_exp.mess);
 												// Если список сообщений получен
 												if(!messages.empty()){
+													// Получаем текст сообщения
+													const string & message = item.substr(messages.front().first + offset, messages.front().second);
 													// Если параметры установлены
-													if(messages.front().front() != '-'){
+													if(message.front() != '-'){
 														// Выполняем извлечение параметров
-														const auto & params = this->_reg.exec(messages.front(), this->_exp.params);
+														const auto & params = this->_reg.exec(message, this->_exp.params);
 														// Если список параметров получен
 														if(!params.empty() && (params.size() > 1)){
 															// Идентификатор структурированных данных
@@ -737,25 +739,31 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 																else {
 																	// Смещение в сообщении
 																	size_t offset = 0;
+																	// Получаем строку текста для обработки
+																	const string & text = params.at(i);
 																	// Выполняем извлечение всех сообщений
 																	for(;;){
 																		// Выполняем извлечение всего списка установленных параметров
-																		const auto & items = this->_reg.exec(params.at(i).substr(offset), this->_exp.items);
+																		const auto & items = this->_reg.match(text.c_str() + offset, this->_exp.items);
 																		// Если список параметров получен
 																		if(!items.empty()){
-																			// Если элементов параметров получены 3 штуки
-																			if(items.size() >= 3){
+																			// Если элементов параметров получены 4 штуки
+																			if(items.size() >= 4){
+																				// Получаем ключ записи
+																				const string & key = text.substr(items.at(1).first + offset, items.at(1).second);
+																				// Получаем значение записи
+																				const string & value = (items.back().first == 0 ? text.substr(items.at(2).first + offset, items.at(2).second) : text.substr(items.back().first + offset, items.back().second));
 																				// Получаем идентификатор структурированных данных
 																				auto i = this->_sd.find(sid);
 																				// Если идентификатор существует
 																				if(i != this->_sd.end())
 																					// Устанавливаем структурированные данные
-																					i->second.emplace(items.at(1), items.back().empty() ? items.at(2) : items.back());
+																					i->second.emplace(key, value);
 																				// Иначе добавляем новые структурированные данные
-																				else this->_sd.emplace(sid, std::unordered_map <string, string> {{items.at(1),  items.back().empty() ? items.at(2) : items.back()}});
+																				else this->_sd.emplace(sid, std::unordered_map <string, string> {{key,  value}});
 																			}
 																			// Увеличиваем длину сообщения
-																			offset += items.front().size();
+																			offset += (items.front().first + items.front().second);
 																		// Выходим из цикла
 																		} else break;
 																	}
@@ -764,7 +772,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 														}
 													}
 													// Увеличиваем длину сообщения
-													offset += messages.front().size();
+													offset += (messages.front().first + messages.front().second);
 												// Выходим из цикла
 												} else break;
 											}
@@ -1662,32 +1670,27 @@ anyks::SysLog::SysLog(const fmk_t * fmk, const log_t * log) noexcept :
 	// Выполняем сборку регулярных выражений для распознавания формат даты (2024-10-04 13:29:47)
 	this->_exp.date2 = this->_reg.build("(\\d{2,4}\\-\\d{1,2}\\-\\d{1,2})\\s+(\\d{1,2}\\:\\d{1,2}\\:\\d{1,2})", {
 		regexp_t::option_t::UTF8,
-		regexp_t::option_t::UCP,
-		regexp_t::option_t::CASELESS
+		regexp_t::option_t::UCP
 	});
 	// Выполняем сборку регулярных выражений для распознавания формат даты (2003-10-11T22:14:15.003Z)
 	this->_exp.date3 = this->_reg.build("(\\d{2,4}\\-\\d{1,2}\\-\\d{1,2})T(\\d{1,2}\\:\\d{1,2}\\:\\d{1,2})(?:\\.(\\d+)Z)?", {
 		regexp_t::option_t::UTF8,
-		regexp_t::option_t::UCP,
-		regexp_t::option_t::CASELESS
+		regexp_t::option_t::UCP
 	});
 	// Выполняем сборку регулярных выражений для извлечения сообщений для RFC5424
 	this->_exp.mess = this->_reg.build("(\\-|\\[[^\\]]+\\])", {
 		regexp_t::option_t::UTF8,
-		regexp_t::option_t::UCP,
-		regexp_t::option_t::CASELESS
+		regexp_t::option_t::UCP
 	});
 	// Выполняем сборку регулярных выражений для извлечения параметров сообщений RFC5424
 	this->_exp.params = this->_reg.build("\\[([\\w\\@\\-]+)\\s+(.*)\\]", {
 		regexp_t::option_t::UTF8,
-		regexp_t::option_t::UCP,
-		regexp_t::option_t::CASELESS
+		regexp_t::option_t::UCP
 	});
 	// Выполняем сборку регулярных выражений для извлечения параметров сообщения RFC5424
 	this->_exp.items = this->_reg.build("([\\w\\-]+)\\=(?:\\\"([^\\\"]+)\\\"|(\\d+))", {
 		regexp_t::option_t::UTF8,
-		regexp_t::option_t::UCP,
-		regexp_t::option_t::CASELESS
+		regexp_t::option_t::UCP
 	});
 	// Выполняем сборку регулярных выражений для парсинга всего сообщения RFC3164
 	this->_exp.rfc3164 = this->_reg.build("(?:<(\\d+)>)?((?:(?:[a-z]+\\s+)?[a-z]+\\s\\d+\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\s+\\d{2,4})?)|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}T\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\.\\d+Z)?)\\s([^\\s]+)\\s+([^\\[]+)(?:\\[(\\d+)\\])?\\:\\s*(.+)", {

@@ -26,7 +26,6 @@
 #include <set>
 #include <mutex>
 #include <ctime>
-#include <chrono>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -77,7 +76,7 @@ namespace anyks {
 				// Список имён переменных
 				vector <string> names;
 				// Список шаблонов переменных
-				unordered_multimap <string, regex_t> patterns;
+				std::unordered_multimap <string, regex_t> patterns;
 			} cache_t;
 		private:
 			/**
@@ -89,9 +88,9 @@ namespace anyks {
 				std::mutex patterns; // Мютекс контроля собранных шаблонов
 			} mtx_t;
 			/**
-			 * Var Класс работы с переменными
+			 * Variable Класс работы с переменными
 			 */
-			typedef class Var {
+			typedef class Variable {
 				private:
 					/**
 					 * Grok Устанавливаем дружбу с родительским модулем
@@ -104,7 +103,7 @@ namespace anyks {
 					// Список имён переменных
 					vector <string> _names;
 					// Список шаблонов переменных
-					unordered_multimap <string, regex_t> _patterns;
+					std::unordered_multimap <string, regex_t> _patterns;
 				private:
 					// Объект работы с логами
 					const log_t * _log;
@@ -136,10 +135,10 @@ namespace anyks {
 					void push(const string & name, const string & pattern) noexcept;
 				public:
 					/**
-					 * Var конструктор
+					 * Variable конструктор
 					 * @param log объект для работы с логами
 					 */
-					Var(const log_t * log) noexcept : _log(log) {}
+					Variable(const log_t * log) noexcept : _log(log) {}
 			} var_t;
 		private:
 			// Флаг инициализации

@@ -212,16 +212,10 @@ void anyks::Cef::parse(const string & cef) noexcept {
 void anyks::Cef::prepare(const string & extensions) noexcept {
 	// Если срока расширений передана
 	if(!extensions.empty()){
+		// Смещение в сообщении
+		size_t offset = 0;
 		// Если включён строгий режим парсинга
 		if(this->_mode == mode_t::STRONG){
-			// Список начальных позиций
-			stack <size_t> pos;
-			// Добавляем начальную точку
-			pos.push(0);
-			// Позиция знака равенства
-			size_t disparity = 0;
-			// Ключ, значение и фиксированное значение ключа расширения
-			string key = "", value = "";
 			/**
 			 * matchFn Функция матчинга ключа расширения для CEF
 			 * @param key ключ для матчинга
@@ -244,135 +238,59 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 				// Выводим результат
 				return result;
 			};
-			// Переходим по всем символам строки расширений
-			for(size_t i = 0; i < extensions.length(); i++){
-				// Определяем текущий символ
-				switch(extensions.at(i)){
-					// Если разделителем является знак равенства
-					case '=': {
-						// Если позиция заполненна
-						if(!pos.empty()){
-							// Флаг удачного матчинга ключа
-							bool match = false;
-							// Текущее значение позиции
-							const size_t current = pos.top();
-							/**
-							 * Выполняем поиск ключа
-							 */
-							do {
-								// Выполняем получение ключа
-								string tmp = extensions.substr(pos.top(), i - pos.top());
-								// Удаляем лишние пробелы
-								this->_fmk->transform(tmp, fmk_t::transform_t::TRIM);
-								// Выполняем матчинг ключа
-								if((match = matchFn(tmp))){
-									// Получаем значение предыдущего ключа
-									value = extensions.substr(disparity + 1, pos.top() - (disparity + 1));
-									// Удаляем лишние пробелы
-									this->_fmk->transform(value, fmk_t::transform_t::TRIM);
-									// Если предыдущий ключ получен
-									if(!key.empty())
-										// Выполняем создание расширения
-										this->extension(key, value);
-									// Выполняем фиксирование значения ключа
-									key = std::move(tmp);
-									// Выполняем очистку позициий
-									stack <size_t> ().swap(pos);
-									// Выходим из цикла
-									break;
-								}
-								// Удаляем из стека нашу позицию
-								pos.pop();
-							} while(!pos.empty());
-							// Если матчинг не удачный, выходим
-							if(!match && !key.empty()){
-								// Формируем текст ошибки
-								string error = "";
-								// Получаем брокированное значение ключа
-								string broken = extensions.substr(current, i - current);
-								// Выполняем удаление лишних пробелов
-								this->_fmk->transform(broken, fmk_t::transform_t::TRIM);
-								// Добавляем экранирование
-								error.append(1, '\"');
-								// Добавляем брокированное значение ключа
-								error.append(broken);
-								// Добавляем основной текст сообщения
-								error.append("\" key does not comply with CEF standard");
-								// Выводим сообщение, что указанный ключ, не соответствует стандарту CEF
-								this->_log->print("CEF: %s", log_t::flag_t::WARNING, error.c_str());
-								// Получаем значение предыдущего ключа
-								value = extensions.substr(disparity + 1, current - (disparity + 1));
-								// Удаляем лишние пробелы
-								this->_fmk->transform(value, fmk_t::transform_t::TRIM);
-								// Если предыдущий ключ получен
-								if(!key.empty())
-									// Выполняем создание расширения
-									this->extension(key, value);
-								// Очищаем ключ записи
-								key.clear();
-							}
-							// Запоминаем позицию разделителя
-							disparity = i;
+			// Выполняем извлечение всех сообщений
+			for(;;){
+				// Выполняем извлечение всего списка установленных параметров
+				const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
+				// Если список параметров получен
+				if(!items.empty()){
+					// Если элементов параметров получены 4 штуки
+					if(items.size() >= 4){
+						// Получаем ключ расширения
+						const string & key = extensions.substr(items.at(1).first + offset, items.at(1).second);
+						// Выполняем матчинг ключа
+						if(matchFn(key))
+							// Выполняем создание расширения
+							this->extension(key, (items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second)));
+						// Если ключ не интерпретирован
+						else {
+							// Формируем текст ошибки
+							string error = "";
+							// Добавляем экранирование
+							error.append(1, '\"');
+							// Добавляем брокированное значение ключа
+							error.append(key);
+							// Добавляем основной текст сообщения
+							error.append("\" key does not comply with CEF standard");
+							// Выводим сообщение, что указанный ключ, не соответствует стандарту CEF
+							this->_log->print("CEF: %s", log_t::flag_t::WARNING, error.c_str());
 						}
-					} break;
-					// Если знаком разделителем является знак пробела
-					case ' ': pos.push(i); break;
-				}
-				// Если мы дошли до конца
-				if(!key.empty() && (i == (extensions.length() - 1))){
-					// Получаем значение предыдущего ключа
-					value = extensions.substr(disparity + 1);
-					// Удаляем лишние пробелы
-					this->_fmk->transform(value, fmk_t::transform_t::TRIM);
-					// Если предыдущий ключ получен
-					if(!key.empty())
-						// Выполняем создание расширения
-						this->extension(key, value);
-				}
+					}
+					// Увеличиваем длину сообщения
+					offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
+				// Выходим из цикла
+				} else break;
 			}
 		// Если строгий режим не активирован
 		} else {
-			// Позиция знака равенства и позиции пробела
-			size_t disparity = 0, pos = 0;
-			// Ключ, значение и фиксированное значение ключа расширения
-			string key = "", value = "";
-			// Переходим по всем символам строки расширений
-			for(size_t i = 0; i < extensions.length(); i++){
-				// Определяем текущий символ
-				switch(extensions.at(i)){
-					// Если разделителем является знак равенства
-					case '=': {
-						// Выполняем получение ключа
-						string tmp = extensions.substr(pos, i - pos);
-						// Удаляем лишние пробелы
-						this->_fmk->transform(tmp, fmk_t::transform_t::TRIM);
-						// Получаем значение предыдущего ключа
-						value = extensions.substr(disparity + 1, pos - (disparity + 1));
-						// Удаляем лишние пробелы
-						this->_fmk->transform(value, fmk_t::transform_t::TRIM);
-						// Если предыдущий ключ получен
-						if(!key.empty())
-							// Выполняем создание расширения
-							this->extension(key, value);
-						// Выполняем фиксирование значения ключа
-						key = std::move(tmp);
-						// Запоминаем позицию разделителя
-						disparity = i;
-					} break;
-					// Если знаком разделителем является знак пробела
-					case ' ': pos = i; break;
-				}
-				// Если мы дошли до конца
-				if(!key.empty() && (i == (extensions.length() - 1))){
-					// Получаем значение предыдущего ключа
-					value = extensions.substr(disparity + 1);
-					// Удаляем лишние пробелы
-					this->_fmk->transform(value, fmk_t::transform_t::TRIM);
-					// Если предыдущий ключ получен
-					if(!key.empty())
+			// Выполняем извлечение всех сообщений
+			for(;;){
+				// Выполняем извлечение всего списка установленных параметров
+				const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
+				// Если список параметров получен
+				if(!items.empty()){
+					// Если элементов параметров получены 4 штуки
+					if(items.size() >= 4){
 						// Выполняем создание расширения
-						this->extension(key, value);
-				}
+						this->extension(
+							extensions.substr(items.at(1).first + offset, items.at(1).second),
+							(items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second))
+						);
+					}
+					// Увеличиваем длину сообщения
+					offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
+				// Выходим из цикла
+				} else break;
 			}
 		}
 	// Если получена ошибка
@@ -420,7 +338,7 @@ string anyks::Cef::cef() const noexcept {
 		// Добавляем формат CEF
 		} else result.append("CEF:");
 		// Добавляем версию контейнера
-		result.append(std::to_string(static_cast <uint16_t> (this->_version)));
+		result.append(this->_fmk->noexp(this->_version, true));
 		// Добавляем разделитель
 		result.append(1, '|');
 		// Добавляем поставщика данных
@@ -824,13 +742,24 @@ json anyks::Cef::dump() const noexcept {
 				// Устанавливаем режим парсинга
 				result.emplace("mode", "STRONG");
 			break;
+		}{
+			// Временное значение переменной
+			double intpart = 0;
+			// Выполняем проверку есть ли дробная часть у числа
+			if(::modf(this->_version, &intpart) == 0){
+				// Если число является положительным
+				if(this->_version > 0.)
+					// Устанавливаем новые структурированные данные
+					result.emplace("version", static_cast <uint16_t> (this->_version));
+				// Если число является отрицательным
+				else result.emplace("version", static_cast <int16_t> (this->_version));
+			// Устанавливаем версию контейнера
+			} else result.emplace("version", this->_version);
 		}
 		// Если заголовок получен
 		if(!this->_header.empty())
 			// Устанавливаем заголовок события
 			result.emplace("header", this->_header);
-		// Устанавливаем версию контейнера
-		result.emplace("version", this->_version);
 		// Формируем параметры полезной нагрузки
 		result.emplace("event", json::object());
 		// Устанавливаем название события
@@ -964,7 +893,18 @@ json anyks::Cef::dump() const noexcept {
 								// Устанавливаем значение ключа
 								result["extensions"].emplace(extension.first, value);
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else {
+								// Получаем значение числа
+								const string value(extension.second.begin(), extension.second.end());
+								// Получаем переданное число
+								const long long number = std::stol(value);
+								// Если число положительное
+								if(number > 0)
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, ::stoul(value));
+								// Добавляем полученное значения расширения
+								else result["extensions"].emplace(extension.first, number);
+							}
 						} break;
 						// Если тип ключа является INT32
 						case static_cast <uint8_t> (type_t::INT32): {
@@ -977,7 +917,18 @@ json anyks::Cef::dump() const noexcept {
 								// Устанавливаем значение ключа
 								result["extensions"].emplace(extension.first, value);
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else {
+								// Получаем значение числа
+								const string value(extension.second.begin(), extension.second.end());
+								// Получаем переданное число
+								const long long number = std::stoi(value);
+								// Если число положительное
+								if(number > 0)
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, ::stoul(value));
+								// Добавляем полученное значения расширения
+								else result["extensions"].emplace(extension.first, number);
+							}
 						} break;
 						// Если тип ключа является INT64
 						case static_cast <uint8_t> (type_t::INT64): {
@@ -990,7 +941,18 @@ json anyks::Cef::dump() const noexcept {
 								// Устанавливаем значение ключа
 								result["extensions"].emplace(extension.first, value);
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else {
+								// Получаем значение числа
+								const string value(extension.second.begin(), extension.second.end());
+								// Получаем переданное число
+								const long long number = std::stoll(value);
+								// Если число положительное
+								if(number > 0)
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, ::stoull(value));
+								// Добавляем полученное значения расширения
+								else result["extensions"].emplace(extension.first, number);
+							}
 						} break;
 						// Если тип ключа является FLOAT
 						case static_cast <uint8_t> (type_t::FLOAT): {
@@ -1003,7 +965,7 @@ json anyks::Cef::dump() const noexcept {
 								// Устанавливаем значение ключа
 								result["extensions"].emplace(extension.first, value);
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else result["extensions"].emplace(extension.first, std::stof(string(extension.second.begin(), extension.second.end())));
 						} break;
 						// Если тип ключа является DOUBLE
 						case static_cast <uint8_t> (type_t::DOUBLE): {
@@ -1016,7 +978,7 @@ json anyks::Cef::dump() const noexcept {
 								// Устанавливаем значение ключа
 								result["extensions"].emplace(extension.first, value);
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else result["extensions"].emplace(extension.first, std::stod(string(extension.second.begin(), extension.second.end())));
 						} break;
 						// Если тип ключа является STRING
 						case static_cast <uint8_t> (type_t::STRING):
@@ -1053,11 +1015,32 @@ json anyks::Cef::dump() const noexcept {
 				}
 			// Если режим парсинга не установлен
 			} else {
-				// Устанавливаем значение ключа
-				result["extensions"].emplace(
-					extension.first,
-					string(extension.second.begin(), extension.second.end())
-				);
+				// Получаем значение для вывода
+				string value(extension.second.begin(), extension.second.end());
+				// Если запись является числом
+				if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+					// Получаем переданное число
+					const long long number = std::stoll(value);
+					// Если число положительное
+					if(number > 0)
+						// Устанавливаем значение ключа как число без знака
+						result["extensions"].emplace(extension.first, ::stoull(value));
+					// Устанавливаем значение ключа как число со знаком
+					else result["extensions"].emplace(extension.first, number);
+				// Если запись является числом с плавающей точкой
+				} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL))
+					// Устанавливаем значение ключа как число с плавающей точкой
+					result["extensions"].emplace(extension.first, ::stod(value));
+				// Если число является булевым истинным значением
+				else if(this->_fmk->compare("true", value))
+					// Устанавливаем значение ключа как булевое положительное значение
+					result["extensions"].emplace(extension.first, true);
+				// Если число является булевым ложным значением
+				else if(this->_fmk->compare("false", value))
+					// Устанавливаем значение ключа как булевое отрицательное значение
+					result["extensions"].emplace(extension.first, false);
+				// Устанавливаем значение ключа как оно есть
+				else result["extensions"].emplace(extension.first, std::move(value));
 			}
 		}
 	}
@@ -1372,9 +1355,9 @@ anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
  * events Метод получения списка событий
  * @return список полученных событий
  */
-unordered_map <string, string> anyks::Cef::events() const noexcept {
+std::unordered_map <string, string> anyks::Cef::events() const noexcept {
 	// Результат работы функции
-	unordered_map <string, string> result;
+	std::unordered_map <string, string> result;
 	// Устанавливаем название события
 	result.emplace("name", this->_event.name);
 	// Устанавливаем поставщика данных
@@ -1394,9 +1377,9 @@ unordered_map <string, string> anyks::Cef::events() const noexcept {
  * extensions Метод извлечения списка расширений
  * @return список установленных расширений
  */
-unordered_map <string, string> anyks::Cef::extensions() const noexcept {
+std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 	// Результат работы функции
-	unordered_map <string, string> result;
+	std::unordered_map <string, string> result;
 	// Если список расширений запомнен
 	if(!this->_extensions.empty()){
 		// Создаём объект параметров расширения
@@ -1514,7 +1497,18 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Устанавливаем значение ключа
 								result.emplace(extension.first, std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else {
+								// Получаем значение числа
+								const string value(extension.second.begin(), extension.second.end());
+								// Получаем переданное число
+								const long long number = std::stol(value);
+								// Если число положительное
+								if(number > 0)
+									// Добавляем полученное значения расширения
+									result.emplace(extension.first, std::to_string(::stoul(value)));
+								// Добавляем полученное значения расширения
+								else result.emplace(extension.first, std::to_string(number));
+							}
 						} break;
 						// Если тип ключа является INT32
 						case static_cast <uint8_t> (type_t::INT32): {
@@ -1527,7 +1521,18 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Устанавливаем значение ключа
 								result.emplace(extension.first, std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else {
+								// Получаем значение числа
+								const string value(extension.second.begin(), extension.second.end());
+								// Получаем переданное число
+								const long long number = std::stoi(value);
+								// Если число положительное
+								if(number > 0)
+									// Добавляем полученное значения расширения
+									result.emplace(extension.first, std::to_string(::stoul(value)));
+								// Добавляем полученное значения расширения
+								else result.emplace(extension.first, std::to_string(number));
+							}
 						} break;
 						// Если тип ключа является INT64
 						case static_cast <uint8_t> (type_t::INT64): {
@@ -1540,7 +1545,18 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Устанавливаем значение ключа
 								result.emplace(extension.first, std::to_string(value));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else {
+								// Получаем значение числа
+								const string value(extension.second.begin(), extension.second.end());
+								// Получаем переданное число
+								const long long number = std::stoll(value);
+								// Если число положительное
+								if(number > 0)
+									// Добавляем полученное значения расширения
+									result.emplace(extension.first, std::to_string(::stoull(value)));
+								// Добавляем полученное значения расширения
+								else result.emplace(extension.first, std::to_string(number));
+							}
 						} break;
 						// Если тип ключа является FLOAT
 						case static_cast <uint8_t> (type_t::FLOAT): {
@@ -1553,7 +1569,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Устанавливаем значение ключа
 								result.emplace(extension.first, this->_fmk->noexp(value, true));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else result.emplace(extension.first, this->_fmk->noexp(std::stof(string(extension.second.begin(), extension.second.end())), true));
 						} break;
 						// Если тип ключа является DOUBLE
 						case static_cast <uint8_t> (type_t::DOUBLE): {
@@ -1566,7 +1582,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Устанавливаем значение ключа
 								result.emplace(extension.first, this->_fmk->noexp(value, true));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} else result.emplace(extension.first, this->_fmk->noexp(std::stod(string(extension.second.begin(), extension.second.end())), true));
 						} break;
 						// Если тип ключа является STRING
 						case static_cast <uint8_t> (type_t::STRING):
@@ -1603,11 +1619,32 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 				}
 			// Если режим парсинга не установлен
 			} else {
-				// Устанавливаем значение ключа
-				result.emplace(
-					extension.first,
-					string(extension.second.begin(), extension.second.end())
-				);
+				// Получаем значение для вывода
+				string value(extension.second.begin(), extension.second.end());
+				// Если запись является числом
+				if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+					// Получаем переданное число
+					const long long number = std::stoll(value);
+					// Если число положительное
+					if(number > 0)
+						// Устанавливаем значение ключа как число без знака
+						result.emplace(extension.first, std::to_string(::stoull(value)));
+					// Устанавливаем значение ключа как число со знаком
+					else result.emplace(extension.first, std::to_string(number));
+				// Если запись является числом с плавающей точкой
+				} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL))
+					// Устанавливаем значение ключа как число с плавающей точкой
+					result.emplace(extension.first, this->_fmk->noexp(::stod(value), true));
+				// Если число является булевым истинным значением
+				else if(this->_fmk->compare("true", value))
+					// Устанавливаем значение ключа как булевое положительное значение
+					result.emplace(extension.first, "true");
+				// Если число является булевым ложным значением
+				else if(this->_fmk->compare("false", value))
+					// Устанавливаем значение ключа как булевое отрицательное значение
+					result.emplace(extension.first, "false");
+				// Устанавливаем значение ключа как оно есть
+				else result.emplace(extension.first, std::move(value));
 			}
 		}
 	}
@@ -2036,6 +2073,17 @@ anyks::Cef & anyks::Cef::operator = (const cef_t & cef) noexcept {
 	return (* this);
 }
 /**
+ * Оператор [=] присвоения режима парсинга
+ * @param mode режим парсинга для установки
+ * @return     текущий объект
+ */
+anyks::Cef & anyks::Cef::operator = (const mode_t mode) noexcept {
+	// Выполняем копирование режима парсинга
+	this->_mode = mode;
+	// Выводим текущий объект
+	return (* this);
+}
+/**
  * Оператор [=] присвоения контейнеров
  * @param cef контенер для присвоения
  * @return    текущий объект
@@ -2418,6 +2466,11 @@ anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
 		{"sourceTranslatedZoneExternalID", "source TranslatedZoneExternalID"},
 		{"destinationTranslatedZoneExternalID", "destination TranslatedZoneExternalID"}
 	};
+	// Выполняем сборку регулярных выражений для извлечения параметров расширений
+	this->_exp = this->_reg.build(R"(([\w\-]+)=(?:\"([^=]*|(?:[^=]+\\\=[^=]+)+)\"|([^=]*|(?:[^=]+\\\=[^=]+)+))(?:\s+[\w\-]+=|\s*$))", {
+		regexp_t::option_t::UTF8,
+		regexp_t::option_t::UCP
+	});
 };
 /**
  * Оператор [>>] чтения из потока CEF контейнера

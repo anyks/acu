@@ -18,7 +18,7 @@
 /**
  * reset Метод сброса параметров объекта
  */
-void anyks::Grok::Var::reset() noexcept {
+void anyks::Grok::Variable::reset() noexcept {
 	// Выполняем блокировку потока
 	const lock_guard <std::mutex> lock(this->_mtx);
 	// Выполняем удаление названий переменных
@@ -30,7 +30,7 @@ void anyks::Grok::Var::reset() noexcept {
  * count Метод получения количество добавленных переменных
  * @return количество добавленных переменных
  */
-uint8_t anyks::Grok::Var::count() const noexcept {
+uint8_t anyks::Grok::Variable::count() const noexcept {
 	// Выводим количество переменных
 	return static_cast <uint8_t> (this->_names.size());
 }
@@ -40,7 +40,7 @@ uint8_t anyks::Grok::Var::count() const noexcept {
  * @param index индекс запрашиваемой переменной
  * @return      название переменной, которой соответствует текст
  */
-string anyks::Grok::Var::get(const string & text, const uint8_t index) noexcept {
+string anyks::Grok::Variable::get(const string & text, const uint8_t index) noexcept {
 	// Если текст для получения переменной передан
 	if(!text.empty() && (index < static_cast <uint8_t> (this->_names.size()))){
 		/**
@@ -100,7 +100,7 @@ string anyks::Grok::Var::get(const string & text, const uint8_t index) noexcept 
  * @param name    название переменной
  * @param pattern шаблон регулярного выражения переменной
  */
-void anyks::Grok::Var::push(const string & name, const string & pattern) noexcept {
+void anyks::Grok::Variable::push(const string & name, const string & pattern) noexcept {
 	// Если название переменной и шаблон регулярного выражения переданы
 	if(!name.empty() && !pattern.empty()){
 		// Выполняем блокировку потока
@@ -262,10 +262,36 @@ void anyks::Grok::pattern(const string & key, const string & val) noexcept {
 	if(!key.empty() && !val.empty()){
 		// Выполняем блокировку потока
 		const lock_guard <std::mutex> lock(this->_mtx.patterns);
+		// Выполняем копирование текста регулярного выражения
+		string text = val;
 		// Выполняем добавление шаблона
 		this->_keys.emplace(key);
+		// Выполняем корректировку всего правила Grok
+		for(;;){
+			// Получаем строку текста для поиска
+			const char * str = text.c_str();
+			// Создаём объект матчинга
+			std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg1.re_nsub + 1]);
+			// Если возникла ошибка
+			if(pcre2_regexec(&this->_reg1, str, this->_reg1.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
+				// Выходим из цикла корректировки
+				break;
+			// Если ошибок не получено
+			else {
+				// Выполняем перебор всех полученных вариантов
+				for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg1.re_nsub + 1); i++){
+					// Если результат получен
+					if(match[i].rm_eo > 0){
+						// Если открытая скобка найдена
+						if(text.at(match[i].rm_so) == '(')
+							// Выполняем замену открытой скобки
+							text.replace(match[i].rm_so, 1, "(?:");
+					}
+				}
+			}
+		}
 		// Выполняем добавление шаблона
-		this->_patterns.emplace(key, val);
+		this->_patterns.emplace(key, text);
 	}
 }
 /**
@@ -279,8 +305,6 @@ string anyks::Grok::generatePattern(const string & key, const string & val) noex
 	string result = "";
 	// Если данные переданы верные
 	if(!key.empty() && !val.empty() && (key.front() == '<') && (key.back() == '>')){
-		// Получаем штамп времени в наносекундах
-		chrono::nanoseconds ns = chrono::duration_cast <chrono::nanoseconds> (chrono::system_clock::now().time_since_epoch());
 		// Название переменной
 		string variable = "";
 		// Получаем группу шаблона
@@ -294,7 +318,7 @@ string anyks::Grok::generatePattern(const string & key, const string & val) noex
 		// Добавляем разделитель
 		variable.append(1, '_');
 		// Добавлем текущее значение времени
-		variable.append(std::to_string(ns.count()));
+		variable.append(std::to_string(this->_fmk->timestamp(fmk_t::stamp_t::NANOSECONDS)));
 		// Выполняем добавление шаблона
 		this->pattern(variable, val);
 		// Формируем генерацию grok-шаблона

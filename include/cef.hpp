@@ -40,6 +40,7 @@
 #include <sys/fmk.hpp>
 #include <sys/log.hpp>
 #include <net/net.hpp>
+#include <sys/reg.hpp>
 
 // Объявляем пространство имен
 using namespace std;
@@ -170,16 +171,21 @@ namespace anyks {
 			// Параметры события
 			event_t _event;
 		private:
+			// Объект работы с регулярными выражениями
+			regexp_t _reg;
+			// Регулярное выражение для парсинга расширений
+			regexp_t::exp_t _exp;
+		private:
 			// Схема соответствий ключей расширения
-			unordered_map <string, string> _mapping;
+			std::unordered_map <string, string> _mapping;
 		private:
 			// Схема расширений для SEFv0
-			unordered_map <string, ext_t> _extensionSEFv0;
+			std::unordered_map <string, ext_t> _extensionSEFv0;
 			// Схема расширений для SEFv1
-			unordered_map <string, ext_t> _extensionSEFv1;
+			std::unordered_map <string, ext_t> _extensionSEFv1;
 		private:
 			// Расширения контейнера в бинарном виде
-			unordered_map <string, vector <char>> _extensions;
+			std::unordered_map <string, vector <char>> _extensions;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;
@@ -656,12 +662,12 @@ namespace anyks {
 			 * events Метод получения списка событий
 			 * @return список полученных событий
 			 */
-			unordered_map <string, string> events() const noexcept;
+			std::unordered_map <string, string> events() const noexcept;
 			/**
 			 * extensions Метод извлечения списка расширений
 			 * @return список установленных расширений
 			 */
-			unordered_map <string, string> extensions() const noexcept;
+			std::unordered_map <string, string> extensions() const noexcept;
 		public:
 			/**
 			 * extension Метод извлечения расширения в бинарном виде
@@ -707,6 +713,12 @@ namespace anyks {
 			 * @return    текущий объект
 			 */
 			Cef & operator = (const Cef & cef) noexcept;
+			/**
+			 * Оператор [=] присвоения режима парсинга
+			 * @param mode режим парсинга для установки
+			 * @return     текущий объект
+			 */
+			Cef & operator = (const mode_t mode) noexcept;
 			/**
 			 * Оператор [=] присвоения контейнеров
 			 * @param cef контенер для присвоения

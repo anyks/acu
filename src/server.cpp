@@ -629,7 +629,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								// Если формат входящих данных указан как CEF
 								case static_cast <uint8_t> (type_t::CEF):
 									// Выполняем конвертацию данных
-									answer = parser.cef(request.at("text").get <string> (), cef_t::mode_t::LOW);
+									answer = parser.cef(request.at("text").get <string> (), cef_t::mode_t::NONE);
 								break;
 								// Если формат входящих данных указан как CSV
 								case static_cast <uint8_t> (type_t::CSV):
@@ -691,7 +691,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Если формат входящих данных указан как CEF
 									case static_cast <uint8_t> (type_t::CEF):
 										// Выполняем конвертирование в формат CEF
-										text = parser.cef(answer, cef_t::mode_t::LOW);
+										text = parser.cef(answer, cef_t::mode_t::NONE);
 									break;
 									// Если формат входящих данных указан как CSV
 									case static_cast <uint8_t> (type_t::CSV): {
