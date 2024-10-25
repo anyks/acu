@@ -23,7 +23,6 @@
 /**
  * Подключаем зависимые заголовки
  */
-#include <set>
 #include <mutex>
 #include <ctime>
 #include <string>
@@ -64,6 +63,14 @@ namespace anyks {
 				FIRST  = 0x01, // Статус начальный
 				SECOND = 0x02  // Статус конечный
 			};
+			/**
+			 * Тип выполняемого события
+			 */
+			enum class event_t : uint8_t {
+				NONE     = 0x00,
+				INTERNAL = 0x01,
+				EXTERNAL = 0x02
+			};
 		private:
 			/**
 			 * Cache Структура кэша собранных данных
@@ -73,10 +80,6 @@ namespace anyks {
 				regex_t reg;
 				// Регулярное выражение в текстовом виде
 				string expression;
-				// Список имён переменных
-				vector <string> names;
-				// Список шаблонов переменных
-				std::unordered_multimap <string, regex_t> patterns;
 			} cache_t;
 		private:
 			/**
@@ -87,6 +90,18 @@ namespace anyks {
 				std::mutex mapping;  // Мютекс контроля собранных соответствий
 				std::mutex patterns; // Мютекс контроля собранных шаблонов
 			} mtx_t;
+			/**
+			 * Let Класс работы с блочными переменными
+			 */
+			typedef struct Let {
+				size_t pos;   // Начальная позиция переменной
+				size_t size;  // Размер переменной
+				size_t delim; // Позиция разделителя
+				/**
+				 * Let Конструктор
+				 */
+				Let() noexcept : pos(0), size(0), delim(0) {}
+			} __attribute__((packed)) let_t;
 			/**
 			 * Variable Класс работы с переменными
 			 */
@@ -155,13 +170,12 @@ namespace anyks {
 			// Параметры собранных переменных
 			mutable var_t _variables;
 		private:
-			// Список ключей добавленных шаблонов
-			std::set <string> _keys;
-		private:
 			// Схема соответствий ключей
 			std::unordered_map <string, string> _mapping;
-			// Список шаблонов для работы
-			std::unordered_map <string, string> _patterns;
+			// Список внутренних шаблонов для работы
+			std::unordered_map <string, string> _patternsInternal;
+			// Список внешних шаблонов для работы
+			std::unordered_map <string, string> _patternsExternal;
 		private:
 			// Объект кэша работы модуля
 			std::map <uint64_t, std::unique_ptr <cache_t>> _cache;
@@ -171,10 +185,6 @@ namespace anyks {
 			// Объект работы с логами
 			const log_t * _log;
 		public:
-			/**
-			 * init Метод инициализации шаблонов парсинга
-			 */
-			void init() noexcept;
 			/**
 			 * clear Метод очистки параметров модуля
 			 */
@@ -188,7 +198,27 @@ namespace anyks {
 			 * clearPatterns Метод очистки списка добавленных шаблонов
 			 */
 			void clearPatterns() noexcept;
+		private:
+			/**
+			 * variable Метод извлечения первой блоковой переменной в тексте
+			 * @param text текст из которого следует извлечь переменные
+			 * @return     первая блоковая переменная
+			 */
+			let_t variable(const string & text) const noexcept;
+		private:
+			/**
+			 * prepare Метод обработки полученной переменной Grok
+			 * @param text текст в котором найдена переменная Grok
+			 * @param lets разрешить обработку блочных переменных
+			 * @return     список извлечённых переменных
+			 */
+			vector <pair <string, string>> prepare(string & text, const bool lets = true) const noexcept;
 		public:
+			/**
+			 * patterns Метод добавления списка поддерживаемых шаблонов
+			 * @param patterns список поддерживаемых шаблонов
+			 */
+			void patterns(const json & patterns) noexcept;
 			/**
 			 * pattern Метод добавления шаблона
 			 * @param key название переменной
@@ -197,32 +227,20 @@ namespace anyks {
 			void pattern(const string & key, const string & val) noexcept;
 		private:
 			/**
+			 * pattern Метод добавления шаблона
+			 * @param key   название переменной
+			 * @param val   регуляреное выражение соответствующее переменной
+			 * @param event тип выполняемого события
+			 */
+			void pattern(const string & key, const string & val, const event_t event) noexcept;
+		private:
+			/**
 			 * generatePattern Метод генерации шаблона
 			 * @param key название шаблона в виде <name>
 			 * @param val значение шиблок (Регулярное выражение или Grok-шаблон)
 			 * @return    сгенерированный шаблон
 			 */
 			string generatePattern(const string & key, const string & val) noexcept;
-		public:
-			/**
-			 * build Метод сборки регулярного выражения
-			 * @param text текст регулярного выражения для сборки
-			 * @param pure флаг выполнения сборки чистого регулярного выражения
-			 * @param init флаг инициализации сборки
-			 * @param pos  начальная позиция в тексте
-			 * @return     идентификатор записи в кэше
-			 */
-			uint64_t build(string & text, const bool pure = false, const bool init = true, const size_t pos = 0) const noexcept;
-		private:
-			/**
-			 * prepare Метод обработки полученной переменной Grok
-			 * @param text  текст в котором найдена переменная Grok
-			 * @param pure  флаг выполнения сборки чистого регулярного выражения
-			 * @param begin начальная позиция переменной в тексте
-			 * @param end   конечная позиция переменной в тексте
-			 * @return      результат обработанного текста
-			 */
-			string & prepare(string & text, const bool pure, const size_t begin, const size_t end) const noexcept;
 		public:
 			/**
 			 * parse Метод выполнения парсинга текста
@@ -238,6 +256,14 @@ namespace anyks {
 			 * @return     результат выполнения регулярного выражения
 			 */
 			bool parse(const string & text, const string & rule) noexcept;
+		public:
+			/**
+			 * build Метод сборки регулярного выражения
+			 * @param text текст регулярного выражения для сборки
+			 * @param pure флаг выполнения сборки чистого регулярного выражения
+			 * @return     идентификатор записи в кэше
+			 */
+			uint64_t build(string & text, const bool pure = false) const noexcept;
 		public:
 			/**
 			 * dump Метод извлечения данных в виде JSON

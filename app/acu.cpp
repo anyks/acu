@@ -330,15 +330,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 					// Выполняем чтение объекта шаблонов
 					json patterns = json::parse(fs.read(env.get("patterns")));
 					// Если данные шаблонов получены
-					if(patterns.is_object() && !patterns.empty()){
-						// Выполняем перебор всего списка значений
-						for(auto & el : patterns.items()){
-							// Если значение является строкой
-							if(el.value().is_string())
-								// Выполняем добавление шаблона
-								parser.pattern(el.key(), el.value().get <string> ());
-						}
-					}
+					if(patterns.is_object() && !patterns.empty())
+						// Выполняем добавление поддерживаемых шаблонов
+						parser.patterns(patterns);
 				}
 				// Если регулярное выражение передано
 				if(env.isString("express")){

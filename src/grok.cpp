@@ -21,6 +21,13 @@
 void anyks::Grok::Variable::reset() noexcept {
 	// Выполняем блокировку потока
 	const lock_guard <std::mutex> lock(this->_mtx);
+	// Если список регулярных выражений шаблонов создан
+	if(!this->_patterns.empty()){
+		// Выполняем перебор всех шаблонов
+		for(auto & item : this->_patterns)
+			// Выполняем удаление скомпилированного регулярного выражения
+			pcre2_regfree(&item.second);
+	}
 	// Выполняем удаление названий переменных
 	this->_names.clear();
 	// Выполняем очистку шаблонов переменных
@@ -65,7 +72,7 @@ string anyks::Grok::Variable::get(const string & text, const uint8_t index) noex
 					for(uint8_t j = 0; j < static_cast <uint8_t> (i->second.re_nsub + 1); j++){
 						// Если результат получен
 						if(match[j].rm_eo > match[j].rm_so){
-							// Добавляем полученный результат в список результатов
+							// Формируем полученный результат
 							value.assign(str + match[j].rm_so, match[j].rm_eo - match[j].rm_so);
 							// Если значение переменной получено
 							if(!value.empty())
@@ -138,80 +145,6 @@ void anyks::Grok::Variable::push(const string & name, const string & pattern) no
 	}
 }
 /**
- * init Метод инициализации шаблонов парсинга
- */
-void anyks::Grok::init() noexcept {
-	// Выполняем блокировку потока
-	const lock_guard <std::mutex> lock(this->_mtx.patterns);
-	// Если список шаблонов не собран
-	if(this->_patterns.empty()){
-		// Выполняем добавление базовых шаблонов
-		this->_patterns.emplace("USERNAME", "[a-zA-Z0-9_-]+");
-		this->_patterns.emplace("USER", "%{USERNAME}");
-		this->_patterns.emplace("INT", "(?:[+-]?(?:[0-9]+))");
-		this->_patterns.emplace("BASE10NUM", "(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))");
-		this->_patterns.emplace("NUMBER", "(?:%{BASE10NUM})");
-		this->_patterns.emplace("BASE16NUM", "(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))");
-		this->_patterns.emplace("BASE16FLOAT", "\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b");
-		this->_patterns.emplace("POSINT", "\\b(?:[0-9]+)\\b");
-		this->_patterns.emplace("WORD", "\\b\\w+\\b");
-		this->_patterns.emplace("NOTSPACE", "\\S+");
-		this->_patterns.emplace("SPACE", "\\s*");
-		this->_patterns.emplace("DATA", ".*?");
-		this->_patterns.emplace("GREEDYDATA", ".*");
-		this->_patterns.emplace("QUOTEDSTRING", "(?:(?<!\\\\)(?:\"(?:\\\\.|[^\\\\\"])*\"|(?:'(?:\\\\.|[^\\\\'])*')|(?:`(?:\\\\.|[^\\\\`])*`)))");
-		this->_patterns.emplace("MAC", "(?:%{CISCOMAC}|%{WINDOWSMAC}|%{COMMONMAC})");
-		this->_patterns.emplace("CISCOMAC", "(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})");
-		this->_patterns.emplace("WINDOWSMAC", "(?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2})");
-		this->_patterns.emplace("COMMONMAC", "(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})");
-		this->_patterns.emplace("IP", "(?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])");
-		this->_patterns.emplace("HOSTNAME", "\\b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(?:\\.?|\\b)");
-		this->_patterns.emplace("HOST", "%{HOSTNAME}");
-		this->_patterns.emplace("IPORHOST", "(?:%{HOSTNAME}|%{IP})");
-		this->_patterns.emplace("HOSTPORT", "(?:%{IPORHOST=~/\\./}:%{POSINT})");
-		this->_patterns.emplace("PATH", "(?:%{UNIXPATH}|%{WINPATH})");
-		this->_patterns.emplace("UNIXPATH", "(?<![\\w\\\\/])(?:/(?:[\\w_%!$@:.,-]+|\\\\.)*)+");
-		this->_patterns.emplace("LINUXTTY", "(?:/dev/pts/%{POSINT})");
-		this->_patterns.emplace("BSDTTY", "(?:/dev/tty[pq][a-z0-9])");
-		this->_patterns.emplace("TTY", "(?:%{BSDTTY}|%{LINUXTTY})");
-		this->_patterns.emplace("WINPATH", "(?:[A-Za-z]+:|\\\\)(?:\\\\[^\\\\?*]*)+");
-		this->_patterns.emplace("URIPROTO", "[A-Za-z]+(\\+[A-Za-z+]+)?");
-		this->_patterns.emplace("URIHOST", "%{IPORHOST}(?::%{POSINT:port})?");
-		this->_patterns.emplace("URIPATH", "(?:/[A-Za-z0-9$.+!*'(),~:#%_-]*)+");
-		this->_patterns.emplace("URIPARAM", "\\?[A-Za-z0-9$.+!*'(),~#%&/=:;_-]*");
-		this->_patterns.emplace("URIPATHPARAM", "%{URIPATH}(?:%{URIPARAM})?");
-		this->_patterns.emplace("URI", "%{URIPROTO}://(?:%{USER}(?::[^@]*)?@)?(?:%{URIHOST})?(?:%{URIPATHPARAM})?");
-		this->_patterns.emplace("MONTH", "\\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\b");
-		this->_patterns.emplace("MONTHNUM", "(?:0?[1-9]|1[0-2])");
-		this->_patterns.emplace("MONTHDAY", "(?:3[01]|[1-2]?[0-9]|0?[1-9])");
-		this->_patterns.emplace("DAY", "(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)");
-		this->_patterns.emplace("YEAR", "[0-9]+");
-		this->_patterns.emplace("HOUR", "(?:2[0123]|[01][0-9])");
-		this->_patterns.emplace("MINUTE", "(?:[0-5][0-9])");
-		this->_patterns.emplace("SECOND", "(?:(?:[0-5][0-9]|60)(?:[.,][0-9]+)?)");
-		this->_patterns.emplace("TIME", "(?!<[0-9])%{HOUR}:%{MINUTE}(?::%{SECOND})(?![0-9])");
-		this->_patterns.emplace("DATE_US", "%{MONTHNUM}[/-]%{MONTHDAY}[/-]%{YEAR}");
-		this->_patterns.emplace("DATE_EU", "%{YEAR}[/-]%{MONTHNUM}[/-]%{MONTHDAY}");
-		this->_patterns.emplace("ISO8601_TIMEZONE", "(?:Z|[+-]%{HOUR}(?::?%{MINUTE}))");
-		this->_patterns.emplace("ISO8601_SECOND", "(?:%{SECOND}|60)");
-		this->_patterns.emplace("TIMESTAMP_ISO8601", "%{YEAR}-%{MONTHNUM}-%{MONTHDAY}[T ]%{HOUR}:?%{MINUTE}(?::?%{SECOND})?%{ISO8601_TIMEZONE}?");
-		this->_patterns.emplace("DATE", "%{DATE_US}|%{DATE_EU}");
-		this->_patterns.emplace("DATESTAMP", "%{DATE}[- ]%{TIME}");
-		this->_patterns.emplace("TZ", "(?:[PMCE][SD]T)");
-		this->_patterns.emplace("DATESTAMP_RFC822", "%{DAY} %{MONTH} %{MONTHDAY} %{YEAR} %{TIME} %{TZ}");
-		this->_patterns.emplace("DATESTAMP_OTHER", "%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{TZ} %{YEAR}");
-		this->_patterns.emplace("SYSLOGTIMESTAMP", "%{MONTH} +%{MONTHDAY} %{TIME}");
-		this->_patterns.emplace("PROG", "(?:[\\w._/-]+)");
-		this->_patterns.emplace("SYSLOGPROG", "%{PROG:program}(?:\\[%{POSINT:pid}\\])?");
-		this->_patterns.emplace("SYSLOGHOST", "%{IPORHOST}");
-		this->_patterns.emplace("SYSLOGFACILITY", "<%{POSINT:facility}.%{POSINT:priority}>");
-		this->_patterns.emplace("HTTPDATE", "%{MONTHDAY}/%{MONTH}/%{YEAR}:%{TIME} %{INT:ZONE}");
-		this->_patterns.emplace("QS", "%{QUOTEDSTRING}");
-		this->_patterns.emplace("SYSLOGBASE", "%{SYSLOGTIMESTAMP:timestamp} (?:%{SYSLOGFACILITY} )?%{SYSLOGHOST:logsource} %{SYSLOGPROG}:");
-		this->_patterns.emplace("COMBINEDAPACHELOG", "%{IPORHOST:clientip} %{USER:ident} %{USER:auth} \\[%{HTTPDATE:timestamp}\\] \"%{WORD:verb} %{URIPATHPARAM:request} HTTP/%{NUMBER:httpversion}\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) (?:\"(?:%{URI:referrer}|-)\"|%{QS:referrer}) %{QS:agent}");
-	}
-}
-/**
  * clear Метод очистки параметров модуля
  */
 void anyks::Grok::clear() noexcept {
@@ -219,10 +152,8 @@ void anyks::Grok::clear() noexcept {
 	this->reset();
 	// Выполняем блокировку потока
 	const lock_guard <std::mutex> lock(this->_mtx.patterns);
-	// Выполняем удаление списка ключей
-	this->_keys.clear();
 	// Очищаем список шаблонов
-	this->_patterns.clear();
+	this->_patternsExternal.clear();
 }
 /**
  * reset Метод сброса собранных данных
@@ -240,15 +171,184 @@ void anyks::Grok::reset() noexcept {
  */
 void anyks::Grok::clearPatterns() noexcept {
 	// Если список ключей существует
-	if(!this->_keys.empty()){
+	if(!this->_patternsExternal.empty()){
 		// Выполняем блокировку потока
 		const lock_guard <std::mutex> lock(this->_mtx.patterns);
-		// Выполняем перебор списка ключей
-		for(auto i = this->_keys.begin(); i != this->_keys.end();){
-			// Выполняем удаление шаблона
-			this->_patterns.erase(* i);
-			// Выполняем удаление ключа
-			i = this->_keys.erase(i);
+		// Очищаем список шаблонов
+		this->_patternsExternal.clear();
+	}
+}
+/**
+ * variable Метод извлечения первой блоковой переменной в тексте
+ * @param text текст из которого следует извлечь переменные
+ * @return     первая блоковая переменная
+ */
+anyks::Grok::let_t anyks::Grok::variable(const string & text) const noexcept {
+	// Результат работы функции
+	let_t result;
+	// Если текст для парсинга передан
+	if(!text.empty()){
+		// Статус разделителя
+		ss_t ss = ss_t::NONE;
+		// Позиция переменной в тексте
+		size_t begin = 0, end = 0;
+		// Перебираем полученный текст
+		for(size_t i = 0; i < text.length(); i++){
+			// Определяем текущий статус
+			switch(static_cast <uint8_t> (ss)){
+				// Статус разделителя не определён
+				case static_cast <uint8_t> (ss_t::NONE): {
+					// Если найден символ процента
+					if(text.at(i) == '%'){
+						// Запоминаем начальную позицию
+						begin = i;
+						// Меняем статус
+						ss = ss_t::FIRST;
+					}
+				} break;
+				// Статус разделителя определён как начальный
+				case static_cast <uint8_t> (ss_t::FIRST): {
+					// Если найдено начальное экранирование
+					if(text.at(i) == '{')
+						// Меняем статус
+						ss = ss_t::SECOND;
+					// Если получен какой-то другой символ, снимаем статус
+					else ss = ss_t::NONE;
+				} break;
+				// Статус разделителя определён как конечный
+				case static_cast <uint8_t> (ss_t::SECOND): {
+					// Определяем символ
+					switch(text.at(i)){
+						// Если найдено конечное экранирование
+						case '}': {
+							// Устанавливаем конечную позицию
+							end = (i + 1);
+							// Если конец строки установлен
+							if(end > begin){
+								// Устанавливаем позицию переменной
+								result.pos = (begin + 2);
+								// Устанавливаем размер переменной
+								result.size = ((end - 1) - (begin + 2));
+								// Выводим результат
+								return result;
+							}
+						} break;
+						// Если найден разделитель переменной
+						case ':':
+							// Устанавливаем позицию разделителя
+							result.delim = i;
+						break;
+					}
+				} break;
+			}
+		}
+	}
+	// Выводим результат
+	return result;
+}
+/**
+ * prepare Метод обработки полученной переменной Grok
+ * @param text текст в котором найдена переменная Grok
+ * @param lets разрешить обработку блочных переменных
+ * @return     список извлечённых переменных
+ */
+vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool lets) const noexcept {
+	// Результат работы функции
+	vector <pair <string, string>> result;
+	// Если текст для обработки передан
+	if(!text.empty()){
+		// Флаг начала извлечения всего списка переменных
+		Process:
+		// Выполняем получение блоковой переменной из текста
+		let_t let = this->variable(text);
+		// Если разделитель не найден
+		if((lets || (let.delim == 0)) && (let.pos > 0) && (let.size > 0)){
+			// Ключ и значение переменной
+			string key = "", value = "";
+			// Если разделитель найден
+			if(let.delim > 0){
+				// Выполняем установку ключа
+				key = text.substr(let.pos, let.delim - let.pos);
+				// Выполняем установку значения переменной
+				value = text.substr(let.delim + 1, let.size - ((let.delim + 1) - let.pos));
+			// Иначе устанавливаем ключ переменной как он есть
+			} else key = text.substr(let.pos, let.size);
+			// Выполняем поиск переменной среди внутренних шаблонов
+			auto i = this->_patternsInternal.find(key);
+			// Если переменная среди внутренних шаблонов найдена
+			if(i != this->_patternsInternal.end()){
+				// Выполняем копирование полученного шаблона
+				string pattern = i->second;
+				// Выполняем обработку нашего шаблона
+				const auto & vars = this->prepare(pattern, lets);
+				// Выполняем замену
+				text.replace(let.pos - 2, let.size + 3, (lets ? "(" : "") + pattern + (lets ? ")" : ""));
+				// Выполняем добавления переменной в список результата
+				result.emplace_back(std::move(value), std::move(pattern));
+				// Если мы получили список переменных из обраотанного шаблона
+				if(!vars.empty())
+					// Выполняем добавления полученных шаблонов в результат
+					result.insert(result.end(), vars.begin(), vars.end());
+				// Выполняем поиск переменных дальше
+				goto Process;
+			// Если переменная среди внутренних шаблонов не найдена
+			} else {
+				// Выполняем поиск переменной среди внешних шаблонов
+				auto i = this->_patternsExternal.find(key);
+				// Если переменная среди внешних шаблонов найдена
+				if(i != this->_patternsExternal.end()){
+					// Выполняем копирование полученного шаблона
+					string pattern = i->second;
+					// Выполняем обработку нашего шаблона
+					const auto & vars = this->prepare(pattern, lets);
+					// Выполняем замену
+					text.replace(let.pos - 2, let.size + 3, (lets ? "(" : "") + pattern + (lets ? ")" : ""));
+					// Выполняем добавления переменной в список результата
+					result.emplace_back(std::move(value), std::move(pattern));
+					// Если мы получили список переменных из обраотанного шаблона
+					if(!vars.empty())
+						// Выполняем добавления полученных шаблонов в результат
+						result.insert(result.end(), vars.begin(), vars.end());
+					// Выполняем поиск переменных дальше
+					goto Process;
+				}
+			}
+		}
+	}
+	// Выводим результат
+	return result;
+}
+/**
+ * patterns Метод добавления списка поддерживаемых шаблонов
+ * @param patterns список поддерживаемых шаблонов
+ */
+void anyks::Grok::patterns(const json & patterns) noexcept {
+	// Если шаблоны переданы
+	if(!patterns.empty() && patterns.is_object()){
+		// Объект блоковой переменной
+		let_t let;
+		// Список регулярных выражений в которых содержатся блоковые переменные
+		std::unordered_map <string, string> items;
+		// Выполняем перебор всего списка значений
+		for(auto & el : patterns.items()){
+			// Если значение является строкой
+			if(el.value().is_string()){
+				// Выполняем получение блоковой переменной из текста
+				let = this->variable(el.value().get <string> ());
+				// Если разделитель не найден
+				if((let.delim == 0) && (let.pos > 0) && (let.size > 0))
+					// Выполняем формирование списка регулярных выражений
+					items.emplace(el.key(), el.value().get <string> ());
+				// Выполняем добавление полученных шаблонов как они есть
+				else this->pattern(el.key(), el.value().get <string> (), event_t::EXTERNAL);
+			}
+		}
+		// Если список регулярных выражений в которых содержатся блоковые переменные собран
+		if(!items.empty()){
+			// Выполняем перебор всего списка регулярных выражений
+			for(auto & item : items)
+				// Выполняем добавление нашего шаблона
+				this->pattern(item.first, item.second, event_t::EXTERNAL);
 		}
 	}
 }
@@ -259,13 +359,23 @@ void anyks::Grok::clearPatterns() noexcept {
  */
 void anyks::Grok::pattern(const string & key, const string & val) noexcept {
 	// Если параметры шаблона переданы
+	if(!key.empty() && !val.empty())
+		// Выполняем добавление нашего шаблона
+		this->pattern(key, val, event_t::EXTERNAL);
+}
+/**
+ * pattern Метод добавления шаблона
+ * @param key   название переменной
+ * @param val   регуляреное выражение соответствующее переменной
+ * @param event тип выполняемого события
+ */
+void anyks::Grok::pattern(const string & key, const string & val, const event_t event) noexcept {
+	// Если параметры шаблона переданы
 	if(!key.empty() && !val.empty()){
 		// Выполняем блокировку потока
 		const lock_guard <std::mutex> lock(this->_mtx.patterns);
 		// Выполняем копирование текста регулярного выражения
 		string text = val;
-		// Выполняем добавление шаблона
-		this->_keys.emplace(key);
 		// Выполняем корректировку всего правила Grok
 		for(;;){
 			// Получаем строку текста для поиска
@@ -290,8 +400,24 @@ void anyks::Grok::pattern(const string & key, const string & val) noexcept {
 				}
 			}
 		}
-		// Выполняем добавление шаблона
-		this->_patterns.emplace(key, text);
+		// Выполняем обработку полученных шаблонов
+		this->prepare(text, false);
+		// Если текст регулярного выражения получен
+		if(!text.empty()){
+			// Определяем тип события
+			switch(static_cast <uint8_t> (event)){
+				// Если событие является внутренним
+				case static_cast <uint8_t> (event_t::INTERNAL):
+					// Выполняем добавление шаблона
+					this->_patternsInternal.emplace(key, text);
+				break;
+				// Если событие является внешним
+				case static_cast <uint8_t> (event_t::EXTERNAL):
+					// Выполняем добавление шаблона
+					this->_patternsExternal.emplace(key, text);
+				break;
+			}
+		}
 	}
 }
 /**
@@ -334,300 +460,6 @@ string anyks::Grok::generatePattern(const string & key, const string & val) noex
 	}
 	// Выводим результат
 	return result;
-}
-/**
- * build Метод сборки регулярного выражения
- * @param text текст регулярного выражения для сборки
- * @param pure флаг выполнения сборки чистого регулярного выражения
- * @param init флаг инициализации сборки
- * @param pos  начальная позиция в тексте
- * @return     идентификатор записи в кэше
- */
-uint64_t anyks::Grok::build(string & text, const bool pure, const bool init, const size_t pos) const noexcept {
-	// Если текст передан
-	if(!text.empty()){
-		/**
-		 * Выполняем отлов ошибок
-		 */
-		try {
-			// Идентификатор записи кэша
-			uint64_t cid = 0;
-			// Статус разделителя
-			ss_t ss = ss_t::NONE;
-			// Позиция переменной
-			size_t begin = 0, end = 0;
-			// Если установлен флаг инициализации
-			if(!pure && init && this->_mode){
-				// Выполняем генерацию идентификатора кэша
-				cid = CityHash64(text.c_str(), text.size());
-				// Выполняем поиск запись в кэше
-				auto i = this->_cache.find(cid);
-				// Если в кэше найдена запись
-				if(i != this->_cache.end()){
-					// Выполняем установку списка имён переменных
-					this->_variables._names = i->second->names;
-					// Выполняем установку шаблонов переменных
-					this->_variables._patterns = i->second->patterns;
-					// Выполняем установку регулярное выражение
-					text = i->second->expression;
-					// Выводим идентификатор записи в кэше
-					return cid;
-				}
-			}
-			// Если установлен флаг инициализации, корректируем наглых быдлокодеров
-			if(!pure && init && this->_mode){
-				// Выполняем корректировку всего правила Grok
-				for(;;){
-					// Получаем строку текста для поиска
-					const char * str = text.c_str();
-					// Создаём объект матчинга
-					std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg1.re_nsub + 1]);
-					// Если возникла ошибка
-					if(pcre2_regexec(&this->_reg1, str, this->_reg1.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
-						// Выходим из цикла корректировки
-						break;
-					// Если ошибок не получено
-					else {
-						// Выполняем перебор всех полученных вариантов
-						for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg1.re_nsub + 1); i++){
-							// Если результат получен
-							if(match[i].rm_eo > 0){
-								// Если открытая скобка найдена
-								if(text.at(match[i].rm_so) == '(')
-									// Выполняем замену открытой скобки
-									text.replace(match[i].rm_so, 1, "(?:");
-							}
-						}
-					}
-				}
-			}
-			// Если установлен флаг инициализации, корректируем работу групп
-			if(init && this->_mode){
-				// Выполняем корректировку всего правила Grok
-				for(;;){
-					// Получаем строку текста для поиска
-					const char * str = text.c_str();
-					// Создаём объект матчинга
-					std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg2.re_nsub + 1]);
-					// Если возникла ошибка
-					if(pcre2_regexec(&this->_reg2, str, this->_reg2.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
-						// Выходим из цикла корректировки
-						break;
-					// Если ошибок не получено
-					else {
-						// Количество найденных скобок
-						uint8_t brackets = 0;
-						// Выполняем перебор всех полученных вариантов
-						for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg2.re_nsub + 1); i++){
-							// Если результат получен
-							if(match[i].rm_eo > 0){
-								// Выполняем сброс количества скобок
-								brackets = 1;
-								// Выполняем перебор всей полученной группы сообщения
-								for(size_t j = static_cast <size_t> (match[i].rm_so); j < text.size(); j++){
-									// Если найдена открывающаяся скобка
-									if((text[j] == '(') && (text[j - 1] != '\\'))
-										// Увеличиваем количество найденных скобок
-										brackets++;
-									// Если найдена закрывающая скобка
-									else if((text[j] == ')') && (text[j - 1] != '\\'))
-										// Уменьшаем количество найденных скобок
-										brackets--;
-									// Если найден конец выходим
-									if(brackets == 0){
-										// Получаем полную извлечённую строку
-										const string & str = text.substr(match[i].rm_so, j - match[i].rm_so);
-										// Получаем название группы
-										string group = text.substr(match[i].rm_so, match[i].rm_eo - match[i].rm_so);
-										// Получаем шаблон регулярного выражения
-										string express = str.substr(group.length());
-										// Получаем значение переменной
-										const string & variable = const_cast <grok_t *> (this)->generatePattern(group, express);
-										// Если переменная получена
-										if(!variable.empty())
-											// Заменяем в тексте полученные данные на нашу переменную
-											text.replace(match[i].rm_so - 2, (j + 1) - (match[i].rm_so - 2), variable);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			// Перебираем полученный текст
-			for(size_t i = pos; i < text.length(); i++){
-				// Определяем текущий статус
-				switch(static_cast <uint8_t> (ss)){
-					// Статус разделителя не определён
-					case static_cast <uint8_t> (ss_t::NONE): {
-						// Если найден символ процента
-						if(text.at(i) == '%'){
-							// Запоминаем начальную позицию
-							begin = i;
-							// Меняем статус
-							ss = ss_t::FIRST;
-						}
-					} break;
-					// Статус разделителя определён как начальный
-					case static_cast <uint8_t> (ss_t::FIRST): {
-						// Если найдено экранирование
-						if(text.at(i) == '{')
-							// Меняем статус
-							ss = ss_t::SECOND;
-						// Если получен какой-то другой символ, снимаем статус
-						else ss = ss_t::NONE;
-					} break;
-					// Статус разделителя определён как конечный
-					case static_cast <uint8_t> (ss_t::SECOND): {
-						// Если найдено экранирование
-						if(text.at(i) == '}'){
-							// Устанавливаем конечную позицию
-							end = (i + 1);
-							// Если конец строки установлен
-							if(end > begin){
-								// Выполняем препарирование
-								this->prepare(text, pure, begin, end);
-								// Выполняем поиск оставшихся параметров
-								this->build(text, pure, false, begin + 1);
-								// Если шаблон не был переделан в регулярное выражение
-								if(text.substr(begin, 2).compare("%{") == 0){
-									// Формируем полученную ошибку
-									string error = "Template is not found for ";
-									// Добавляем начало строки
-									error.append(1, '[');
-									// Добавляем переданный текст
-									error.append(text.substr(begin, end - begin));
-									// Добавляем завершение строки
-									error.append(1, ']');
-									// Добавляем в список полученные ошибки
-									this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
-									// Выполняем очистку регулярного выражения
-									text.clear();
-								// Если текст регулярного выражения сформирован верно
-								} else if(!text.empty() && (!pure && init && this->_mode)) {
-									// Выполняем блокировку потока
-									this->_mtx.cache.lock();
-									// Выполняем создании записи кэша
-									auto ret = const_cast <grok_t *> (this)->_cache.emplace(cid, std::unique_ptr <cache_t> (new cache_t));
-									// Выполняем разблокировку потока
-									this->_mtx.cache.unlock();
-									// Выполняем установку регулярного выражения
-									ret.first->second->expression = text;
-									// Выполняем установку списка имён переменных
-									ret.first->second->names = this->_variables._names;
-									// Выполняем установку шаблонов переменных
-									ret.first->second->patterns = this->_variables._patterns;
-									// Выполняем компиляцию регулярного выражения
-									const int error = pcre2_regcomp(&ret.first->second->reg, ret.first->second->expression.c_str(), REG_UTF | REG_ICASE);
-									// Если возникла ошибка компиляции
-									if(error != 0){
-										// Создаём буфер данных для извлечения данных ошибки
-										char buffer[256];
-										// Выполняем заполнение нулями буфер данных
-										::memset(buffer, '\0', sizeof(buffer));
-										// Выполняем извлечение текста ошибки
-										const size_t size = pcre2_regerror(error, &ret.first->second->reg, buffer, sizeof(buffer) - 1);
-										// Если текст ошибки получен
-										if(size > 0){
-											// Формируем полученную ошибку
-											string error(buffer, size);
-											// Добавляем описание
-											error.append(". Input pattern [");
-											// Добавляем переданный шаблон
-											error.append(ret.first->second->expression);
-											// Добавляем завершение строки
-											error.append(1, ']');
-											// Добавляем в список полученные ошибки
-											this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
-										}
-										// Выполняем сброс собранных данных переменных
-										this->_variables.reset();
-										// Выполняем перебор всех шаблонов
-										for(auto & item : ret.first->second->patterns)
-											// Выполняем удаление скомпилированного регулярного выражения
-											pcre2_regfree(&item.second);
-										// Выполняем блокировку потока
-										this->_mtx.cache.lock();
-										// Выполняем удаление записи из кэша
-										const_cast <grok_t *> (this)->_cache.erase(cid);
-										// Выполняем разблокировку потока
-										this->_mtx.cache.unlock();
-										// Выполняем зануление идентификатора записи
-										cid = 0;
-									}
-								}
-								// Выводим результат
-								return cid;
-							}
-						}
-					} break;
-				}
-			}
-		/**
-		 * Если возникает ошибка
-		 */
-		} catch(const std::exception & e) {
-			// Формируем полученную ошибку
-			string error = e.what();
-			// Добавляем описание
-			error.append(". Input text [");
-			// Добавляем переданный текст
-			error.append(text);
-			// Добавляем завершение строки
-			error.append(1, ']');
-			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
-		}
-	}
-	// Выводим результат
-	return 0;
-}
-/**
- * prepare Метод обработки полученной переменной Grok
- * @param text  текст в котором найдена переменная Grok
- * @param pure  флаг выполнения сборки чистого регулярного выражения
- * @param begin начальная позиция переменной в тексте
- * @param end   конечная позиция переменной в тексте
- * @return      результат обработанного текста
- */
-string & anyks::Grok::prepare(string & text, const bool pure, const size_t begin, const size_t end) const noexcept {
-	// Позиция переменной в правиле
-	size_t pos = 0;
-	// Флаг получения переменной
-	bool mode = false;
-	// Создаем ключ и название переменной
-	string key = "", variable = "";
-	// Получаем данные правила
-	string rule = text.substr(begin + 2, (end - 1) - (begin + 2));
-	// Выполняем поиск переменной
-	if((mode = (pos = rule.find(":")) != string::npos)){
-		// Если нужно собрать полное регулярное выражение
-		if(!pure)
-			// Получаем ключ переменной
-			key = rule.substr(pos + 1);
-		// Получаем название переменной
-		variable = rule.substr(0, pos);
-	// Если переменная не найдена
-	} else variable = std::move(rule);
-	// Выполняем поиск переменной
-	auto i = this->_patterns.find(variable);
-	// Если переменная найдена
-	if(i != this->_patterns.end()){
-		// Получаем значение шаблона
-		string pattern = i->second;
-		// Выполняем поиск существование переменной
-		if((pos = i->second.find("%{")) != string::npos)
-			// Выполняем замену шаблона на регулярное выражение
-			this->build(pattern, pure, false, pos);
-		// Если ключ получен
-		if(!pure && !key.empty())
-			// Выполняем добавление переменной
-			this->_variables.push(key, pattern);
-		// Выполняем замену
-		text.replace(begin, end - begin, (mode && !pure ? "(" : "") + pattern + (mode && !pure ? ")" : ""));
-	}
-	// Выводим результат
-	return text;
 }
 /**
  * parse Метод выполнения парсинга текста
@@ -801,6 +633,182 @@ bool anyks::Grok::parse(const string & text, const string & rule) noexcept {
 	return result;
 }
 /**
+ * build Метод сборки регулярного выражения
+ * @param text текст регулярного выражения для сборки
+ * @param pure флаг выполнения сборки чистого регулярного выражения
+ * @return     идентификатор записи в кэше
+ */
+uint64_t anyks::Grok::build(string & text, const bool pure) const noexcept {
+	// Результат работы функции
+	uint64_t result = 0;
+	// Если текст передан
+	if(!text.empty() && this->_mode){
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем генерацию идентификатора кэша
+			result = CityHash64(text.c_str(), text.size());
+			// Выполняем поиск запись в кэше
+			auto i = this->_cache.find(result);
+			// Если в кэше найдена запись
+			if(i != this->_cache.end()){
+				// Выполняем установку регулярное выражение
+				text = i->second->expression;
+				// Выводим идентификатор записи в кэше
+				return result;
+			}
+			// Если нам не нужно собирать чистое регулярное выражение
+			if(!pure){
+				// Выполняем корректировку всего правила Grok
+				for(;;){
+					// Получаем строку текста для поиска
+					const char * str = text.c_str();
+					// Создаём объект матчинга
+					std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg1.re_nsub + 1]);
+					// Если возникла ошибка
+					if(pcre2_regexec(&this->_reg1, str, this->_reg1.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
+						// Выходим из цикла корректировки
+						break;
+					// Если ошибок не получено
+					else {
+						// Выполняем перебор всех полученных вариантов
+						for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg1.re_nsub + 1); i++){
+							// Если результат получен
+							if(match[i].rm_eo > 0){
+								// Если открытая скобка найдена
+								if(text.at(match[i].rm_so) == '(')
+									// Выполняем замену открытой скобки
+									text.replace(match[i].rm_so, 1, "(?:");
+							}
+						}
+					}
+				}
+			}
+			// Выполняем корректировку всего правила Grok
+			for(;;){
+				// Получаем строку текста для поиска
+				const char * str = text.c_str();
+				// Создаём объект матчинга
+				std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg2.re_nsub + 1]);
+				// Если возникла ошибка
+				if(pcre2_regexec(&this->_reg2, str, this->_reg2.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
+					// Выходим из цикла корректировки
+					break;
+				// Если ошибок не получено
+				else {
+					// Количество найденных скобок
+					uint8_t brackets = 0;
+					// Выполняем перебор всех полученных вариантов
+					for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg2.re_nsub + 1); i++){
+						// Если результат получен
+						if(match[i].rm_eo > 0){
+							// Выполняем сброс количества скобок
+							brackets = 1;
+							// Выполняем перебор всей полученной группы сообщения
+							for(size_t j = static_cast <size_t> (match[i].rm_so); j < text.size(); j++){
+								// Если найдена открывающаяся скобка
+								if((text[j] == '(') && (text[j - 1] != '\\'))
+									// Увеличиваем количество найденных скобок
+									brackets++;
+								// Если найдена закрывающая скобка
+								else if((text[j] == ')') && (text[j - 1] != '\\'))
+									// Уменьшаем количество найденных скобок
+									brackets--;
+								// Если найден конец выходим
+								if(brackets == 0){
+									// Получаем полную извлечённую строку
+									const string & str = text.substr(match[i].rm_so, j - match[i].rm_so);
+									// Получаем название группы
+									string group = text.substr(match[i].rm_so, match[i].rm_eo - match[i].rm_so);
+									// Получаем шаблон регулярного выражения
+									string express = str.substr(group.length());
+									// Получаем значение переменной
+									const string & variable = const_cast <grok_t *> (this)->generatePattern(group, express);
+									// Если переменная получена
+									if(!variable.empty())
+										// Заменяем в тексте полученные данные на нашу переменную
+										text.replace(match[i].rm_so - 2, (j + 1) - (match[i].rm_so - 2), variable);
+								}
+							}
+						}
+					}
+				}
+			}
+			// Выполняем обработку полученных шаблонов
+			const auto & vars = this->prepare(text);
+			// Если список переменных получен
+			if(!vars.empty()){
+				// Выполняем перебор списка переменных
+				for(auto & var : vars)
+					// Выполняем добавление переменной
+					this->_variables.push(var.first, var.second);
+			}
+			// Если текст регулярного выражения сформирован верно
+			if(!pure && !text.empty()){
+				// Выполняем блокировку потока
+				this->_mtx.cache.lock();
+				// Выполняем создании записи кэша
+				auto ret = const_cast <grok_t *> (this)->_cache.emplace(result, std::unique_ptr <cache_t> (new cache_t));
+				// Выполняем разблокировку потока
+				this->_mtx.cache.unlock();
+				// Выполняем установку регулярного выражения
+				ret.first->second->expression = text;
+				// Выполняем компиляцию регулярного выражения
+				const int error = pcre2_regcomp(&ret.first->second->reg, ret.first->second->expression.c_str(), REG_UTF | REG_ICASE);
+				// Если возникла ошибка компиляции
+				if(error != 0){
+					// Создаём буфер данных для извлечения данных ошибки
+					char buffer[256];
+					// Выполняем заполнение нулями буфер данных
+					::memset(buffer, '\0', sizeof(buffer));
+					// Выполняем извлечение текста ошибки
+					const size_t size = pcre2_regerror(error, &ret.first->second->reg, buffer, sizeof(buffer) - 1);
+					// Если текст ошибки получен
+					if(size > 0){
+						// Формируем полученную ошибку
+						string error(buffer, size);
+						// Добавляем описание
+						error.append(". Input pattern [");
+						// Добавляем переданный шаблон
+						error.append(ret.first->second->expression);
+						// Добавляем завершение строки
+						error.append(1, ']');
+						// Добавляем в список полученные ошибки
+						this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
+					}
+					// Выполняем сброс собранных данных переменных
+					this->_variables.reset();
+					// Выполняем блокировку потока
+					this->_mtx.cache.lock();
+					// Выполняем удаление записи из кэша
+					const_cast <grok_t *> (this)->_cache.erase(result);
+					// Выполняем разблокировку потока
+					this->_mtx.cache.unlock();
+					// Выполняем зануление идентификатора записи
+					result = 0;
+				}
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & e) {
+			// Формируем полученную ошибку
+			string error = e.what();
+			// Добавляем описание
+			error.append(". Input text [");
+			// Добавляем переданный текст
+			error.append(text);
+			// Добавляем завершение строки
+			error.append(1, ']');
+			// Добавляем в список полученные ошибки
+			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
+		}
+	}
+	// Выводим результат
+	return result;
+}
+/**
  * dump Метод извлечения данных в виде JSON
  * @return json объект дампа данных
  */
@@ -916,22 +924,97 @@ anyks::Grok::Grok(const fmk_t * fmk, const log_t * log) noexcept : _mode(false),
 			::exit(EXIT_FAILURE);
 		}
 	}
+	// Выполняем добавление базовых шаблонов
+	this->pattern("USERNAME", "[a-zA-Z0-9._-]+", event_t::INTERNAL);
+	this->pattern("USER", "%{USERNAME}", event_t::INTERNAL);
+	this->pattern("INT", "(?:[+-]?(?:[0-9]+))", event_t::INTERNAL);
+	this->pattern("NONNEGINT", "\\b(?:[0-9]+)\\b", event_t::INTERNAL);
+	this->pattern("BASE10NUM", "(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))", event_t::INTERNAL);
+	this->pattern("NUMBER", "(?:%{BASE10NUM})", event_t::INTERNAL);
+	this->pattern("BASE16NUM", "(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))", event_t::INTERNAL);
+	this->pattern("BASE16FLOAT", "\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b", event_t::INTERNAL);
+	this->pattern("POSINT", "\\b(?:[1-9][0-9]*)\\b", event_t::INTERNAL);
+	this->pattern("WORD", "\\b\\w+\\b", event_t::INTERNAL);
+	this->pattern("NOTSPACE", "\\S+", event_t::INTERNAL);
+	this->pattern("SPACE", "\\s*", event_t::INTERNAL);
+	this->pattern("DATA", ".*?", event_t::INTERNAL);
+	this->pattern("GREEDYDATA", ".*", event_t::INTERNAL);
+	this->pattern("UUID", "[A-Fa-f0-9]{8}-(?:[A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}", event_t::INTERNAL);
+	this->pattern("QUOTEDSTRING", "(?>(?<!\\\\)(?>\"(?>\\\\.|[^\\\\\"]+)+\"|\"\"|(?>'(?>\\\\.|[^\\\\']+)+')|''|(?>`(?>\\\\.|[^\\\\`]+)+`)|``))", event_t::INTERNAL);
+	this->pattern("CISCOMAC", "(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})", event_t::INTERNAL);
+	this->pattern("WINDOWSMAC", "(?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2})", event_t::INTERNAL);
+	this->pattern("COMMONMAC", "(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})", event_t::INTERNAL);
+	this->pattern("MAC", "(?:%{CISCOMAC}|%{WINDOWSMAC}|%{COMMONMAC})", event_t::INTERNAL);
+	this->pattern("IPV4", "(?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])", event_t::INTERNAL);
+	this->pattern("IPV6", "((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?", event_t::INTERNAL);
+	this->pattern("IP", "(?:%{IPV6}|%{IPV4})", event_t::INTERNAL);
+	this->pattern("HOSTNAME", "\\b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(\\.?|\\b)", event_t::INTERNAL);
+	this->pattern("HOST", "%{HOSTNAME}", event_t::INTERNAL);
+	this->pattern("IPORHOST", "(?:%{HOSTNAME}|%{IP})", event_t::INTERNAL);
+	this->pattern("HOSTPORT", "%{IPORHOST}:%{POSINT}", event_t::INTERNAL);
+	this->pattern("UNIXPATH", "(?>/(?>[\\w_%!$@:.,~-]+|\\\\.)*)+", event_t::INTERNAL);
+	this->pattern("WINPATH", "((?>[A-Za-z]+:|\\\\)(?:\\\\[^\\\\?*]*)+", event_t::INTERNAL);
+	this->pattern("PATH", "(?:%{UNIXPATH}|%{WINPATH})", event_t::INTERNAL);
+	this->pattern("LINUXTTY", "(?:/dev/pts/%{POSINT})", event_t::INTERNAL);
+	this->pattern("BSDTTY", "(?:/dev/tty[pq][a-z0-9])", event_t::INTERNAL);
+	this->pattern("TTY", "(?:/dev/(pts|tty([pq])?)(\\w+)?/?(?:[0-9]+))", event_t::INTERNAL);
+	this->pattern("URIPROTO", "[A-Za-z]+(\\+[A-Za-z+]+)?", event_t::INTERNAL);
+	this->pattern("URIHOST", "%{IPORHOST}(?::%{POSINT:port})?", event_t::INTERNAL);
+	this->pattern("URIPATH", "(?:/[A-Za-z0-9$.+!*'(){},~:;=@#%_\\-]*)+", event_t::INTERNAL);
+	this->pattern("URIPARAM", "\\?[A-Za-z0-9$.+!*'|(){},~@#%&/=:;_?\\-\\[\\]]*", event_t::INTERNAL);
+	this->pattern("#URIPARAM", "\\?(?:[A-Za-z0-9]+(?:=(?:[^&]*))?(?:&(?:[A-Za-z0-9]+", event_t::INTERNAL);
+	this->pattern("URIPATHPARAM", "%{URIPATH}(?:%{URIPARAM})?", event_t::INTERNAL);
+	this->pattern("URI", "%{URIPROTO}://(?:%{USER}(?::[^@]*)?@)?(?:%{URIHOST})?(?:%{URIPATHPARAM})?", event_t::INTERNAL);
+	this->pattern("MONTH", "\\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\b", event_t::INTERNAL);
+	this->pattern("MONTHNUM", "(?:0?[1-9]|1[0-2])", event_t::INTERNAL);
+	this->pattern("MONTHNUM2", "(?:0[1-9]|1[0-2])", event_t::INTERNAL);
+	this->pattern("MONTHDAY", "(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])", event_t::INTERNAL);
+	this->pattern("DAY", "(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)", event_t::INTERNAL);
+	this->pattern("YEAR", "(?>\\d\\d){1,2}", event_t::INTERNAL);
+	this->pattern("HOUR", "(?:2[0123]|[01]?[0-9])", event_t::INTERNAL);
+	this->pattern("MINUTE", "(?:[0-5][0-9])", event_t::INTERNAL);
+	this->pattern("SECOND", "(?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?)", event_t::INTERNAL);
+	this->pattern("TIME", "(?!<[0-9])%{HOUR}:%{MINUTE}(?::%{SECOND})(?![0-9])", event_t::INTERNAL);
+	this->pattern("DATE_US", "%{MONTHNUM}[/-]%{MONTHDAY}[/-]%{YEAR}", event_t::INTERNAL);
+	this->pattern("DATE_EU", "%{MONTHDAY}[./-]%{MONTHNUM}[./-]%{YEAR}", event_t::INTERNAL);
+	this->pattern("ISO8601_TIMEZONE", "(?:Z|[+-]%{HOUR}(?::?%{MINUTE}))", event_t::INTERNAL);
+	this->pattern("ISO8601_SECOND", "(?:%{SECOND}|60)", event_t::INTERNAL);
+	this->pattern("TIMESTAMP_ISO8601", "%{YEAR}-%{MONTHNUM}-%{MONTHDAY}[T ]%{HOUR}:?%{MINUTE}(?::?%{SECOND})?%{ISO8601_TIMEZONE}?", event_t::INTERNAL);
+	this->pattern("DATE", "%{DATE_US}|%{DATE_EU}", event_t::INTERNAL);
+	this->pattern("DATESTAMP", "%{DATE}[- ]%{TIME}", event_t::INTERNAL);
+	this->pattern("TZ", "(?:[PMCE][SD]T|UTC)", event_t::INTERNAL);
+	this->pattern("DATESTAMP_RFC822", "%{DAY} %{MONTH} %{MONTHDAY} %{YEAR} %{TIME} %{TZ}", event_t::INTERNAL);
+	this->pattern("DATESTAMP_RFC2822", "%{DAY}, %{MONTHDAY} %{MONTH} %{YEAR} %{TIME} %{ISO8601_TIMEZONE}", event_t::INTERNAL);
+	this->pattern("DATESTAMP_OTHER", "%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{TZ} %{YEAR}", event_t::INTERNAL);
+	this->pattern("DATESTAMP_EVENTLOG", "%{YEAR}%{MONTHNUM2}%{MONTHDAY}%{HOUR}%{MINUTE}%{SECOND}", event_t::INTERNAL);
+	this->pattern("SYSLOGTIMESTAMP", "%{MONTH} +%{MONTHDAY} %{TIME}", event_t::INTERNAL);
+	this->pattern("PROG", "(?:[\\w._/%-]+)", event_t::INTERNAL);
+	this->pattern("SYSLOGPROG", "%{PROG:program}(?:\\[%{POSINT:pid}\\])?", event_t::INTERNAL);
+	this->pattern("SYSLOGHOST", "%{IPORHOST}", event_t::INTERNAL);
+	this->pattern("SYSLOGFACILITY", "<%{NONNEGINT:facility}.%{NONNEGINT:priority}>", event_t::INTERNAL);
+	this->pattern("HTTPDATE", "%{MONTHDAY}/%{MONTH}/%{YEAR}:%{TIME} %{INT}", event_t::INTERNAL);
+	this->pattern("QS", "%{QUOTEDSTRING}", event_t::INTERNAL);
+	this->pattern("JAVACLASS", "(?:[a-zA-Z$_][a-zA-Z$_0-9]*\\.)*[a-zA-Z$_][a-zA-Z$_0-9]*", event_t::INTERNAL);
+	this->pattern("JAVAFILE", "(?:[A-Za-z0-9_. -]+)", event_t::INTERNAL);
+	this->pattern("JAVAMETHOD", "(?:(<init>)|[a-zA-Z$_][a-zA-Z$_0-9]*)", event_t::INTERNAL);
+	this->pattern("JAVASTACKTRACEPART", "%{SPACE}at %{JAVACLASS:class}\\.%{JAVAMETHOD:method}\\(%{JAVAFILE:file}(?::%{NUMBER:line})?\\)", event_t::INTERNAL);
+	this->pattern("SYSLOGBASE", "%{SYSLOGTIMESTAMP:timestamp} (?:%{SYSLOGFACILITY} )?%{SYSLOGHOST:logsource} %{SYSLOGPROG}:", event_t::INTERNAL);
+	this->pattern("COMMONAPACHELOG", "%{IPORHOST:clientip} %{USER:ident} %{USER:auth} \\[%{HTTPDATE:timestamp}\\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-)", event_t::INTERNAL);
+	this->pattern("COMBINEDAPACHELOG", "%{COMMONAPACHELOG} %{QS:referrer} %{QS:agent}", event_t::INTERNAL);
+	this->pattern("LOGLEVEL", "([Aa]lert|ALERT|[Tt]race|TRACE|[Dd]ebug|DEBUG|[Nn]otice|NOTICE|[Ii]nfo|INFO|[Ww]arn?(?:ing)?|WARN?(?:ING)?|[Ee]rr?(?:or)?|ERR?(?:OR)?|[Cc]rit?(?:ical)?|CRIT?(?:ICAL)?|[Ff]atal|FATAL|[Ss]evere|SEVERE|EMERG(?:ENCY)?|[Ee]merg(?:ency)?)", event_t::INTERNAL);
 }
 /**
  * ~Grok Деструктор
  */
 anyks::Grok::~Grok() noexcept {
+	// Выполняем сброс собранных данных переменных
+	this->_variables.reset();
 	// Если кэш заполнен
 	if(!this->_cache.empty()){
 		// Выполняем перебор всего списка кэша
-		for(auto & i : this->_cache){
+		for(auto & i : this->_cache)
 			// Выполняем удаление скомпилированного регулярного выражения
 			pcre2_regfree(&i.second->reg);
-			// Выполняем перебор всех шаблонов
-			for(auto & j : i.second->patterns)
-				// Выполняем удаление скомпилированного регулярного выражения
-				pcre2_regfree(&j.second);
-		}
 	}
 	// Выполняем очистку памяти выделенную под регулярное выражение для исправления скобок
 	pcre2_regfree(&this->_reg1);

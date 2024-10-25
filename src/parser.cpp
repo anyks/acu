@@ -35,6 +35,16 @@ void anyks::Parser::pattern(const string & key, const string & val) noexcept {
 	this->_grok.pattern(key, val);
 }
 /**
+ * patterns Метод добавления списка поддерживаемых шаблонов
+ * @param patterns список поддерживаемых шаблонов
+ */
+void anyks::Parser::patterns(const nlohmann::json & patterns) noexcept {
+	// Выполняем блокировку потока
+	const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+	// Выполняем добавление списка шаблонов
+	this->_grok.patterns(patterns);
+}
+/**
  * yaml Метод конвертации текста в формате YAML в объект JSON
  * @param text текст для конвертации
  * @return     объект в формате JSON
@@ -622,8 +632,12 @@ nlohmann::json anyks::Parser::grok(const string & text, const string & pattern) 
 			this->_grok.reset();
 			// Выполняем получение регулярного выражения
 			string express = pattern;
-			// Выполняем парсинг данных
-			this->_grok.parse(text, this->_grok.build(express));
+			// Выполняем сборку регулярного выражения
+			this->_grok.build(express);
+			// Если регулярное выражение получено
+			if(!express.empty())
+				// Выполняем парсинг данных
+				this->_grok.parse(text, express);
 			// Выводим полученные данные
 			return this->_grok.dump();
 		/**
@@ -2334,14 +2348,4 @@ string anyks::Parser::cef(const nlohmann::json & data, const cef_t::mode_t mode)
 	}
 	// Выводим результат по умолчанию
 	return "";
-}
-/**
- * Parser Конструктор
- * @param fmk объект фреймворка
- * @param log объект для работы с логами
- */
-anyks::Parser::Parser(const fmk_t * fmk, const log_t * log) noexcept :
- _cef(fmk, log), _csv(fmk, log), _grok(fmk, log), _syslog(fmk, log), _fmk(fmk), _log(log) {
-	// Выполняем инициализацию Grok
-	this->_grok.init();
 }

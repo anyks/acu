@@ -533,18 +533,10 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							else if(this->_fmk->compare("grok", request.at("from").get <string> ())) {
 								// Определяем тип файла
 								from = type_t::GROK;
-								// Выполняем очистку списка ранее установленных шаблонов
-								parser.clearPatterns();
 								// Если файл шаблона указан
-								if(request.contains("patterns") && request.at("patterns").is_object()){
-									// Выполняем перебор всего списка значений
-									for(auto & el : request.at("patterns").items()){
-										// Если значение является строкой
-										if(el.value().is_string())
-											// Выполняем добавление шаблона
-											parser.pattern(el.key(), el.value().get <string> ());
-									}
-								}
+								if(request.contains("patterns") && request.at("patterns").is_object())
+									// Выполняем добавление поддерживаемых шаблонов
+									parser.patterns(request.at("patterns"));
 								// Если регулярное выражение передано
 								if(request.contains("express") && request.at("express").is_string())
 									// Устанавливаем полученное регулярное выражение

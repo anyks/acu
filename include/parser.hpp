@@ -91,6 +91,11 @@ namespace anyks {
 			void clearPatterns() noexcept;
 		public:
 			/**
+			 * patterns Метод добавления списка поддерживаемых шаблонов
+			 * @param patterns список поддерживаемых шаблонов
+			 */
+			void patterns(const nlohmann::json & patterns) noexcept;
+			/**
 			 * pattern Метод добавления шаблона GROK
 			 * @param key название переменной
 			 * @param val регуляреное выражение соответствующее переменной
@@ -208,7 +213,9 @@ namespace anyks {
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
-			Parser(const fmk_t * fmk, const log_t * log) noexcept;
+			Parser(const fmk_t * fmk, const log_t * log) noexcept :
+			 _cef(fmk, log), _csv(fmk, log), _grok(fmk, log),
+			 _syslog(fmk, log), _fmk(fmk), _log(log) {}
 			/**
 			 * ~Parser Деструктор
 			 */
