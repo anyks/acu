@@ -247,6 +247,70 @@ anyks::Grok::let_t anyks::Grok::variable(const string & text) const noexcept {
 	return result;
 }
 /**
+ * removeBrackets Метод удаления скобок
+ * @param text текст в котором следует удалить скобки
+ */
+void anyks::Grok::removeBrackets(string & text) const noexcept {
+	// Если текст для обработки передан
+	if(!text.empty()){
+		// Позиция скобки в тексте
+		ssize_t pos = -1;
+		// Флаг начала извлечения всего списка переменных
+		Process:
+		// Выполняем поиск скобки в тексте
+		pos = this->bracket(text, static_cast <size_t> (pos + 1));
+		// Если позиция скобки в тексте найдена
+		if(pos > -1){
+			// Выполняем замену в тексте скобки
+			text.replace(static_cast <size_t> (pos), 1, "(?:");
+			// Увеличиваем текущую позицию
+			pos += 2;
+			// Выполняем поиск скобок дальше
+			goto Process;
+		}
+	}
+}
+/**
+ * bracket Метод поиска скобки для замены
+ * @param text текст для поиска
+ * @param pos  начальная позиция для поиска
+ * @return     позиция найденной скобки
+ */
+ssize_t anyks::Grok::bracket(const string & text, const size_t pos) const noexcept {
+	// Если текст для парсинга передан
+	if(!text.empty()){
+		// Количество подряд идущих экранирований
+		uint16_t shielding = 0;
+		// Перебираем полученный текст
+		for(size_t i = pos; i < text.length(); i++){
+			// Определяем текущий символ
+			switch(text.at(i)){
+				// Если символом является символ экранирования
+				case '\\':
+					// Увеличиваем количество найденных экранов
+					shielding++;
+				break;
+				// Если найденный символ открытая скобка
+				case '(': {
+					// Если экранирования у скобки нет
+					if((shielding % 2) == 0){
+						// Если следующий символ не последний
+						if(((i + 1) < text.length()) && (text.at(i + 1) != '?'))
+							// Выходим из функции
+							return static_cast <ssize_t> (i);
+					}
+					// Выполняем сброс количества экранирований
+					shielding = 0;
+				} break;
+				// Если найденный символ любой другой
+				default: shielding = 0;
+			}
+		}
+	}
+	// Выводим результат
+	return -1;
+}
+/**
  * prepare Метод обработки полученной переменной Grok
  * @param text текст в котором найдена переменная Grok
  * @param lets разрешить обработку блочных переменных
@@ -376,30 +440,8 @@ void anyks::Grok::pattern(const string & key, const string & val, const event_t 
 		const lock_guard <std::mutex> lock(this->_mtx.patterns);
 		// Выполняем копирование текста регулярного выражения
 		string text = val;
-		// Выполняем корректировку всего правила Grok
-		for(;;){
-			// Получаем строку текста для поиска
-			const char * str = text.c_str();
-			// Создаём объект матчинга
-			std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg1.re_nsub + 1]);
-			// Если возникла ошибка
-			if(pcre2_regexec(&this->_reg1, str, this->_reg1.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
-				// Выходим из цикла корректировки
-				break;
-			// Если ошибок не получено
-			else {
-				// Выполняем перебор всех полученных вариантов
-				for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg1.re_nsub + 1); i++){
-					// Если результат получен
-					if(match[i].rm_eo > 0){
-						// Если открытая скобка найдена
-						if(text.at(match[i].rm_so) == '(')
-							// Выполняем замену открытой скобки
-							text.replace(match[i].rm_so, 1, "(?:");
-					}
-				}
-			}
-		}
+		// Выполняем удаление лишних скобок
+		this->removeBrackets(text);
 		// Выполняем обработку полученных шаблонов
 		this->prepare(text, false);
 		// Если текст регулярного выражения получен
@@ -659,40 +701,17 @@ uint64_t anyks::Grok::build(string & text, const bool pure) const noexcept {
 				return result;
 			}
 			// Если нам не нужно собирать чистое регулярное выражение
-			if(!pure){
-				// Выполняем корректировку всего правила Grok
-				for(;;){
-					// Получаем строку текста для поиска
-					const char * str = text.c_str();
-					// Создаём объект матчинга
-					std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg1.re_nsub + 1]);
-					// Если возникла ошибка
-					if(pcre2_regexec(&this->_reg1, str, this->_reg1.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
-						// Выходим из цикла корректировки
-						break;
-					// Если ошибок не получено
-					else {
-						// Выполняем перебор всех полученных вариантов
-						for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg1.re_nsub + 1); i++){
-							// Если результат получен
-							if(match[i].rm_eo > 0){
-								// Если открытая скобка найдена
-								if(text.at(match[i].rm_so) == '(')
-									// Выполняем замену открытой скобки
-									text.replace(match[i].rm_so, 1, "(?:");
-							}
-						}
-					}
-				}
-			}
+			if(!pure)
+				// Выполняем удаление лишних скобок
+				this->removeBrackets(text);
 			// Выполняем корректировку всего правила Grok
 			for(;;){
 				// Получаем строку текста для поиска
 				const char * str = text.c_str();
 				// Создаём объект матчинга
-				std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg2.re_nsub + 1]);
+				std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg.re_nsub + 1]);
 				// Если возникла ошибка
-				if(pcre2_regexec(&this->_reg2, str, this->_reg2.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
+				if(pcre2_regexec(&this->_reg, str, this->_reg.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
 					// Выходим из цикла корректировки
 					break;
 				// Если ошибок не получено
@@ -700,7 +719,7 @@ uint64_t anyks::Grok::build(string & text, const bool pure) const noexcept {
 					// Количество найденных скобок
 					uint8_t brackets = 0;
 					// Выполняем перебор всех полученных вариантов
-					for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg2.re_nsub + 1); i++){
+					for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg.re_nsub + 1); i++){
 						// Если результат получен
 						if(match[i].rm_eo > 0){
 							// Выполняем сброс количества скобок
@@ -875,54 +894,26 @@ string anyks::Grok::get(const string & key) const noexcept {
  */
 anyks::Grok::Grok(const fmk_t * fmk, const log_t * log) noexcept : _mode(false), _variables(log), _fmk(fmk), _log(log) {
 	/**
-	 * Выполняем сборку регулярного выражения для исправления скобок
-	 */
-	{
-		// Выполняем компиляцию регулярного выражения
-		const int error = pcre2_regcomp(&this->_reg1, "(^|[^\\\\])(\\((?!\\?))", REG_UTF | REG_ICASE);
-		// Если возникла ошибка компиляции
-		if(!(this->_mode = (error == 0))){
-			// Создаём буфер данных для извлечения данных ошибки
-			char buffer[256];
-			// Выполняем заполнение нулями буфер данных
-			::memset(buffer, '\0', sizeof(buffer));
-			// Выполняем извлечение текста ошибки
-			const size_t size = pcre2_regerror(error, &this->_reg1, buffer, sizeof(buffer) - 1);
-			// Если текст ошибки получен
-			if(size > 0){
-				// Формируем полученную ошибку
-				string error(buffer, size);
-				// Добавляем в список полученные ошибки
-				this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
-			}
-			// Выходим из приложения
-			::exit(EXIT_FAILURE);
-		}
-	}
-	/**
 	 * Выполняем сборку регулярного выражения для формирования групп
 	 */
-	{
-		// Выполняем компиляцию регулярного выражения
-		const int error = pcre2_regcomp(&this->_reg2, "(?:\\(\\?\\s*(\\<\\w+\\>))", REG_UTF | REG_ICASE);
-		// Если возникла ошибка компиляции
-		if(!(this->_mode = (error == 0))){
-			// Создаём буфер данных для извлечения данных ошибки
-			char buffer[256];
-			// Выполняем заполнение нулями буфер данных
-			::memset(buffer, '\0', sizeof(buffer));
-			// Выполняем извлечение текста ошибки
-			const size_t size = pcre2_regerror(error, &this->_reg2, buffer, sizeof(buffer) - 1);
-			// Если текст ошибки получен
-			if(size > 0){
-				// Формируем полученную ошибку
-				string error(buffer, size);
-				// Добавляем в список полученные ошибки
-				this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
-			}
-			// Выходим из приложения
-			::exit(EXIT_FAILURE);
+	const int error = pcre2_regcomp(&this->_reg, "(?:\\(\\?\\s*(\\<\\w+\\>))", REG_UTF | REG_ICASE);
+	// Если возникла ошибка компиляции
+	if(!(this->_mode = (error == 0))){
+		// Создаём буфер данных для извлечения данных ошибки
+		char buffer[256];
+		// Выполняем заполнение нулями буфер данных
+		::memset(buffer, '\0', sizeof(buffer));
+		// Выполняем извлечение текста ошибки
+		const size_t size = pcre2_regerror(error, &this->_reg, buffer, sizeof(buffer) - 1);
+		// Если текст ошибки получен
+		if(size > 0){
+			// Формируем полученную ошибку
+			string error(buffer, size);
+			// Добавляем в список полученные ошибки
+			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
 		}
+		// Выходим из приложения
+		::exit(EXIT_FAILURE);
 	}
 	/**
 	 * Выполняем добавление базовых шаблонов
@@ -1250,10 +1241,8 @@ anyks::Grok::~Grok() noexcept {
 			// Выполняем удаление скомпилированного регулярного выражения
 			pcre2_regfree(&i.second->reg);
 	}
-	// Выполняем очистку памяти выделенную под регулярное выражение для исправления скобок
-	pcre2_regfree(&this->_reg1);
 	// Выполняем очистку памяти выделенную под регулярное выражение для формирования групп
-	pcre2_regfree(&this->_reg2);
+	pcre2_regfree(&this->_reg);
 }
 /**
  * Оператор вывода данные контейнера в качестве строки

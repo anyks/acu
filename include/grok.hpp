@@ -159,10 +159,8 @@ namespace anyks {
 			// Флаг инициализации
 			bool _mode;
 		private:
-			// Объект контекста регулярного выражения для исправления скобок
-			regex_t _reg1;
 			// Объект контекста регулярного выражения для формирования групп
-			regex_t _reg2;
+			regex_t _reg;
 		private:
 			// Мютекс для блокировки потока
 			mutable mtx_t _mtx;
@@ -205,6 +203,20 @@ namespace anyks {
 			 * @return     первая блоковая переменная
 			 */
 			let_t variable(const string & text) const noexcept;
+		private:
+			/**
+			 * removeBrackets Метод удаления скобок
+			 * @param text текст в котором следует удалить скобки
+			 */
+			void removeBrackets(string & text) const noexcept;
+		private:
+			/**
+			 * bracket Метод поиска скобки для замены
+			 * @param text текст для поиска
+			 * @param pos  начальная позиция для поиска
+			 * @return     позиция найденной скобки
+			 */
+			ssize_t bracket(const string & text, const size_t pos = 0) const noexcept;
 		private:
 			/**
 			 * prepare Метод обработки полученной переменной Grok
