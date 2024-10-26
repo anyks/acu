@@ -323,8 +323,6 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			else if(fmk.compare("grok", env.get("from"))) {
 				// Определяем тип файла
 				from = type_t::GROK;
-				// Выполняем очистку списка ранее установленных шаблонов
-				parser.clearPatterns();
 				// Если файл шаблона указан
 				if(env.isString("patterns")){
 					// Выполняем чтение объекта шаблонов
