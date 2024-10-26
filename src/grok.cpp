@@ -179,6 +179,23 @@ void anyks::Grok::clearPatterns() noexcept {
 	}
 }
 /**
+ * clearPattern Метод очистки добавленного шаблона
+ * @param name название шаблона для удаления
+ */
+void anyks::Grok::clearPattern(const string & name) noexcept {
+	// Если список ключей существует
+	if(!name.empty() && !this->_patternsExternal.empty()){
+		// Выполняем блокировку потока
+		const lock_guard <std::mutex> lock(this->_mtx.patterns);
+		// Выполняем поиск указанного шаблона
+		auto i = this->_patternsExternal.find(name);
+		// Если шаблон найден
+		if(i != this->_patternsExternal.end())
+			// Выполняем удаление шаблона
+			this->_patternsExternal.erase(i);
+	}
+}
+/**
  * variable Метод извлечения первой блоковой переменной в тексте
  * @param text текст из которого следует извлечь переменные
  * @return     первая блоковая переменная
@@ -418,45 +435,45 @@ void anyks::Grok::patterns(const json & patterns) noexcept {
 }
 /**
  * pattern Метод добавления шаблона
- * @param key название переменной
- * @param val регуляреное выражение соответствующее переменной
+ * @param name    название шаблона
+ * @param express регуляреное выражение соответствующее переменной
  */
-void anyks::Grok::pattern(const string & key, const string & val) noexcept {
+void anyks::Grok::pattern(const string & name, const string & express) noexcept {
 	// Если параметры шаблона переданы
-	if(!key.empty() && !val.empty())
+	if(!name.empty() && !express.empty())
 		// Выполняем добавление нашего шаблона
-		this->pattern(key, val, event_t::EXTERNAL);
+		this->pattern(name, express, event_t::EXTERNAL);
 }
 /**
  * pattern Метод добавления шаблона
- * @param key   название переменной
- * @param val   регуляреное выражение соответствующее переменной
- * @param event тип выполняемого события
+ * @param name    название шаблона
+ * @param express регуляреное выражение соответствующее переменной
+ * @param event   тип выполняемого события
  */
-void anyks::Grok::pattern(const string & key, const string & val, const event_t event) noexcept {
+void anyks::Grok::pattern(const string & name, const string & express, const event_t event) noexcept {
 	// Если параметры шаблона переданы
-	if(!key.empty() && !val.empty()){
+	if(!name.empty() && !express.empty()){
 		// Выполняем блокировку потока
 		const lock_guard <std::mutex> lock(this->_mtx.patterns);
 		// Выполняем копирование текста регулярного выражения
-		string text = val;
+		string pattern = express;
 		// Выполняем удаление лишних скобок
-		this->removeBrackets(text);
+		this->removeBrackets(pattern);
 		// Выполняем обработку полученных шаблонов
-		this->prepare(text, false);
+		this->prepare(pattern, false);
 		// Если текст регулярного выражения получен
-		if(!text.empty()){
+		if(!pattern.empty()){
 			// Определяем тип события
 			switch(static_cast <uint8_t> (event)){
 				// Если событие является внутренним
 				case static_cast <uint8_t> (event_t::INTERNAL):
 					// Выполняем добавление шаблона
-					this->_patternsInternal.emplace(key, text);
+					this->_patternsInternal.emplace(name, pattern);
 				break;
 				// Если событие является внешним
 				case static_cast <uint8_t> (event_t::EXTERNAL):
 					// Выполняем добавление шаблона
-					this->_patternsExternal.emplace(key, text);
+					this->_patternsExternal.emplace(name, pattern);
 				break;
 			}
 		}
@@ -464,19 +481,19 @@ void anyks::Grok::pattern(const string & key, const string & val, const event_t 
 }
 /**
  * generatePattern Метод генерации шаблона
- * @param key название шаблона в виде <name>
- * @param val значение шиблок (Регулярное выражение или Grok-шаблон)
- * @return    сгенерированный шаблон
+ * @param name    название шаблона в виде <name>
+ * @param express значение шиблок (Регулярное выражение или Grok-шаблон)
+ * @return        сгенерированный шаблон
  */
-string anyks::Grok::generatePattern(const string & key, const string & val) noexcept {
+string anyks::Grok::generatePattern(const string & name, const string & express) noexcept {
 	// Результат работы функции
 	string result = "";
 	// Если данные переданы верные
-	if(!key.empty() && !val.empty() && (key.front() == '<') && (key.back() == '>')){
+	if(!name.empty() && !express.empty() && (name.front() == '<') && (name.back() == '>')){
 		// Название переменной
 		string variable = "";
 		// Получаем группу шаблона
-		string group = key;
+		string group = name;
 		// Удаляем экранирование блоков
 		group.erase(0, 1).pop_back();
 		// Переходим по всем символам группы
@@ -488,7 +505,7 @@ string anyks::Grok::generatePattern(const string & key, const string & val) noex
 		// Добавлем текущее значение времени
 		variable.append(std::to_string(this->_fmk->timestamp(fmk_t::stamp_t::NANOSECONDS)));
 		// Выполняем добавление шаблона
-		this->pattern(variable, val);
+		this->pattern(variable, express, event_t::EXTERNAL);
 		// Формируем генерацию grok-шаблона
 		result.append("%{");
 		// Добавляем название сформированной переменной

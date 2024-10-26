@@ -196,6 +196,11 @@ namespace anyks {
 			 * clearPatterns Метод очистки списка добавленных шаблонов
 			 */
 			void clearPatterns() noexcept;
+			/**
+			 * clearPattern Метод очистки добавленного шаблона
+			 * @param name название шаблона для удаления
+			 */
+			void clearPattern(const string & name) noexcept;
 		private:
 			/**
 			 * variable Метод извлечения первой блоковой переменной в тексте
@@ -233,26 +238,26 @@ namespace anyks {
 			void patterns(const json & patterns) noexcept;
 			/**
 			 * pattern Метод добавления шаблона
-			 * @param key название переменной
-			 * @param val регуляреное выражение соответствующее переменной
+			 * @param name    название шаблона
+			 * @param express регуляреное выражение соответствующее переменной
 			 */
-			void pattern(const string & key, const string & val) noexcept;
+			void pattern(const string & name, const string & express) noexcept;
 		private:
 			/**
 			 * pattern Метод добавления шаблона
-			 * @param key   название переменной
-			 * @param val   регуляреное выражение соответствующее переменной
-			 * @param event тип выполняемого события
+			 * @param name    название шаблона
+			 * @param express регуляреное выражение соответствующее переменной
+			 * @param event   тип выполняемого события
 			 */
-			void pattern(const string & key, const string & val, const event_t event) noexcept;
+			void pattern(const string & name, const string & express, const event_t event) noexcept;
 		private:
 			/**
 			 * generatePattern Метод генерации шаблона
-			 * @param key название шаблона в виде <name>
-			 * @param val значение шиблок (Регулярное выражение или Grok-шаблон)
-			 * @return    сгенерированный шаблон
+			 * @param name    название шаблона в виде <name>
+			 * @param express значение шиблок (Регулярное выражение или Grok-шаблон)
+			 * @return        сгенерированный шаблон
 			 */
-			string generatePattern(const string & key, const string & val) noexcept;
+			string generatePattern(const string & name, const string & express) noexcept;
 		public:
 			/**
 			 * parse Метод выполнения парсинга текста
