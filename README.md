@@ -114,13 +114,6 @@ $ cmake \
 $ cmake --build .
 ```
 
-### Example convert JSON to XML
-```bash
-$ echo '{"Hello": "World!!!"}' | acu -from json -to xml -prettify
-```
-
----
-
 ### Example convert text to Base64
 ```bash
 $ echo 'Hello World!!!' | acu -from text -to base64
@@ -148,6 +141,14 @@ $ echo 'Hello World!!!' | acu -from text -to SHA256 -hmac 236bf30c70dc03f69175f0
 ```
 
 ---
+
+### Example convert JSON to XML
+```bash
+$ echo '{"Hello": "World!!!"}' | acu -from json -to xml -prettify
+```
+
+---
+
 ### Example convert JSON to XML from file
 ```bash
 $ acu -from json -to xml -src ./example.json -prettify
