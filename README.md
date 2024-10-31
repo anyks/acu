@@ -121,6 +121,33 @@ $ echo '{"Hello": "World!!!"}' | acu -from json -to xml -prettify
 
 ---
 
+### Example convert text to Base64
+```bash
+$ echo 'Hello World!!!' | acu -from text -to base64
+```
+
+---
+
+### Example convert Base64 to text
+```bash
+$ echo 'SGVsbG8gV29ybGQhISE=' | acu -from base64 -to text
+```
+
+---
+
+### Example convert text to MD5
+```bash
+$ echo 'Hello World!!!' | acu -from text -to MD5
+```
+
+---
+
+### Example convert text to HMAC SHA256
+```bash
+$ echo 'Hello World!!!' | acu -from text -to SHA256 -hmac 236bf30c70dc03f69175f030afbe38f3
+```
+
+---
 ### Example convert JSON to XML from file
 ```bash
 $ acu -from json -to xml -src ./example.json -prettify
@@ -256,7 +283,7 @@ $ acu -V
 
 ## Result:
 # 
-# ANYKS - conversion utility 1.0.0 (built: Oct 10 2024 01:20:36)
+# ANYKS - conversion utility 1.0.4 (built: Oct 31 2024 21:22:56)
 # awh: 4.2.6
 # target: MacOS X
 # installed dir: /opt/acu/bin
@@ -292,17 +319,19 @@ $ acu -H
 # + CEF file parsing mode: [-cef <value> | --cef=<value>]
 #   - (LOW | MEDIUM | STRONG)
 # 
-# + File format to which the writing is made: [-to <value> | --to=<value>]
-#   - (XML | JSON | INI | YAML | CSV | CEF | SYSLOG)
-# 
 # + Format of the file from which reading is performed: [-from <value> | --from=<value>]
-#   - (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK)
+#   - (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK | TEXT | BASE64)
+# 
+# + File format to which the writing is made: [-to <value> | --to=<value>]
+#   - (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | TEXT | BASE64 | MD5 | SHA1 | SHA224 | SHA256 | SHA384 | SHA512)
 # 
 # + Format date (if required): [-formatDate "<value>" | --formatDate="<value>"]
 #   - ( %m/%d/%Y %H:%M:%S | %H:%M:%S %d.%m.%Y | ... )
 # 
 # + Logging level (if required): [-logLevel <value> | --logLevel=<value>]
 #   - ( 0 = NONE | 1 = INFO | 2 = WARNING | 3 = CRITICAL | 4 = INFO and WARNING | 5 = INFO and CRITICAL | 6 = WARNING CRITICAL | 7 = ALL)
+# 
+# + Hash-based message authentication code: [-hmac <value> | --hmac=<value>]
 # 
 # + File address for writing logs (if required): [-log <value> | --log=<value>]
 # 

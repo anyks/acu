@@ -15,7 +15,7 @@
 #define __ACU_CONFIG__
 
 // Версия приложения
-#define ACU_VERSION "1.0.3"
+#define ACU_VERSION "1.0.4"
 // Короткое название библиотеки
 #define ACU_SHORT_NAME "ACU"
 // Название библиотеки

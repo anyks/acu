@@ -53,17 +53,30 @@ namespace anyks {
 	 */
 	typedef class ACUSHARED_EXPORT Server {
 		private:
-			// Тип обрабатываемого файла
+			// Тип рабочего формата данных
 			enum class type_t : uint8_t {
-				NONE   = 0x00, // Тип файла не обнаружен
-				XML    = 0x01, // Тип файла XML
-				INI    = 0x02, // Тип файла INI
-				CEF    = 0x03, // Тип файла CEF
-				CSV    = 0x04, // Тип файла CSV
-				JSON   = 0x05, // Тип файла JSON
-				YAML   = 0x06, // Тип файла YAML
-				GROK   = 0x07, // Тип файла GROK
-				SYSLOG = 0x08  // Тип файла SYSLOG
+				TEXT        = 0x00, // Тип формата - текстовый
+				XML         = 0x01, // Тип формата - XML
+				INI         = 0x02, // Тип формата - INI
+				CEF         = 0x03, // Тип формата - CEF
+				CSV         = 0x04, // Тип формата - CSV
+				JSON        = 0x05, // Тип формата - JSON
+				YAML        = 0x06, // Тип формата - YAML
+				GROK        = 0x07, // Тип формата - GROK
+				SYSLOG      = 0x08, // Тип формата - SYSLOG
+				BASE64      = 0x09, // Тип формата - Base64
+				MD5         = 0x0A, // Тип формата - MD5
+				SHA1        = 0x0B, // Тип формата - SHA1
+				SHA224      = 0x0C, // Тип формата - SHA224
+				SHA256      = 0x0D, // Тип формата - SHA256
+				SHA384      = 0x0E, // Тип формата - SHA384
+				SHA512      = 0x0F, // Тип формата - SHA512
+				HMAC_MD5    = 0x10, // Тип формата - HMAC MD5
+				HMAC_SHA1   = 0x11, // Тип формата - HMAC SHA1
+				HMAC_SHA224 = 0x12, // Тип формата - HMAC SHA224
+				HMAC_SHA256 = 0x13, // Тип формата - HMAC SHA256
+				HMAC_SHA384 = 0x14, // Тип формата - HMAC SHA384
+				HMAC_SHA512 = 0x15  // Тип формата - HMAC SHA512
 			};
 		private:
 			/**
@@ -82,6 +95,8 @@ namespace anyks {
 			fs_t _fs;
 			// Объект работы с URI параметрами
 			uri_t _uri;
+			// Объект работы с хэшированием Base64
+			base64_t _base64;
 		private:
 			// Адрес корневого каталога с сайтом
 			string _root;

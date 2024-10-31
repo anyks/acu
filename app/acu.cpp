@@ -23,6 +23,7 @@
  * Подключаем модуль файловой системы
  */
 #include <sys/fs.hpp>
+#include <hash/base64.hpp>
 
 // Подключаем пространство имён
 using namespace anyks;
@@ -44,14 +45,15 @@ static void help(const string & name) noexcept {
 		"\x1B[34m\x1B[1m[ARGS]\x1B[0m\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m CEF file parsing mode: \x1B[1m[-cef <value> | --cef=<value>]\x1B[0m\r\n"
 		"\x1B[32m\x1B[1m  -\x1B[0m (LOW | MEDIUM | STRONG)\r\n\r\n"
-		"\x1B[33m\x1B[1m+\x1B[0m File format to which the writing is made: \x1B[1m[-to <value> | --to=<value>]\x1B[0m\r\n"
-		"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG)\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Format of the file from which reading is performed: \x1B[1m[-from <value> | --from=<value>]\x1B[0m\r\n"
-		"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK)\r\n\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | GROK | TEXT | BASE64)\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m File format to which the writing is made: \x1B[1m[-to <value> | --to=<value>]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m (XML | JSON | INI | YAML | CSV | CEF | SYSLOG | TEXT | BASE64 | MD5 | SHA1 | SHA224 | SHA256 | SHA384 | SHA512)\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Format date (if required): \x1B[1m[-formatDate \"<value>\" | --formatDate=\"<value>\"]\x1B[0m\r\n"
 		"\x1B[32m\x1B[1m  -\x1B[0m ( %%m/%%d/%%Y %%H:%%M:%%S | %%H:%%M:%%S %%d.%%m.%%Y | ... )\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Logging level (if required): \x1B[1m[-logLevel <value> | --logLevel=<value>]\x1B[0m\r\n"
 		"\x1B[32m\x1B[1m  -\x1B[0m ( 0 = NONE | 1 = INFO | 2 = WARNING | 3 = CRITICAL | 4 = INFO and WARNING | 5 = INFO and CRITICAL | 6 = WARNING CRITICAL | 7 = ALL)\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Hash-based message authentication code: \x1B[1m[-hmac <value> | --hmac=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m File address for writing logs (if required): \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m File or directory address for saving converted files: \x1B[1m[-dest <value> | --dest=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Separator for parsing CSV files (default: \";\"): \x1B[1m[-delim <value> | --delim=<value>]\x1B[0m\r\n\r\n"
@@ -185,9 +187,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Выполняем чтение данных из потока
 			while(std::getline(std::cin, result) && !result.empty()){
 				// Если результат сформирован
-				if(!result.empty())
+				if(!text.empty())
 					// Добавляем разделитель строки
-					result.append(1, '\n');
+					text.append(1, '\n');
 				// Формируем текст полученного результата
 				text.append(result);
 			}
@@ -281,47 +283,64 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			string express = "";
 			// Выполняем инициализацию объекта парсера
 			parser_t parser(&fmk, &log);
-			// Тип обрабатываемого файла
+			// Тип рабочего формата данных
 			enum class type_t : uint8_t {
-				NONE   = 0x00, // Тип файла не обнаружен
-				XML    = 0x01, // Тип файла XML
-				INI    = 0x02, // Тип файла INI
-				CEF    = 0x03, // Тип файла CEF
-				CSV    = 0x04, // Тип файла CSV
-				JSON   = 0x05, // Тип файла JSON
-				YAML   = 0x06, // Тип файла YAML
-				GROK   = 0x07, // Тип файла GROK
-				SYSLOG = 0x08  // Тип файла SYSLOG
+				TEXT        = 0x00, // Тип формата - текстовый
+				XML         = 0x01, // Тип формата - XML
+				INI         = 0x02, // Тип формата - INI
+				CEF         = 0x03, // Тип формата - CEF
+				CSV         = 0x04, // Тип формата - CSV
+				JSON        = 0x05, // Тип формата - JSON
+				YAML        = 0x06, // Тип формата - YAML
+				GROK        = 0x07, // Тип формата - GROK
+				SYSLOG      = 0x08, // Тип формата - SYSLOG
+				BASE64      = 0x09, // Тип формата - Base64
+				MD5         = 0x0A, // Тип формата - MD5
+				SHA1        = 0x0B, // Тип формата - SHA1
+				SHA224      = 0x0C, // Тип формата - SHA224
+				SHA256      = 0x0D, // Тип формата - SHA256
+				SHA384      = 0x0E, // Тип формата - SHA384
+				SHA512      = 0x0F, // Тип формата - SHA512
+				HMAC_MD5    = 0x10, // Тип формата - HMAC MD5
+				HMAC_SHA1   = 0x11, // Тип формата - HMAC SHA1
+				HMAC_SHA224 = 0x12, // Тип формата - HMAC SHA224
+				HMAC_SHA256 = 0x13, // Тип формата - HMAC SHA256
+				HMAC_SHA384 = 0x14, // Тип формата - HMAC SHA384
+				HMAC_SHA512 = 0x15  // Тип формата - HMAC SHA512
 			};
-			// Тип обрабатываемого файла
-			type_t from = type_t::NONE, to = type_t::NONE;
+			// Тип конвертируемого формата данных и тип формата для конвертации
+			type_t from = type_t::TEXT, to = type_t::TEXT;
+			// Если формат входящих данных указан как Text
+			if(fmk.compare("text", env.get("from")))
+				// Определяем формат данных
+				from = type_t::TEXT;
 			// Если формат входящих данных указан как XML
-			if(fmk.compare("xml", env.get("from")))
-				// Определяем тип файла
+			else if(fmk.compare("xml", env.get("from")))
+				// Определяем формат данных
 				from = type_t::XML;
 			// Если формат входящих данных указан как JSON
 			else if(fmk.compare("json", env.get("from")))
-				// Определяем тип файла
+				// Определяем формат данных
 				from = type_t::JSON;
 			// Если формат входящих данных указан как INI
 			else if(fmk.compare("ini", env.get("from")))
-				// Определяем тип файла
+				// Определяем формат данных
 				from = type_t::INI;
 			// Если формат входящих данных указан как YAML
 			else if(fmk.compare("yaml", env.get("from")))
-				// Определяем тип файла
+				// Определяем формат данных
 				from = type_t::YAML;
 			// Если формат входящих данных указан как CEF
 			else if(fmk.compare("cef", env.get("from")))
-				// Определяем тип файла
+				// Определяем формат данных
 				from = type_t::CEF;
 			// Если формат входящих данных указан как CSV
 			else if(fmk.compare("csv", env.get("from")))
-				// Определяем тип файла
+				// Определяем формат данных
 				from = type_t::CSV;
 			// Если формат входящих данных указан как GROK
 			else if(fmk.compare("grok", env.get("from"))) {
-				// Определяем тип файла
+				// Определяем формат данных
 				from = type_t::GROK;
 				// Если файл шаблона указан
 				if(env.isString("patterns")){
@@ -353,8 +372,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				}
 			// Если формат входящих данных указан как SysLog
 			} else if(fmk.compare("syslog", env.get("from")))
-				// Определяем тип файла
+				// Определяем формат данных
 				from = type_t::SYSLOG;
+			// Если формат входящих данных указан как Base64
+			else if(fmk.compare("base64", env.get("from")))
+				// Определяем формат данных
+				from = type_t::BASE64;
 			// Если формат не определён
 			else {
 				// Выводим сообщение об ошибке
@@ -362,34 +385,66 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				// Выводим удачное завершение работы
 				return EXIT_FAILURE;
 			}
+			// Если формат исходящих данных указан как Text
+			if(fmk.compare("text", env.get("to")))
+				// Определяем формат данных
+				to = type_t::TEXT;
 			// Если формат исходящих данных указан как XML
-			if(fmk.compare("xml", env.get("to")))
-				// Определяем тип файла
+			else if(fmk.compare("xml", env.get("to")))
+				// Определяем формат данных
 				to = type_t::XML;
 			// Если формат исходящих данных указан как JSON
 			else if(fmk.compare("json", env.get("to")))
-				// Определяем тип файла
+				// Определяем формат данных
 				to = type_t::JSON;
 			// Если формат исходящих данных указан как INI
 			else if(fmk.compare("ini", env.get("to")))
-				// Определяем тип файла
+				// Определяем формат данных
 				to = type_t::INI;
 			// Если формат исходящих данных указан как YAML
 			else if(fmk.compare("yaml", env.get("to")))
-				// Определяем тип файла
+				// Определяем формат данных
 				to = type_t::YAML;
 			// Если формат исходящих данных указан как CEF
 			else if(fmk.compare("cef", env.get("to")))
-				// Определяем тип файла
+				// Определяем формат данных
 				to = type_t::CEF;
 			// Если формат исходящих данных указан как CSV
 			else if(fmk.compare("csv", env.get("to")))
-				// Определяем тип файла
+				// Определяем формат данных
 				to = type_t::CSV;
 			// Если формат исходящих данных указан как SysLog
 			else if(fmk.compare("syslog", env.get("to")))
-				// Определяем тип файла
+				// Определяем формат данных
 				to = type_t::SYSLOG;
+			// Если формат исходящих данных указан как Base64
+			else if(fmk.compare("base64", env.get("to")))
+				// Определяем формат данных
+				to = type_t::BASE64;
+			// Если формат исходящих данных указан как MD5
+			else if(fmk.compare("md5", env.get("to")))
+				// Определяем формат данных
+				to = type_t::MD5;
+			// Если формат исходящих данных указан как SHA1
+			else if(fmk.compare("sha1", env.get("to")))
+				// Определяем формат данных
+				to = type_t::SHA1;
+			// Если формат исходящих данных указан как SHA224
+			else if(fmk.compare("sha224", env.get("to")))
+				// Определяем формат данных
+				to = type_t::SHA224;
+			// Если формат исходящих данных указан как SHA256
+			else if(fmk.compare("sha256", env.get("to")))
+				// Определяем формат данных
+				to = type_t::SHA256;
+			// Если формат исходящих данных указан как SHA384
+			else if(fmk.compare("sha384", env.get("to")))
+				// Определяем формат данных
+				to = type_t::SHA384;
+			// Если формат исходящих данных указан как SHA512
+			else if(fmk.compare("sha512", env.get("to")))
+				// Определяем формат данных
+				to = type_t::SHA512;
 			// Если формат не определён
 			else {
 				// Выводим сообщение об ошибке
@@ -397,12 +452,57 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				// Выводим удачное завершение работы
 				return EXIT_FAILURE;
 			}
+			// Получаем ключ HMAC
+			string hmac = "";
+			// Если ключ проверки подлинности передан
+			if(env.isString("hmac")){
+				// Получаем ключ подтверждения подлинности
+				hmac = env.get("hmac");
+				// Проверяем формат данных для конвертации
+				switch(static_cast <uint8_t> (to)){
+					// Если формат исходящих данных указан как MD5
+					case static_cast <uint8_t> (type_t::MD5):
+						// Определяем формат данных
+						to = type_t::HMAC_MD5;
+					break;
+					// Если формат исходящих данных указан как SHA1
+					case static_cast <uint8_t> (type_t::SHA1):
+						// Определяем формат данных
+						to = type_t::HMAC_SHA1;
+					break;
+					// Если формат исходящих данных указан как SHA224
+					case static_cast <uint8_t> (type_t::SHA224):
+						// Определяем формат данных
+						to = type_t::HMAC_SHA224;
+					break;
+					// Если формат исходящих данных указан как SHA256
+					case static_cast <uint8_t> (type_t::SHA256):
+						// Определяем формат данных
+						to = type_t::HMAC_SHA256;
+					break;
+					// Если формат исходящих данных указан как SHA384
+					case static_cast <uint8_t> (type_t::SHA384):
+						// Определяем формат данных
+						to = type_t::HMAC_SHA384;
+					break;
+					// Если формат исходящих данных указан как SHA512
+					case static_cast <uint8_t> (type_t::SHA512):
+						// Определяем формат данных
+						to = type_t::HMAC_SHA512;
+					break;
+				}
+			}
 			// Если данные прочитаны из потока
 			if(!text.empty()){
 				// Объект в формате JSON
 				json result = json::object();
-				// Определяем тип файла
+				// Определяем формат данных
 				switch(static_cast <uint8_t> (from)){
+					// Если формат входящих данных указан как Text
+					case static_cast <uint8_t> (type_t::TEXT):
+						// Выполняем передачу данных как она есть
+						result = text;
+					break;
 					// Если формат входящих данных указан как XML
 					case static_cast <uint8_t> (type_t::XML):
 						// Выполняем конвертацию данных
@@ -462,6 +562,11 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						// Выполняем конвертацию данных
 						result = parser.syslog(text);
 					break;
+					// Если формат входящих данных указан как Base64
+					case static_cast <uint8_t> (type_t::BASE64):
+						// Выполняем конвертацию данных
+						result = base64_t().decode(text);
+					break;
 				}
 				// Если результат получен
 				if(!result.empty()){
@@ -484,8 +589,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							}
 							// Буфер данных для записи
 							string buffer = "";
-							// Определяем тип файла
+							// Определяем формат данных
 							switch(static_cast <uint8_t> (to)){
+								// Если формат входящих данных указан как Text
+								case static_cast <uint8_t> (type_t::TEXT):
+									// Выполняем вывод текст как он есть
+									buffer = result;
+								break;
 								// Если формат входящих данных указан как XML
 								case static_cast <uint8_t> (type_t::XML):
 									// Выполняем конвертирование в формат XML
@@ -540,6 +650,71 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Выполняем конвертирование в формат SysLog
 									buffer = parser.syslog(result);
 								break;
+								// Если формат входящих данных указан как Base64
+								case static_cast <uint8_t> (type_t::BASE64):
+									// Выполняем конвертирование в формат Base64
+									buffer = base64_t().encode(result);
+								break;
+								// Если формат входящих данных указан как MD5
+								case static_cast <uint8_t> (type_t::MD5):
+									// Выполняем конвертирование в формат MD5
+									buffer = fmk.hash(result, fmk_t::hash_t::MD5);
+								break;
+								// Если формат входящих данных указан как SHA1
+								case static_cast <uint8_t> (type_t::SHA1):
+									// Выполняем конвертирование в формат SHA1
+									buffer = fmk.hash(result, fmk_t::hash_t::SHA1);
+								break;
+								// Если формат входящих данных указан как SHA224
+								case static_cast <uint8_t> (type_t::SHA224):
+									// Выполняем конвертирование в формат SHA224
+									buffer = fmk.hash(result, fmk_t::hash_t::SHA224);
+								break;
+								// Если формат входящих данных указан как SHA256
+								case static_cast <uint8_t> (type_t::SHA256):
+									// Выполняем конвертирование в формат SHA256
+									buffer = fmk.hash(result, fmk_t::hash_t::SHA256);
+								break;
+								// Если формат входящих данных указан как SHA384
+								case static_cast <uint8_t> (type_t::SHA384):
+									// Выполняем конвертирование в формат SHA384
+									buffer = fmk.hash(result, fmk_t::hash_t::SHA384);
+								break;
+								// Если формат входящих данных указан как SHA512
+								case static_cast <uint8_t> (type_t::SHA512):
+									// Выполняем конвертирование в формат SHA512
+									buffer = fmk.hash(result, fmk_t::hash_t::SHA512);
+								break;
+								// Если формат входящих данных указан как HMAC MD5
+								case static_cast <uint8_t> (type_t::HMAC_MD5):
+									// Выполняем конвертирование в формат HMAC MD5
+									buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_MD5);
+								break;
+								// Если формат входящих данных указан как HMAC SHA1
+								case static_cast <uint8_t> (type_t::HMAC_SHA1):
+									// Выполняем конвертирование в формат HMAC SHA1
+									buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA1);
+								break;
+								// Если формат входящих данных указан как HMAC SHA224
+								case static_cast <uint8_t> (type_t::HMAC_SHA224):
+									// Выполняем конвертирование в формат HMAC SHA224
+									buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA224);
+								break;
+								// Если формат входящих данных указан как HMAC SHA256
+								case static_cast <uint8_t> (type_t::HMAC_SHA256):
+									// Выполняем конвертирование в формат HMAC SHA256
+									buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA256);
+								break;
+								// Если формат входящих данных указан как HMAC SHA384
+								case static_cast <uint8_t> (type_t::HMAC_SHA384):
+									// Выполняем конвертирование в формат HMAC SHA384
+									buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA384);
+								break;
+								// Если формат входящих данных указан как HMAC SHA512
+								case static_cast <uint8_t> (type_t::HMAC_SHA512):
+									// Выполняем конвертирование в формат HMAC SHA512
+									buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA512);
+								break;
 							}
 							// Если данные для записи получены
 							if(!buffer.empty())
@@ -556,8 +731,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						return EXIT_FAILURE;
 					// Если адрес для сохранения файла не указан
 					} else {
-						// Определяем тип файла
+						// Определяем формат данных
 						switch(static_cast <uint8_t> (to)){
+							// Если формат входящих данных указан как Text
+							case static_cast <uint8_t> (type_t::TEXT):
+								// Выполняем вывод текст как он есть
+								cout << result << endl;
+							break;
 							// Если формат входящих данных указан как XML
 							case static_cast <uint8_t> (type_t::XML):
 								// Выполняем конвертирование в формат XML
@@ -612,6 +792,71 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Выполняем конвертирование в формат SysLog
 								cout << parser.syslog(result) << endl;
 							break;
+							// Если формат входящих данных указан как Base64
+							case static_cast <uint8_t> (type_t::BASE64):
+								// Выполняем конвертирование в формат Base64
+								cout << base64_t().encode(result) << endl;
+							break;
+							// Если формат входящих данных указан как MD5
+							case static_cast <uint8_t> (type_t::MD5):
+								// Выполняем конвертирование в формат MD5
+								cout << fmk.hash(result, fmk_t::hash_t::MD5) << endl;
+							break;
+							// Если формат входящих данных указан как SHA1
+							case static_cast <uint8_t> (type_t::SHA1):
+								// Выполняем конвертирование в формат SHA1
+								cout << fmk.hash(result, fmk_t::hash_t::SHA1) << endl;
+							break;
+							// Если формат входящих данных указан как SHA224
+							case static_cast <uint8_t> (type_t::SHA224):
+								// Выполняем конвертирование в формат SHA224
+								cout << fmk.hash(result, fmk_t::hash_t::SHA224) << endl;
+							break;
+							// Если формат входящих данных указан как SHA256
+							case static_cast <uint8_t> (type_t::SHA256):
+								// Выполняем конвертирование в формат SHA256
+								cout << fmk.hash(result, fmk_t::hash_t::SHA256) << endl;
+							break;
+							// Если формат входящих данных указан как SHA384
+							case static_cast <uint8_t> (type_t::SHA384):
+								// Выполняем конвертирование в формат SHA384
+								cout << fmk.hash(result, fmk_t::hash_t::SHA384) << endl;
+							break;
+							// Если формат входящих данных указан как SHA512
+							case static_cast <uint8_t> (type_t::SHA512):
+								// Выполняем конвертирование в формат SHA512
+								cout << fmk.hash(result, fmk_t::hash_t::SHA512) << endl;
+							break;
+							// Если формат входящих данных указан как HMAC MD5
+							case static_cast <uint8_t> (type_t::HMAC_MD5):
+								// Выполняем конвертирование в формат HMAC MD5
+								cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_MD5) << endl;
+							break;
+							// Если формат входящих данных указан как HMAC SHA1
+							case static_cast <uint8_t> (type_t::HMAC_SHA1):
+								// Выполняем конвертирование в формат HMAC SHA1
+								cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA1) << endl;
+							break;
+							// Если формат входящих данных указан как HMAC SHA224
+							case static_cast <uint8_t> (type_t::HMAC_SHA224):
+								// Выполняем конвертирование в формат HMAC SHA224
+								cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA224) << endl;
+							break;
+							// Если формат входящих данных указан как HMAC SHA256
+							case static_cast <uint8_t> (type_t::HMAC_SHA256):
+								// Выполняем конвертирование в формат HMAC SHA256
+								cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA256) << endl;
+							break;
+							// Если формат входящих данных указан как HMAC SHA384
+							case static_cast <uint8_t> (type_t::HMAC_SHA384):
+								// Выполняем конвертирование в формат HMAC SHA384
+								cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA384) << endl;
+							break;
+							// Если формат входящих данных указан как HMAC SHA512
+							case static_cast <uint8_t> (type_t::HMAC_SHA512):
+								// Выполняем конвертирование в формат HMAC SHA512
+								cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA512) << endl;
+							break;
 						}
 					}
 				}
@@ -637,8 +882,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							json result = json::object();
 							// Формируем полученный текст
 							const string text(buffer.begin(), buffer.end());
-							// Определяем тип файла
+							// Определяем формат данных
 							switch(static_cast <uint8_t> (from)){
+								// Если формат входящих данных указан как Text
+								case static_cast <uint8_t> (type_t::TEXT):
+									// Выполняем передачу данных как она есть
+									result = text;
+								break;
 								// Если формат входящих данных указан как XML
 								case static_cast <uint8_t> (type_t::XML):
 									// Выполняем конвертацию данных
@@ -698,6 +948,11 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Выполняем конвертацию данных
 									result = parser.syslog(text);
 								break;
+								// Если формат входящих данных указан как Base64
+								case static_cast <uint8_t> (type_t::BASE64):
+									// Выполняем конвертацию данных
+									result = base64_t().decode(text);
+								break;
 							}
 							// Если результат получен
 							if(!result.empty()){
@@ -727,8 +982,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										}
 										// Буфер данных для записи
 										string buffer = "";
-										// Определяем тип файла
+										// Определяем формат данных
 										switch(static_cast <uint8_t> (to)){
+											// Если формат входящих данных указан как Text
+											case static_cast <uint8_t> (type_t::TEXT):
+												// Выполняем вывод текст как он есть
+												buffer = result;
+											break;
 											// Если формат входящих данных указан как XML
 											case static_cast <uint8_t> (type_t::XML):
 												// Выполняем конвертирование в формат XML
@@ -783,6 +1043,71 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 												// Выполняем конвертирование в формат SysLog
 												buffer = parser.syslog(result);
 											break;
+											// Если формат входящих данных указан как Base64
+											case static_cast <uint8_t> (type_t::BASE64):
+												// Выполняем конвертирование в формат Base64
+												buffer = base64_t().encode(result);
+											break;
+											// Если формат входящих данных указан как MD5
+											case static_cast <uint8_t> (type_t::MD5):
+												// Выполняем конвертирование в формат MD5
+												buffer = fmk.hash(result, fmk_t::hash_t::MD5);
+											break;
+											// Если формат входящих данных указан как SHA1
+											case static_cast <uint8_t> (type_t::SHA1):
+												// Выполняем конвертирование в формат SHA1
+												buffer = fmk.hash(result, fmk_t::hash_t::SHA1);
+											break;
+											// Если формат входящих данных указан как SHA224
+											case static_cast <uint8_t> (type_t::SHA224):
+												// Выполняем конвертирование в формат SHA224
+												buffer = fmk.hash(result, fmk_t::hash_t::SHA224);
+											break;
+											// Если формат входящих данных указан как SHA256
+											case static_cast <uint8_t> (type_t::SHA256):
+												// Выполняем конвертирование в формат SHA256
+												buffer = fmk.hash(result, fmk_t::hash_t::SHA256);
+											break;
+											// Если формат входящих данных указан как SHA384
+											case static_cast <uint8_t> (type_t::SHA384):
+												// Выполняем конвертирование в формат SHA384
+												buffer = fmk.hash(result, fmk_t::hash_t::SHA384);
+											break;
+											// Если формат входящих данных указан как SHA512
+											case static_cast <uint8_t> (type_t::SHA512):
+												// Выполняем конвертирование в формат SHA512
+												buffer = fmk.hash(result, fmk_t::hash_t::SHA512);
+											break;
+											// Если формат входящих данных указан как HMAC MD5
+											case static_cast <uint8_t> (type_t::HMAC_MD5):
+												// Выполняем конвертирование в формат HMAC MD5
+												buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_MD5);
+											break;
+											// Если формат входящих данных указан как HMAC SHA1
+											case static_cast <uint8_t> (type_t::HMAC_SHA1):
+												// Выполняем конвертирование в формат HMAC SHA1
+												buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA1);
+											break;
+											// Если формат входящих данных указан как HMAC SHA224
+											case static_cast <uint8_t> (type_t::HMAC_SHA224):
+												// Выполняем конвертирование в формат HMAC SHA224
+												buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA224);
+											break;
+											// Если формат входящих данных указан как HMAC SHA256
+											case static_cast <uint8_t> (type_t::HMAC_SHA256):
+												// Выполняем конвертирование в формат HMAC SHA256
+												buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA256);
+											break;
+											// Если формат входящих данных указан как HMAC SHA384
+											case static_cast <uint8_t> (type_t::HMAC_SHA384):
+												// Выполняем конвертирование в формат HMAC SHA384
+												buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA384);
+											break;
+											// Если формат входящих данных указан как HMAC SHA512
+											case static_cast <uint8_t> (type_t::HMAC_SHA512):
+												// Выполняем конвертирование в формат HMAC SHA512
+												buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA512);
+											break;
 										}
 										// Если данные для записи получены
 										if(!buffer.empty()){
@@ -803,8 +1128,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									return;
 								// Если адрес для сохранения файла не указан
 								} else {
-									// Определяем тип файла
+									// Определяем формат данных
 									switch(static_cast <uint8_t> (to)){
+										// Если формат входящих данных указан как Text
+										case static_cast <uint8_t> (type_t::TEXT):
+											// Выполняем вывод текст как он есть
+											cout << result << endl;
+										break;
 										// Если формат входящих данных указан как XML
 										case static_cast <uint8_t> (type_t::XML):
 											// Выполняем конвертирование в формат XML
@@ -859,6 +1189,71 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Выполняем конвертирование в формат SysLog
 											cout << parser.syslog(result) << endl;
 										break;
+										// Если формат входящих данных указан как Base64
+										case static_cast <uint8_t> (type_t::BASE64):
+											// Выполняем конвертирование в формат Base64
+											cout << base64_t().encode(result) << endl;
+										break;
+										// Если формат входящих данных указан как MD5
+										case static_cast <uint8_t> (type_t::MD5):
+											// Выполняем конвертирование в формат MD5
+											cout << fmk.hash(result, fmk_t::hash_t::MD5) << endl;
+										break;
+										// Если формат входящих данных указан как SHA1
+										case static_cast <uint8_t> (type_t::SHA1):
+											// Выполняем конвертирование в формат SHA1
+											cout << fmk.hash(result, fmk_t::hash_t::SHA1) << endl;
+										break;
+										// Если формат входящих данных указан как SHA224
+										case static_cast <uint8_t> (type_t::SHA224):
+											// Выполняем конвертирование в формат SHA224
+											cout << fmk.hash(result, fmk_t::hash_t::SHA224) << endl;
+										break;
+										// Если формат входящих данных указан как SHA256
+										case static_cast <uint8_t> (type_t::SHA256):
+											// Выполняем конвертирование в формат SHA256
+											cout << fmk.hash(result, fmk_t::hash_t::SHA256) << endl;
+										break;
+										// Если формат входящих данных указан как SHA384
+										case static_cast <uint8_t> (type_t::SHA384):
+											// Выполняем конвертирование в формат SHA384
+											cout << fmk.hash(result, fmk_t::hash_t::SHA384) << endl;
+										break;
+										// Если формат входящих данных указан как SHA512
+										case static_cast <uint8_t> (type_t::SHA512):
+											// Выполняем конвертирование в формат SHA512
+											cout << fmk.hash(result, fmk_t::hash_t::SHA512) << endl;
+										break;
+										// Если формат входящих данных указан как HMAC MD5
+										case static_cast <uint8_t> (type_t::HMAC_MD5):
+											// Выполняем конвертирование в формат HMAC MD5
+											cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_MD5) << endl;
+										break;
+										// Если формат входящих данных указан как HMAC SHA1
+										case static_cast <uint8_t> (type_t::HMAC_SHA1):
+											// Выполняем конвертирование в формат HMAC SHA1
+											cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA1) << endl;
+										break;
+										// Если формат входящих данных указан как HMAC SHA224
+										case static_cast <uint8_t> (type_t::HMAC_SHA224):
+											// Выполняем конвертирование в формат HMAC SHA224
+											cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA224) << endl;
+										break;
+										// Если формат входящих данных указан как HMAC SHA256
+										case static_cast <uint8_t> (type_t::HMAC_SHA256):
+											// Выполняем конвертирование в формат HMAC SHA256
+											cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA256) << endl;
+										break;
+										// Если формат входящих данных указан как HMAC SHA384
+										case static_cast <uint8_t> (type_t::HMAC_SHA384):
+											// Выполняем конвертирование в формат HMAC SHA384
+											cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA384) << endl;
+										break;
+										// Если формат входящих данных указан как HMAC SHA512
+										case static_cast <uint8_t> (type_t::HMAC_SHA512):
+											// Выполняем конвертирование в формат HMAC SHA512
+											cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA512) << endl;
+										break;
 									}
 								}
 							}
@@ -876,8 +1271,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						json result = json::object();
 						// Формируем полученный текст
 						const string text(buffer.begin(), buffer.end());
-						// Определяем тип файла
+						// Определяем формат данных
 						switch(static_cast <uint8_t> (from)){
+							// Если формат входящих данных указан как Text
+							case static_cast <uint8_t> (type_t::TEXT):
+								// Выполняем передачу данных как она есть
+								result = text;
+							break;
 							// Если формат входящих данных указан как XML
 							case static_cast <uint8_t> (type_t::XML):
 								// Выполняем конвертацию данных
@@ -937,6 +1337,11 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Выполняем конвертацию данных
 								result = parser.syslog(text);
 							break;
+							// Если формат входящих данных указан как Base64
+							case static_cast <uint8_t> (type_t::BASE64):
+								// Выполняем конвертацию данных
+								result = base64_t().decode(text);
+							break;
 						}
 						// Если результат получен
 						if(!result.empty()){
@@ -959,8 +1364,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									}
 									// Буфер данных для записи
 									string buffer = "";
-									// Определяем тип файла
+									// Определяем формат данных
 									switch(static_cast <uint8_t> (to)){
+										// Если формат входящих данных указан как Text
+										case static_cast <uint8_t> (type_t::TEXT):
+											// Выполняем вывод текст как он есть
+											buffer = result;
+										break;
 										// Если формат входящих данных указан как XML
 										case static_cast <uint8_t> (type_t::XML):
 											// Выполняем конвертирование в формат XML
@@ -1015,6 +1425,71 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Выполняем конвертирование в формат SysLog
 											buffer = parser.syslog(result);
 										break;
+										// Если формат входящих данных указан как Base64
+										case static_cast <uint8_t> (type_t::BASE64):
+											// Выполняем конвертирование в формат Base64
+											buffer = base64_t().encode(result);
+										break;
+										// Если формат входящих данных указан как MD5
+										case static_cast <uint8_t> (type_t::MD5):
+											// Выполняем конвертирование в формат MD5
+											buffer = fmk.hash(result, fmk_t::hash_t::MD5);
+										break;
+										// Если формат входящих данных указан как SHA1
+										case static_cast <uint8_t> (type_t::SHA1):
+											// Выполняем конвертирование в формат SHA1
+											buffer = fmk.hash(result, fmk_t::hash_t::SHA1);
+										break;
+										// Если формат входящих данных указан как SHA224
+										case static_cast <uint8_t> (type_t::SHA224):
+											// Выполняем конвертирование в формат SHA224
+											buffer = fmk.hash(result, fmk_t::hash_t::SHA224);
+										break;
+										// Если формат входящих данных указан как SHA256
+										case static_cast <uint8_t> (type_t::SHA256):
+											// Выполняем конвертирование в формат SHA256
+											buffer = fmk.hash(result, fmk_t::hash_t::SHA256);
+										break;
+										// Если формат входящих данных указан как SHA384
+										case static_cast <uint8_t> (type_t::SHA384):
+											// Выполняем конвертирование в формат SHA384
+											buffer = fmk.hash(result, fmk_t::hash_t::SHA384);
+										break;
+										// Если формат входящих данных указан как SHA512
+										case static_cast <uint8_t> (type_t::SHA512):
+											// Выполняем конвертирование в формат SHA512
+											buffer = fmk.hash(result, fmk_t::hash_t::SHA512);
+										break;
+										// Если формат входящих данных указан как HMAC MD5
+										case static_cast <uint8_t> (type_t::HMAC_MD5):
+											// Выполняем конвертирование в формат HMAC MD5
+											buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_MD5);
+										break;
+										// Если формат входящих данных указан как HMAC SHA1
+										case static_cast <uint8_t> (type_t::HMAC_SHA1):
+											// Выполняем конвертирование в формат HMAC SHA1
+											buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA1);
+										break;
+										// Если формат входящих данных указан как HMAC SHA224
+										case static_cast <uint8_t> (type_t::HMAC_SHA224):
+											// Выполняем конвертирование в формат HMAC SHA224
+											buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA224);
+										break;
+										// Если формат входящих данных указан как HMAC SHA256
+										case static_cast <uint8_t> (type_t::HMAC_SHA256):
+											// Выполняем конвертирование в формат HMAC SHA256
+											buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA256);
+										break;
+										// Если формат входящих данных указан как HMAC SHA384
+										case static_cast <uint8_t> (type_t::HMAC_SHA384):
+											// Выполняем конвертирование в формат HMAC SHA384
+											buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA384);
+										break;
+										// Если формат входящих данных указан как HMAC SHA512
+										case static_cast <uint8_t> (type_t::HMAC_SHA512):
+											// Выполняем конвертирование в формат HMAC SHA512
+											buffer = fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA512);
+										break;
 									}
 									// Если данные для записи получены
 									if(!buffer.empty())
@@ -1031,8 +1506,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								return EXIT_FAILURE;
 							// Если адрес для сохранения файла не указан
 							} else {
-								// Определяем тип файла
+								// Определяем формат данных
 								switch(static_cast <uint8_t> (to)){
+									// Если формат входящих данных указан как Text
+									case static_cast <uint8_t> (type_t::TEXT):
+										// Выполняем вывод текст как он есть
+										cout << result << endl;
+									break;
 									// Если формат входящих данных указан как XML
 									case static_cast <uint8_t> (type_t::XML):
 										// Выполняем конвертирование в формат XML
@@ -1086,6 +1566,71 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									case static_cast <uint8_t> (type_t::SYSLOG):
 										// Выполняем конвертирование в формат SysLog
 										cout << parser.syslog(result) << endl;
+									break;
+									// Если формат входящих данных указан как Base64
+									case static_cast <uint8_t> (type_t::BASE64):
+										// Выполняем конвертирование в формат Base64
+										cout << base64_t().encode(result) << endl;
+									break;
+									// Если формат входящих данных указан как MD5
+									case static_cast <uint8_t> (type_t::MD5):
+										// Выполняем конвертирование в формат MD5
+										cout << fmk.hash(result, fmk_t::hash_t::MD5) << endl;
+									break;
+									// Если формат входящих данных указан как SHA1
+									case static_cast <uint8_t> (type_t::SHA1):
+										// Выполняем конвертирование в формат SHA1
+										cout << fmk.hash(result, fmk_t::hash_t::SHA1) << endl;
+									break;
+									// Если формат входящих данных указан как SHA224
+									case static_cast <uint8_t> (type_t::SHA224):
+										// Выполняем конвертирование в формат SHA224
+										cout << fmk.hash(result, fmk_t::hash_t::SHA224) << endl;
+									break;
+									// Если формат входящих данных указан как SHA256
+									case static_cast <uint8_t> (type_t::SHA256):
+										// Выполняем конвертирование в формат SHA256
+										cout << fmk.hash(result, fmk_t::hash_t::SHA256) << endl;
+									break;
+									// Если формат входящих данных указан как SHA384
+									case static_cast <uint8_t> (type_t::SHA384):
+										// Выполняем конвертирование в формат SHA384
+										cout << fmk.hash(result, fmk_t::hash_t::SHA384) << endl;
+									break;
+									// Если формат входящих данных указан как SHA512
+									case static_cast <uint8_t> (type_t::SHA512):
+										// Выполняем конвертирование в формат SHA512
+										cout << fmk.hash(result, fmk_t::hash_t::SHA512) << endl;
+									break;
+									// Если формат входящих данных указан как HMAC MD5
+									case static_cast <uint8_t> (type_t::HMAC_MD5):
+										// Выполняем конвертирование в формат HMAC MD5
+										cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_MD5) << endl;
+									break;
+									// Если формат входящих данных указан как HMAC SHA1
+									case static_cast <uint8_t> (type_t::HMAC_SHA1):
+										// Выполняем конвертирование в формат HMAC SHA1
+										cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA1) << endl;
+									break;
+									// Если формат входящих данных указан как HMAC SHA224
+									case static_cast <uint8_t> (type_t::HMAC_SHA224):
+										// Выполняем конвертирование в формат HMAC SHA224
+										cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA224) << endl;
+									break;
+									// Если формат входящих данных указан как HMAC SHA256
+									case static_cast <uint8_t> (type_t::HMAC_SHA256):
+										// Выполняем конвертирование в формат HMAC SHA256
+										cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA256) << endl;
+									break;
+									// Если формат входящих данных указан как HMAC SHA384
+									case static_cast <uint8_t> (type_t::HMAC_SHA384):
+										// Выполняем конвертирование в формат HMAC SHA384
+										cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA384) << endl;
+									break;
+									// Если формат входящих данных указан как HMAC SHA512
+									case static_cast <uint8_t> (type_t::HMAC_SHA512):
+										// Выполняем конвертирование в формат HMAC SHA512
+										cout << fmk.hash(hmac, result, fmk_t::hash_t::HMAC_SHA512) << endl;
 									break;
 								}
 							}

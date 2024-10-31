@@ -503,35 +503,39 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							string express = "";
 							// Выполняем инициализацию объекта парсера
 							parser_t parser(this->_fmk, this->_log);
-							// Тип обрабатываемого файла
-							type_t from = type_t::NONE, to = type_t::NONE;
+							// Тип конвертируемого формата данных и тип формата для конвертации
+							type_t from = type_t::TEXT, to = type_t::TEXT;
+							// Если формат входящих данных указан как Text
+							if(this->_fmk->compare("text", request.at("from").get <string> ()))
+								// Определяем формат данных
+								from = type_t::TEXT;
 							// Если формат входящих данных указан как XML
-							if(this->_fmk->compare("xml", request.at("from").get <string> ()))
-								// Определяем тип файла
+							else if(this->_fmk->compare("xml", request.at("from").get <string> ()))
+								// Определяем формат данных
 								from = type_t::XML;
 							// Если формат входящих данных указан как JSON
 							else if(this->_fmk->compare("json", request.at("from").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								from = type_t::JSON;
 							// Если формат входящих данных указан как INI
 							else if(this->_fmk->compare("ini", request.at("from").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								from = type_t::INI;
 							// Если формат входящих данных указан как YAML
 							else if(this->_fmk->compare("yaml", request.at("from").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								from = type_t::YAML;
 							// Если формат входящих данных указан как CEF
 							else if(this->_fmk->compare("cef", request.at("from").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								from = type_t::CEF;
 							// Если формат входящих данных указан как CSV
 							else if(this->_fmk->compare("csv", request.at("from").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								from = type_t::CSV;
 							// Если формат входящих данных указан как GROK
 							else if(this->_fmk->compare("grok", request.at("from").get <string> ())) {
-								// Определяем тип файла
+								// Определяем формат данных
 								from = type_t::GROK;
 								// Если файл шаблона указан
 								if(request.contains("patterns") && request.at("patterns").is_object())
@@ -550,8 +554,12 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								}
 							// Если формат входящих данных указан как SysLog
 							} else if(this->_fmk->compare("syslog", request.at("from").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								from = type_t::SYSLOG;
+							// Если формат входящих данных указан как Base64
+							else if(this->_fmk->compare("base64", request.at("from").get <string> ()))
+								// Определяем формат данных
+								from = type_t::BASE64;
 							// Если формат не определён
 							else {
 								// Выпоолняем генерацию ошибки запроса
@@ -559,34 +567,66 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								// Выводим удачное завершение работы
 								return;
 							}
+							// Если формат исходящих данных указан как Text
+							if(this->_fmk->compare("text", request.at("to").get <string> ()))
+								// Определяем формат данных
+								to = type_t::TEXT;
 							// Если формат исходящих данных указан как XML
-							if(this->_fmk->compare("xml", request.at("to").get <string> ()))
-								// Определяем тип файла
+							else if(this->_fmk->compare("xml", request.at("to").get <string> ()))
+								// Определяем формат данных
 								to = type_t::XML;
 							// Если формат исходящих данных указан как JSON
 							else if(this->_fmk->compare("json", request.at("to").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								to = type_t::JSON;
 							// Если формат исходящих данных указан как INI
 							else if(this->_fmk->compare("ini", request.at("to").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								to = type_t::INI;
 							// Если формат исходящих данных указан как YAML
 							else if(this->_fmk->compare("yaml", request.at("to").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								to = type_t::YAML;
 							// Если формат исходящих данных указан как CEF
 							else if(this->_fmk->compare("cef", request.at("to").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								to = type_t::CEF;
 							// Если формат исходящих данных указан как CSV
 							else if(this->_fmk->compare("csv", request.at("to").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								to = type_t::CSV;
 							// Если формат исходящих данных указан как SysLog
 							else if(this->_fmk->compare("syslog", request.at("to").get <string> ()))
-								// Определяем тип файла
+								// Определяем формат данных
 								to = type_t::SYSLOG;
+							// Если формат исходящих данных указан как Base64
+							else if(this->_fmk->compare("base64", request.at("to").get <string> ()))
+								// Определяем формат данных
+								to = type_t::BASE64;
+							// Если формат исходящих данных указан как MD5
+							else if(this->_fmk->compare("md5", request.at("to").get <string> ()))
+								// Определяем формат данных
+								to = type_t::MD5;
+							// Если формат исходящих данных указан как SHA1
+							else if(this->_fmk->compare("sha1", request.at("to").get <string> ()))
+								// Определяем формат данных
+								to = type_t::SHA1;
+							// Если формат исходящих данных указан как SHA224
+							else if(this->_fmk->compare("sha224", request.at("to").get <string> ()))
+								// Определяем формат данных
+								to = type_t::SHA224;
+							// Если формат исходящих данных указан как SHA256
+							else if(this->_fmk->compare("sha256", request.at("to").get <string> ()))
+								// Определяем формат данных
+								to = type_t::SHA256;
+							// Если формат исходящих данных указан как SHA384
+							else if(this->_fmk->compare("sha384", request.at("to").get <string> ()))
+								// Определяем формат данных
+								to = type_t::SHA384;
+							// Если формат исходящих данных указан как SHA512
+							else if(this->_fmk->compare("sha512", request.at("to").get <string> ()))
+								// Определяем формат данных
+								to = type_t::SHA512;
 							// Если формат не определён
 							else {
 								// Выпоолняем генерацию ошибки запроса
@@ -594,10 +634,55 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								// Выводим удачное завершение работы
 								return;
 							}
+							// Получаем ключ HMAC
+							string hmac = "";
+							// Если ключ проверки подлинности передан
+							if(request.contains("hmac") && request.at("hmac").is_string()){
+								// Получаем ключ подтверждения подлинности
+								hmac = request.at("hmac").get <string> ();
+								// Проверяем формат данных для конвертации
+								switch(static_cast <uint8_t> (to)){
+									// Если формат исходящих данных указан как MD5
+									case static_cast <uint8_t> (type_t::MD5):
+										// Определяем формат данных
+										to = type_t::HMAC_MD5;
+									break;
+									// Если формат исходящих данных указан как SHA1
+									case static_cast <uint8_t> (type_t::SHA1):
+										// Определяем формат данных
+										to = type_t::HMAC_SHA1;
+									break;
+									// Если формат исходящих данных указан как SHA224
+									case static_cast <uint8_t> (type_t::SHA224):
+										// Определяем формат данных
+										to = type_t::HMAC_SHA224;
+									break;
+									// Если формат исходящих данных указан как SHA256
+									case static_cast <uint8_t> (type_t::SHA256):
+										// Определяем формат данных
+										to = type_t::HMAC_SHA256;
+									break;
+									// Если формат исходящих данных указан как SHA384
+									case static_cast <uint8_t> (type_t::SHA384):
+										// Определяем формат данных
+										to = type_t::HMAC_SHA384;
+									break;
+									// Если формат исходящих данных указан как SHA512
+									case static_cast <uint8_t> (type_t::SHA512):
+										// Определяем формат данных
+										to = type_t::HMAC_SHA512;
+									break;
+								}
+							}
 							// Объект ответа парсера в формате JSON
 							json answer = json::object();
-							// Определяем тип файла
+							// Определяем формат данных
 							switch(static_cast <uint8_t> (from)){
+								// Если формат входящих данных указан как Text
+								case static_cast <uint8_t> (type_t::TEXT):
+									// Выполняем передачу данных как она есть
+									answer = request.at("text").get <string> ();
+								break;
 								// Если формат входящих данных указан как XML
 								case static_cast <uint8_t> (type_t::XML):
 									// Выполняем конвертацию данных
@@ -643,13 +728,23 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Выполняем конвертацию данных
 									answer = parser.syslog(request.at("text").get <string> ());
 								break;
+								// Если формат входящих данных указан как Base64
+								case static_cast <uint8_t> (type_t::BASE64):
+									// Выполняем конвертацию данных
+									answer = this->_base64.decode(request.at("text").get <string> ());
+								break;
 							}
 							// Если ответ парсера получен
 							if(!answer.empty()){
 								// Текст сформированного ответа
 								string text = "";
-								// Определяем тип файла
+								// Определяем формат данных
 								switch(static_cast <uint8_t> (to)){
+									// Если формат входящих данных указан как Text
+									case static_cast <uint8_t> (type_t::TEXT):
+										// Выполняем вывод текст как он есть
+										text = answer;
+									break;
 									// Если формат входящих данных указан как XML
 									case static_cast <uint8_t> (type_t::XML):
 										// Выполняем конвертирование в формат XML
@@ -699,6 +794,71 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									case static_cast <uint8_t> (type_t::SYSLOG):
 										// Выполняем конвертирование в формат SysLog
 										text = parser.syslog(answer);
+									break;
+									// Если формат входящих данных указан как Base64
+									case static_cast <uint8_t> (type_t::BASE64):
+										// Выполняем конвертирование в формат Base64
+										text = this->_base64.encode(answer);
+									break;
+									// Если формат входящих данных указан как MD5
+									case static_cast <uint8_t> (type_t::MD5):
+										// Выполняем конвертирование в формат MD5
+										text = this->_fmk->hash(answer, fmk_t::hash_t::MD5);
+									break;
+									// Если формат входящих данных указан как SHA1
+									case static_cast <uint8_t> (type_t::SHA1):
+										// Выполняем конвертирование в формат SHA1
+										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA1);
+									break;
+									// Если формат входящих данных указан как SHA224
+									case static_cast <uint8_t> (type_t::SHA224):
+										// Выполняем конвертирование в формат SHA224
+										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA224);
+									break;
+									// Если формат входящих данных указан как SHA256
+									case static_cast <uint8_t> (type_t::SHA256):
+										// Выполняем конвертирование в формат SHA256
+										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA256);
+									break;
+									// Если формат входящих данных указан как SHA384
+									case static_cast <uint8_t> (type_t::SHA384):
+										// Выполняем конвертирование в формат SHA384
+										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA384);
+									break;
+									// Если формат входящих данных указан как SHA512
+									case static_cast <uint8_t> (type_t::SHA512):
+										// Выполняем конвертирование в формат SHA512
+										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA512);
+									break;
+									// Если формат входящих данных указан как HMAC MD5
+									case static_cast <uint8_t> (type_t::HMAC_MD5):
+										// Выполняем конвертирование в формат HMAC MD5
+										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_MD5);
+									break;
+									// Если формат входящих данных указан как HMAC SHA1
+									case static_cast <uint8_t> (type_t::HMAC_SHA1):
+										// Выполняем конвертирование в формат HMAC SHA1
+										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA1);
+									break;
+									// Если формат входящих данных указан как HMAC SHA224
+									case static_cast <uint8_t> (type_t::HMAC_SHA224):
+										// Выполняем конвертирование в формат HMAC SHA224
+										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA224);
+									break;
+									// Если формат входящих данных указан как HMAC SHA256
+									case static_cast <uint8_t> (type_t::HMAC_SHA256):
+										// Выполняем конвертирование в формат HMAC SHA256
+										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA256);
+									break;
+									// Если формат входящих данных указан как HMAC SHA384
+									case static_cast <uint8_t> (type_t::HMAC_SHA384):
+										// Выполняем конвертирование в формат HMAC SHA384
+										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA384);
+									break;
+									// Если формат входящих данных указан как HMAC SHA512
+									case static_cast <uint8_t> (type_t::HMAC_SHA512):
+										// Выполняем конвертирование в формат HMAC SHA512
+										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA512);
 									break;
 								}
 								// Если текст ответа получен
