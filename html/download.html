@@ -78,7 +78,7 @@
 					</svg>
 					<span class="fs-4"><strong>ANYKS</strong> - formatter</span>
 				</a>
-				<h5>v1.0.3</h5>
+				<h5>v1.0.4</h5>
 			</header>
 			<!-- Заголовок КОНЕЦ -->
 			<!-- Контент НАЧАЛО -->
@@ -227,9 +227,9 @@
 												Скачать
 											</button>
 											<ul class="dropdown-menu" id="macos">
-												<li><a class="dropdown-item" href="#macARM" pkg="mpkg" architecture="arm">arm <strong>.mpkg</strong></a></li>
+												<li><a class="dropdown-item" href="#macARM" pkg="pkg" architecture="arm">arm <strong>.pkg</strong></a></li>
 												<li><hr class="dropdown-divider"></li>
-												<li><a class="dropdown-item" href="#macIntel" pkg="mpkg" architecture="intel">intel <strong>.mpkg</strong></a></li>
+												<li><a class="dropdown-item" href="#macIntel" pkg="pkg" architecture="intel">intel <strong>.pkg</strong></a></li>
 											</ul>
 										</div>
 									</div>
@@ -289,12 +289,88 @@
 				<h2 class="text-body-emphasis">Примеры работы</h2>
 				<br>
 				<div class="card">
-					<div class="card-header"><strong>Конвертация JSON в XML</strong></div>
+					<div class="card-header"><strong>Конвертация из текста в BASE64</strong></div>
 					<div class="card-body" id="code-editor-1"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
 							const cm = CodeMirror(document.getElementById('code-editor-1'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo 'Hello World!!!' | acu -from text -to base64`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация из BASE64 в текст</strong></div>
+					<div class="card-body" id="code-editor-2"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-2'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo 'SGVsbG8gV29ybGQhISE=' | acu -from base64 -to text`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация из текста в MD5</strong></div>
+					<div class="card-body" id="code-editor-3"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-3'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`echo 'Hello World!!!' | acu -from text -to MD5`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация из текста в HMAC SHA256</strong></div>
+					<div class="card-body" id="code-editor-4"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-4'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo 'Hello World!!!' | acu -from text -to SHA256 -hmac 236bf30c70dc03f69175f030afbe38f3`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация JSON в XML</strong></div>
+					<div class="card-body" id="code-editor-5"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-5'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -309,11 +385,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация JSON в XML из файла</strong></div>
-					<div class="card-body" id="code-editor-2"></div>
+					<div class="card-body" id="code-editor-6"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-2'), {
+							const cm = CodeMirror(document.getElementById('code-editor-6'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -328,11 +404,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация CSV в XML из файла</strong></div>
-					<div class="card-body" id="code-editor-3"></div>
+					<div class="card-body" id="code-editor-7"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-3'), {
+							const cm = CodeMirror(document.getElementById('code-editor-7'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -347,11 +423,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация JSON в CSV из файла</strong></div>
-					<div class="card-body" id="code-editor-4"></div>
+					<div class="card-body" id="code-editor-8"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-4'), {
+							const cm = CodeMirror(document.getElementById('code-editor-8'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -366,11 +442,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация CEF в XML из файла</strong></div>
-					<div class="card-body" id="code-editor-5"></div>
+					<div class="card-body" id="code-editor-9"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-5'), {
+							const cm = CodeMirror(document.getElementById('code-editor-9'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -385,11 +461,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация GROK в XML из файла и без шаблонов</strong></div>
-					<div class="card-body" id="code-editor-6"></div>
+					<div class="card-body" id="code-editor-10"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-6'), {
+							const cm = CodeMirror(document.getElementById('code-editor-10'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -404,11 +480,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация GROK в XML из файла с шаблонами</strong></div>
-					<div class="card-body" id="code-editor-7"></div>
+					<div class="card-body" id="code-editor-11"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-7'), {
+							const cm = CodeMirror(document.getElementById('code-editor-11'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -423,11 +499,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация JSON в XML из каталога</strong></div>
-					<div class="card-body" id="code-editor-8"></div>
+					<div class="card-body" id="code-editor-12"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-8'), {
+							const cm = CodeMirror(document.getElementById('code-editor-12'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',

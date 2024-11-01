@@ -3,15 +3,19 @@
 	$(document).ready(function(){
 		// Блок подсветки синтаксиса шаблонов GROK
 		let grokEditor = null;
+		// Блок подсветки синтаксиса формата в который производится хеширвоание
+		let toEditorHashing = null;
+		// Блок подсветки синтаксиса формата из которого производится хеширвоание
+		let fromEditorHashing = null;
 		// Выполняем инициализацию блока подсветки синтаксиса для редактора формата из которого производится конвертация
-		let fromEditor = CodeMirror(document.getElementById('code-editor-from'), {
+		let fromEditorContainers = CodeMirror(document.getElementById('code-editor-from-containers'), {
 			tabSize: 4,
 			mode: 'xml',
 			theme: 'eclipse',
 			lineNumbers: true
 		});
 		// Выполняем инициализацию блока подсветки синтаксиса для редактора формата в который производится конвертация
-		const toEditor = CodeMirror(document.getElementById('code-editor-to'), {
+		const toEditorContainers = CodeMirror(document.getElementById('code-editor-to-containers'), {
 			tabSize: 4,
 			theme: 'eclipse',
 			mode: 'javascript',
@@ -48,14 +52,273 @@
 			// Выводим нативное всплывающее сообщение
 			} else window.alert(data);
 		};
+		// Активируем событие вкладок
+		$(".card-header-tabs a.nav-link", "#formatter")
+		.unbind('click')
+		.bind('click', function(){
+			// Если вкладка не является активной
+			if(!$(this).hasClass("active")){
+				// Выполняем получение активной вкладки
+				const active = $("a.active", $(this).parent().parent());
+				// Выполняем удаление активности ссылки
+				active.removeClass("active");
+				// Скрываем блок с данными активной вкладки
+				$(active.attr("href")).addClass("hidden");
+				// Выполняем установку активной вкладки
+				$(this).addClass("active");
+				// Отображаем нужный нам блок данных
+				$($(this).attr("href")).removeClass("hidden");
+				// Если блоки подсветки синтаксиса не созданы
+				if((fromEditorHashing === null) || (toEditorHashing === null)){
+					// Выполняем инициализацию блока подсветки синтаксиса для редактора формата из которого производится конвертация
+					fromEditorHashing = CodeMirror(document.getElementById('code-editor-from-hashing'), {
+						tabSize: 4,
+						mode: 'shell',
+						theme: 'eclipse',
+						lineNumbers: false,
+						lineWrapping: true
+					});
+					// Выполняем инициализацию блока подсветки синтаксиса для редактора формата в который производится конвертация
+					toEditorHashing = CodeMirror(document.getElementById('code-editor-to-hashing'), {
+						tabSize: 4,
+						mode: 'shell',
+						theme: 'eclipse',
+						readOnly: true,
+						lineNumbers: false,
+						lineWrapping: true
+					});
+					// Устанавливаем событие на изменение поля из которого следует выполнять хеширования
+					$("> .CodeMirror", "#code-editor-from-hashing")
+					.unbind("keyup")
+					.bind("keyup", function(){
+						// Получаем идентификатор кнопки
+						const button = $(".btn-close", $(this).parent().parent());
+						// Если поле содержит данные
+						if(fromEditorHashing.getValue().length > 0)
+							// Выполняем отображение кнопки очистки поля
+							button.removeClass("hidden");
+						// Выполняем скрытие кнопки очистки
+						else button.addClass("hidden");
+						// Устанавливаем событие на клик по кнопке
+						button
+						.unbind('click')
+						.bind('click', function(){
+							// Выполняем очистку текстового поля
+							fromEditorHashing.setValue("");
+							// Выполняем скрытие кнопки
+							$(this).addClass("hidden");
+							// Запрещаем дальнейшее событие для кнопки
+							return false;
+						});
+						// Запрещаем выполнение дальнейшего события
+						return false;
+					});
+					// Устанавливаем событие на кнопку отправки запроса
+					$("#submit-hashing")
+					.unbind('click')
+					.bind('click', function(){
+						// Включаем индикатор загрузки
+						$("#spinner").removeClass("hidden");
+						/**
+						 * Формируем функцию выполнения запроса на удалённый сервер
+						 */
+						(async () => {
+							/**
+							 * Выполняем перехват ошибки
+							 */
+							try {
+								// Получаем значение текста который необходимо сконвертировать
+								const text = fromEditorHashing.getValue();
+								// Если текст для конвертации указан
+								if(text.length > 0){
+									// Название конвертера из которого и в который производится конвертация
+									let from = "", to = "";
+									// Определяем формат в который производится конвертация
+									switch($("a.active", "#to-hashing").attr("href")){
+										// Если если формат в который производится конвертация установлен как TEXT
+										case "#TEXT": to = "text"; break;
+										// Если если формат в который производится конвертация установлен как BASE64
+										case "#BASE64": to = "base64"; break;
+										// Если если формат в который производится конвертация установлен как MD5
+										case "#MD5": to = "md5"; break;
+										// Если если формат в который производится конвертация установлен как SHA1
+										case "#SHA1": to = "sha1"; break;
+										// Если если формат в который производится конвертация установлен как SHA224
+										case "#SHA224": to = "sha224"; break;
+										// Если если формат в который производится конвертация установлен как SHA256
+										case "#SHA256": to = "sha256"; break;
+										// Если если формат в который производится конвертация установлен как SHA384
+										case "#SHA384": to = "sha384"; break;
+										// Если если формат в который производится конвертация установлен как SHA512
+										case "#SHA512": to = "sha512"; break;
+									}
+									// Определяем формат с которого производится конвертация
+									switch($("a.active", "#from-hashing").attr("href")){
+										// Если если формат в который производится конвертация установлен как TEXT
+										case "#TEXT": from = "text"; break;
+										// Если если формат в который производится конвертация установлен как BASE64
+										case "#BASE64": from = "base64"; break;
+									}
+									// Получаем данные текстового поля HMAC
+									const hmac = (((to !== "text") && (to !== "base64")) ? $("#hmac-key").val() : undefined);
+									// Формируем объект тело запроса
+									const body = {to, from, text, hmac};
+									// Выполняем запрос на сервер
+									const response = await fetch("/exec", {
+										method: "POST",
+										body: JSON.stringify(body),
+										headers: {"Content-type": "application/json; charset=UTF-8"}
+									});
+									// Извлекаем полученный результат
+									const answer = await response.json();
+									// Если в ответе есть поле результата
+									if((answer.result !== null) && (answer.result !== undefined))
+										// Выполняем установку результата
+										toEditorHashing.setValue(answer.result);
+									// Выводим сообщение об ошибке
+									else {
+										// Если получен текст ошибки
+										if((answer.error !== null) && (answer.error !== undefined))
+											// Отображаем всплывающее сообщение
+											alert("Ошибка запроса", answer.error);
+										// Если текст ошибки не получен
+										else alert("Ответ не получен", "Ответ от сервера не содержит результата");
+									}
+									
+								// Если текст для хеширования не заполнен
+								} else alert("Ошибка хеширования", "Текст для хеширования не заполнен");
+							/**
+							 * Если ошибка перехвачена
+							 */
+							} catch(error) {
+								// Отображаем всплывающее сообщение
+								alert("Ошибка запроса", error);
+							}
+						})();
+						// Выключаем индикатор загрузки
+						$("#spinner").addClass("hidden");
+						// Запрещаем дальнейшие действия для ссылки
+						return false;
+					});
+					// Устанавливаем событие на перехват событий выбора формата из чего нужно хешировать
+					$("#from-hashing > li > a")
+					.unbind('click')
+					.bind('click', function(){
+						// Если флаг активации ещё не установлен
+						if(!$(this).hasClass("active")){
+							// Снимаем флаг активации у уже активного элемента
+							$("li > a.active", $(this).parent().parent())
+							.removeClass("active")
+							.removeAttr("aria-current");
+							// Устанавливаем флаг активации
+							$(this)
+							.addClass("active")
+							.attr("aria-current", "page");
+							// Удаляем текст в текстовом окне
+							fromEditorHashing.setValue("");
+							// Выполняем скрытие кнопки очитски
+							$(".btn-close", $("#code-editor-from-hashing").parent()).addClass("hidden");
+							// Определяем тип конвертера
+							switch($(this).text()){
+								// Если ковертер выбран BASE64
+								case "BASE64": {
+									// Переключаем на вкладку по умолчанию
+									$("#to-hashing > li > a[href=#TEXT]").click();
+									// Блокируем вкладку конвертера
+									$("#to-hashing > li > a[href=#BASE64]").addClass("disabled");
+								} break;
+								// Если активирован любой другой конвертер
+								default:
+									// Разблокируем вкладку конвертера
+									$("#to-hashing > li > a[href=#BASE64]").removeClass("disabled");
+							}
+						}			
+						// Запрещаем дальнейшие действия для ссылки
+						return false;
+					});
+					// Устанавливаем событие на перехват событий выбора формата в который нужно хешировать
+					$("#to-hashing > li > a")
+					.unbind('click')
+					.bind('click', function(){
+						// Снимаем флаг активации у уже активного элемента
+						$("li > a.active", $(this).parent().parent())
+						.removeClass("active")
+						.removeAttr("aria-current");
+						// Устанавливаем флаг активации
+						$(this)
+						.addClass("active")
+						.attr("aria-current", "page");
+						// Если текст для конвертации присутствует
+						if(fromEditorHashing.getValue().length > 0)
+							// Выполняем загрузку новых данных
+							$("#submit-hashing").click();
+						// Удаляем текст в текстовом окне
+						else toEditorHashing.setValue("");
+						// Определяем тип конвертера
+						switch($(this).text()){
+							// Если ковертер выбран MD5
+							case "MD5":
+							// Если ковертер выбран SHA1
+							case "SHA1":
+							// Если ковертер выбран SHA224
+							case "SHA224":
+							// Если ковертер выбран SHA256
+							case "SHA256":
+							// Если ковертер выбран SHA384
+							case "SHA384":
+							// Если ковертер выбран SHA512
+							case "SHA512":
+								// Отображаем текстовое поле HMAC ключа
+								$("#hmac-key").parent().removeClass("hidden");
+							break;
+							// Если ковертер выбран любой другой
+							default:
+								// Скрываем текстовое поле HMAC ключа
+								$("#hmac-key").parent().addClass("hidden");
+						}
+						// Запрещаем дальнейшие действия для ссылки
+						return false;
+					});
+					// Устанавливаем событие на текстовое поле ввода HMAC ключа
+					$("#hmac-key")
+					.unbind("keyup")
+					.bind("keyup", function(){
+						// Получаем объект кнопки очистки текстового поля
+						const button = $(".btn-close", $(this).parent());
+						// Если текст введён в текстовое поле
+						if($(this).val().length > 0)
+							// Выполняем отображение кнопки очистки текстового поля
+							button.removeClass("hidden");
+						// Скрываем кнопку очистки текстового поля
+						else button.addClass("hidden");
+						// Запрещаем дальнейшее событие для кнопки
+						return false;
+					})
+					// Устанавливаем событие на клик по кнопке
+					.parent()
+					.find(".btn-close")
+					.unbind('click')
+					.bind('click', function(){
+						// Скрываем кнопку очистки текстового поля
+						$(this).addClass("hidden");
+						// Выполняем очистку текстового поля
+						$("#hmac-key").val("");
+						// Запрещаем дальнейшее событие для кнопки
+						return false;
+					});
+				}
+			}
+			// Запрещаем дальнейшие действия для ссылки
+			return false;
+		});
 		// Устанавливаем событие на изменение поля из которого следует выполнять конвертацию
-		$("> .CodeMirror", "#code-editor-from")
+		$("> .CodeMirror", "#code-editor-from-containers")
 		.unbind("keyup")
 		.bind("keyup", function(){
 			// Получаем идентификатор кнопки
 			const button = $(".btn-close", $(this).parent().parent());
 			// Если поле содержит данные
-			if(fromEditor.getValue().length > 0)
+			if(fromEditorContainers.getValue().length > 0)
 				// Выполняем отображение кнопки очистки поля
 				button.removeClass("hidden");
 			// Выполняем скрытие кнопки очистки
@@ -65,7 +328,7 @@
 			.unbind('click')
 			.bind('click', function(){
 				// Выполняем очистку текстового поля
-				fromEditor.setValue("");
+				fromEditorContainers.setValue("");
 				// Выполняем скрытие кнопки
 				$(this).addClass("hidden");
 				// Запрещаем дальнейшее событие для кнопки
@@ -75,7 +338,7 @@
 			return false;
 		});
 		// Устанавливаем событие на кнопку отправки запроса
-		$("#submit")
+		$("#submit-containers")
 		.unbind('click')
 		.bind('click', function(){
 			// Включаем индикатор загрузки
@@ -89,13 +352,13 @@
 				 */
 				try {
 					// Получаем значение текста который необходимо сконвертировать
-					const text = fromEditor.getValue();
+					const text = fromEditorContainers.getValue();
 					// Если текст для конвертации указан
 					if(text.length > 0){
 						// Название конвертера из которого и в который производится конвертация
 						let from = "", to = "";
 						// Определяем формат в который производится конвертация
-						switch($("a.active", "#to").attr("href")){
+						switch($("a.active", "#to-containers").attr("href")){
 							// Если если формат в который производится конвертация установлен как INI
 							case "#INI": to = "ini"; break;
 							// Если если формат в который производится конвертация установлен как XML
@@ -112,7 +375,7 @@
 							case "#SYSLOG": to = "syslog"; break;
 						}
 						// Определяем формат с которого производится конвертация
-						switch($("a.active", "#from").attr("href")){
+						switch($("a.active", "#from-containers").attr("href")){
 							// Если если формат из которого производится конвертация установлен как INI
 							case "#INI": from = "ini"; break;
 							// Если если формат из которого производится конвертация установлен как XML
@@ -165,7 +428,7 @@
 							// Если в ответе есть поле результата
 							if((answer.result !== null) && (answer.result !== undefined))
 								// Выполняем установку результата
-								toEditor.setValue(answer.result);
+								toEditorContainers.setValue(answer.result);
 							// Выводим сообщение об ошибке
 							else {
 								// Если получен текст ошибки
@@ -183,7 +446,7 @@
 				 */
 				} catch(error) {
 					// Отображаем всплывающее сообщение
-					alert("Ошибка синтаксиса", error);
+					alert("Ошибка запроса", error);
 				}
 			})();
 			// Выключаем индикатор загрузки
@@ -192,7 +455,7 @@
 			return false;
 		});
 		// Устанавливаем событие на перехват событий выбора формата из чего нужно конвертировать
-		$("#from > li > a")
+		$("#from-containers > li > a")
 		.unbind('click')
 		.bind('click', function(){
 			// Если флаг активации ещё не установлен
@@ -206,9 +469,9 @@
 				.addClass("active")
 				.attr("aria-current", "page");
 				// Удаляем текст в текстовом окне
-				fromEditor.setValue("");
+				fromEditorContainers.setValue("");
 				// Выполняем скрытие кнопки очитски
-				$(".btn-close", $("#code-editor-from").parent()).addClass("hidden");
+				$(".btn-close", $("#code-editor-from-containers").parent()).addClass("hidden");
 				// Получаем название парсера
 				const name = $(this).text();
 				// Если мы работаем с парсером GROK
@@ -225,24 +488,24 @@
 						lineNumbers: false
 					});
 					// Активируем подсветку синтаксиса
-					fromEditor.setOption("mode", "shell");
+					fromEditorContainers.setOption("mode", "shell");
 					// Активируем вывод номеров строк
-					fromEditor.setOption("lineNumbers", false);
+					fromEditorContainers.setOption("lineNumbers", false);
 					// Выполняем подключение переноса строк
-					fromEditor.setOption("lineWrapping", true);
+					fromEditorContainers.setOption("lineWrapping", true);
 					// Если заголовок CSV не активен
-					if($("#to > li > a[href=#CSV]").hasClass("active"))
+					if($("#to-containers > li > a[href=#CSV]").hasClass("active"))
 						// Отображаем переключатель вывода заголовков
 						$("#csv-header").parent().removeClass("hidden");
 					// Скрываем переключатель формирования заголовков
 					else $("#csv-header").parent().addClass("hidden");
 					// Блокируем вкладку конвертера
-					$("#to > li > a[href=#INI]").addClass("disabled");
-					$("#to > li > a[href=#CSV]").addClass("disabled");
-					$("#to > li > a[href=#CEF]").addClass("disabled");
-					$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+					$("#to-containers > li > a[href=#INI]").addClass("disabled");
+					$("#to-containers > li > a[href=#CSV]").addClass("disabled");
+					$("#to-containers > li > a[href=#CEF]").addClass("disabled");
+					$("#to-containers > li > a[href=#SYSLOG]").addClass("disabled");
 					// Получаем активный элемент
-					switch($("#to > li > a.active").text()){
+					switch($("#to-containers > li > a.active").text()){
 						// Если ковертер выбран INI
 						case "INI":
 						// Если ковертер выбран CSV
@@ -252,7 +515,7 @@
 						// Если ковертер выбран SYSLOG
 						case "SYSLOG":
 							// Переключаем на вкладку по умолчанию
-							$("#to > li > a[href=#JSON]").click();
+							$("#to-containers > li > a[href=#JSON]").click();
 						break;
 					}
 					// Устанавливаем событие на текстовое поле ввода регулярного адреса
@@ -326,86 +589,86 @@
 						// Если ковертер выбран XML
 						case "XML": {
 							// Активируем подсветку синтаксиса
-							fromEditor.setOption("mode", "xml");
+							fromEditorContainers.setOption("mode", "xml");
 							// Активируем вывод номеров строк
-							fromEditor.setOption("lineNumbers", true);
+							fromEditorContainers.setOption("lineNumbers", true);
 							// Выполняем отключение переноса строк
-							fromEditor.setOption("lineWrapping", false);
+							fromEditorContainers.setOption("lineWrapping", false);
 							// Если заголовок CSV не активен
-							if($("#to > li > a[href=#CSV]").hasClass("active"))
+							if($("#to-containers > li > a[href=#CSV]").hasClass("active"))
 								// Отображаем переключатель вывода заголовков
 								$("#csv-header").parent().removeClass("hidden");
 							// Скрываем переключатель формирования заголовков
 							else $("#csv-header").parent().addClass("hidden");
 							// Блокируем вкладку конвертера
-							$("#to > li > a[href=#CSV]").addClass("disabled");
-							$("#to > li > a[href=#CEF]").addClass("disabled");
-							$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+							$("#to-containers > li > a[href=#CSV]").addClass("disabled");
+							$("#to-containers > li > a[href=#CEF]").addClass("disabled");
+							$("#to-containers > li > a[href=#SYSLOG]").addClass("disabled");
 							// Снимаем блокировку вкладки конвертера
-							$("#to > li > a[href=#INI]").removeClass("disabled");
+							$("#to-containers > li > a[href=#INI]").removeClass("disabled");
 						} break;
 						// Если ковертер выбран JSON
 						case "JSON": {
 							// Активируем подсветку синтаксиса
-							fromEditor.setOption("mode", "javascript");
+							fromEditorContainers.setOption("mode", "javascript");
 							// Активируем вывод номеров строк
-							fromEditor.setOption("lineNumbers", true);
+							fromEditorContainers.setOption("lineNumbers", true);
 							// Выполняем отключение переноса строк
-							fromEditor.setOption("lineWrapping", false);
+							fromEditorContainers.setOption("lineWrapping", false);
 							// Если заголовок CSV не активен
-							if($("#to > li > a[href=#CSV]").hasClass("active"))
+							if($("#to-containers > li > a[href=#CSV]").hasClass("active"))
 								// Отображаем переключатель вывода заголовков
 								$("#csv-header").parent().removeClass("hidden");
 							// Скрываем переключатель формирования заголовков
 							else $("#csv-header").parent().addClass("hidden");
 							// Снимаем блокировку вкладки конвертера
-							$("#to > li > a[href=#INI]").removeClass("disabled");
-							$("#to > li > a[href=#CSV]").removeClass("disabled");
-							$("#to > li > a[href=#CEF]").removeClass("disabled");
-							$("#to > li > a[href=#SYSLOG]").removeClass("disabled");
+							$("#to-containers > li > a[href=#INI]").removeClass("disabled");
+							$("#to-containers > li > a[href=#CSV]").removeClass("disabled");
+							$("#to-containers > li > a[href=#CEF]").removeClass("disabled");
+							$("#to-containers > li > a[href=#SYSLOG]").removeClass("disabled");
 						} break;
 						// Если ковертер выбран YAML
 						case "YAML": {
 							// Активируем подсветку синтаксиса
-							fromEditor.setOption("mode", "yaml");
+							fromEditorContainers.setOption("mode", "yaml");
 							// Активируем вывод номеров строк
-							fromEditor.setOption("lineNumbers", true);
+							fromEditorContainers.setOption("lineNumbers", true);
 							// Выполняем отключение переноса строк
-							fromEditor.setOption("lineWrapping", false);
+							fromEditorContainers.setOption("lineWrapping", false);
 							// Если заголовок CSV не активен
-							if($("#to > li > a[href=#CSV]").hasClass("active"))
+							if($("#to-containers > li > a[href=#CSV]").hasClass("active"))
 								// Отображаем переключатель вывода заголовков
 								$("#csv-header").parent().removeClass("hidden");
 							// Скрываем переключатель формирования заголовков
 							else $("#csv-header").parent().addClass("hidden");
 							// Снимаем блокировку вкладки конвертера
-							$("#to > li > a[href=#INI]").removeClass("disabled");
-							$("#to > li > a[href=#CSV]").removeClass("disabled");
-							$("#to > li > a[href=#CEF]").removeClass("disabled");
-							$("#to > li > a[href=#SYSLOG]").removeClass("disabled");
+							$("#to-containers > li > a[href=#INI]").removeClass("disabled");
+							$("#to-containers > li > a[href=#CSV]").removeClass("disabled");
+							$("#to-containers > li > a[href=#CEF]").removeClass("disabled");
+							$("#to-containers > li > a[href=#SYSLOG]").removeClass("disabled");
 						} break;
 						// Если ковертер выбран INI
 						case "INI": {
 							// Активируем подсветку синтаксиса
-							fromEditor.setOption("mode", "toml");
+							fromEditorContainers.setOption("mode", "toml");
 							// Активируем вывод номеров строк
-							fromEditor.setOption("lineNumbers", true);
+							fromEditorContainers.setOption("lineNumbers", true);
 							// Выполняем подключение переноса строк
-							fromEditor.setOption("lineWrapping", true);
+							fromEditorContainers.setOption("lineWrapping", true);
 							// Если заголовок CSV не активен
-							if($("#to > li > a[href=#CSV]").hasClass("active"))
+							if($("#to-containers > li > a[href=#CSV]").hasClass("active"))
 								// Отображаем переключатель вывода заголовков
 								$("#csv-header").parent().removeClass("hidden");
 							// Скрываем переключатель формирования заголовков
 							else $("#csv-header").parent().addClass("hidden");
 							// Снимаем блокировку вкладки конвертера
-							$("#to > li > a[href=#INI]").removeClass("disabled");
+							$("#to-containers > li > a[href=#INI]").removeClass("disabled");
 							// Блокируем вкладку конвертера
-							$("#to > li > a[href=#CSV]").addClass("disabled");
-							$("#to > li > a[href=#CEF]").addClass("disabled");
-							$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+							$("#to-containers > li > a[href=#CSV]").addClass("disabled");
+							$("#to-containers > li > a[href=#CEF]").addClass("disabled");
+							$("#to-containers > li > a[href=#SYSLOG]").addClass("disabled");
 							// Получаем активный элемент
-							switch($("#to > li > a.active").text()){
+							switch($("#to-containers > li > a.active").text()){
 								// Если ковертер выбран CSV
 								case "CSV":
 								// Если ковертер выбран CEF
@@ -413,28 +676,28 @@
 								// Если ковертер выбран SYSLOG
 								case "SYSLOG":
 									// Переключаем на вкладку по умолчанию
-									$("#to > li > a[href=#JSON]").click();
+									$("#to-containers > li > a[href=#JSON]").click();
 								break;
 							}
 						} break;
 						// Если ковертер выбран CSV
 						case "CSV": {
 							// Активируем подсветку синтаксиса
-							fromEditor.setOption("mode", "shell");
+							fromEditorContainers.setOption("mode", "shell");
 							// Активируем вывод номеров строк
-							fromEditor.setOption("lineNumbers", true);
+							fromEditorContainers.setOption("lineNumbers", true);
 							// Выполняем отключение переноса строк
-							fromEditor.setOption("lineWrapping", false);
+							fromEditorContainers.setOption("lineWrapping", false);
 							// Отображаем переключатель вывода заголовков
 							$("#csv-header").parent().removeClass("hidden");
 							// Снимаем блокировку вкладки конвертера
-							$("#to > li > a[href=#CSV]").removeClass("disabled");
+							$("#to-containers > li > a[href=#CSV]").removeClass("disabled");
 							// Блокируем вкладку конвертера
-							$("#to > li > a[href=#INI]").addClass("disabled");
-							$("#to > li > a[href=#CEF]").addClass("disabled");
-							$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+							$("#to-containers > li > a[href=#INI]").addClass("disabled");
+							$("#to-containers > li > a[href=#CEF]").addClass("disabled");
+							$("#to-containers > li > a[href=#SYSLOG]").addClass("disabled");
 							// Получаем активный элемент
-							switch($("#to > li > a.active").text()){
+							switch($("#to-containers > li > a.active").text()){
 								// Если ковертер выбран INI
 								case "INI":
 								// Если ковертер выбран CEF
@@ -442,31 +705,31 @@
 								// Если ковертер выбран SYSLOG
 								case "SYSLOG":
 									// Переключаем на вкладку по умолчанию
-									$("#to > li > a[href=#JSON]").click();
+									$("#to-containers > li > a[href=#JSON]").click();
 								break;
 							}
 						} break;
 						// Если ковертер выбран любой другой
 						default: {
 							// Активируем подсветку синтаксиса
-							fromEditor.setOption("mode", "shell");
+							fromEditorContainers.setOption("mode", "shell");
 							// Активируем вывод номеров строк
-							fromEditor.setOption("lineNumbers", false);
+							fromEditorContainers.setOption("lineNumbers", false);
 							// Выполняем подключение переноса строк
-							fromEditor.setOption("lineWrapping", true);
+							fromEditorContainers.setOption("lineWrapping", true);
 							// Если заголовок CSV не активен
-							if($("#to > li > a[href=#CSV]").hasClass("active"))
+							if($("#to-containers > li > a[href=#CSV]").hasClass("active"))
 								// Отображаем переключатель вывода заголовков
 								$("#csv-header").parent().removeClass("hidden");
 							// Скрываем переключатель формирования заголовков
 							else $("#csv-header").parent().addClass("hidden");
 							// Блокируем вкладку конвертера
-							$("#to > li > a[href=#INI]").addClass("disabled");
-							$("#to > li > a[href=#CSV]").addClass("disabled");
-							$("#to > li > a[href=#CEF]").addClass("disabled");
-							$("#to > li > a[href=#SYSLOG]").addClass("disabled");
+							$("#to-containers > li > a[href=#INI]").addClass("disabled");
+							$("#to-containers > li > a[href=#CSV]").addClass("disabled");
+							$("#to-containers > li > a[href=#CEF]").addClass("disabled");
+							$("#to-containers > li > a[href=#SYSLOG]").addClass("disabled");
 							// Получаем активный элемент
-							switch($("#to > li > a.active").text()){
+							switch($("#to-containers > li > a.active").text()){
 								// Если ковертер выбран INI
 								case "INI":
 								// Если ковертер выбран CSV
@@ -476,10 +739,10 @@
 								// Если ковертер выбран SYSLOG
 								case "SYSLOG":
 									// Переключаем на вкладку по умолчанию
-									$("#to > li > a[href=#JSON]").click();
+									$("#to-containers > li > a[href=#JSON]").click();
 								break;
 							}
-						} break;
+						}
 					}
 				}
 			}			
@@ -487,7 +750,7 @@
 			return false;
 		});
 		// Устанавливаем событие на перехват событий выбора формата в который нужно конвертировать
-		$("#to > li > a")
+		$("#to-containers > li > a")
 		.unbind('click')
 		.bind('click', function(){
 			// Снимаем флаг активации у уже активного элемента
@@ -499,23 +762,23 @@
 			.addClass("active")
 			.attr("aria-current", "page");
 			// Если текст для конвертации присутствует
-			if(fromEditor.getValue().length > 0)
+			if(fromEditorContainers.getValue().length > 0)
 				// Выполняем загрузку новых данных
-				$("#submit").click();
+				$("#submit-containers").click();
 			// Удаляем текст в текстовом окне
-			else toEditor.setValue("");
+			else toEditorContainers.setValue("");
 			// Определяем тип конвертера
 			switch($(this).text()){
 				// Если ковертер выбран XML
 				case "XML": {
 					// Активируем подсветку синтаксиса
-					toEditor.setOption("mode", "xml");
+					toEditorContainers.setOption("mode", "xml");
 					// Активируем вывод номеров строк
-					toEditor.setOption("lineNumbers", true);
+					toEditorContainers.setOption("lineNumbers", true);
 					// Отображаем переключатель вывода сформированного кода в читаемом виде
 					$("#prettify").parent().removeClass("hidden");
 					// Если заголовок CSV не активен
-					if($("#from > li > a[href=#CSV]").hasClass("active"))
+					if($("#from-containers > li > a[href=#CSV]").hasClass("active"))
 						// Отображаем переключатель вывода заголовков
 						$("#csv-header").parent().removeClass("hidden");
 					// Скрываем переключатель формирования заголовков
@@ -524,13 +787,13 @@
 				// Если ковертер выбран JSON
 				case "JSON": {
 					// Активируем подсветку синтаксиса
-					toEditor.setOption("mode", "javascript");
+					toEditorContainers.setOption("mode", "javascript");
 					// Активируем вывод номеров строк
-					toEditor.setOption("lineNumbers", true);
+					toEditorContainers.setOption("lineNumbers", true);
 					// Отображаем переключатель вывода сформированного кода в читаемом виде
 					$("#prettify").parent().removeClass("hidden");
 					// Если заголовок CSV не активен
-					if($("#from > li > a[href=#CSV]").hasClass("active"))
+					if($("#from-containers > li > a[href=#CSV]").hasClass("active"))
 						// Отображаем переключатель вывода заголовков
 						$("#csv-header").parent().removeClass("hidden");
 					// Скрываем переключатель формирования заголовков
@@ -539,13 +802,13 @@
 				// Если ковертер выбран YAML
 				case "YAML": {
 					// Активируем подсветку синтаксиса
-					toEditor.setOption("mode", "yaml");
+					toEditorContainers.setOption("mode", "yaml");
 					// Активируем вывод номеров строк
-					toEditor.setOption("lineNumbers", true);
+					toEditorContainers.setOption("lineNumbers", true);
 					// Скрываем переключатель вывода сформированного кода в читаемом виде
 					$("#prettify").parent().addClass("hidden");
 					// Если заголовок CSV не активен
-					if($("#from > li >a[href=#CSV]").hasClass("active"))
+					if($("#from-containers > li >a[href=#CSV]").hasClass("active"))
 						// Отображаем переключатель вывода заголовков
 						$("#csv-header").parent().removeClass("hidden");
 					// Скрываем переключатель формирования заголовков
@@ -554,15 +817,15 @@
 				// Если ковертер выбран INI
 				case "INI": {
 					// Активируем подсветку синтаксиса
-					toEditor.setOption("mode", "toml");
+					toEditorContainers.setOption("mode", "toml");
 					// Активируем вывод номеров строк
-					toEditor.setOption("lineNumbers", true);
+					toEditorContainers.setOption("lineNumbers", true);
 					// Выполняем подключение переноса строк
-					toEditor.setOption("lineWrapping", true);
+					toEditorContainers.setOption("lineWrapping", true);
 					// Скрываем переключатель вывода сформированного кода в читаемом виде
 					$("#prettify").parent().addClass("hidden");
 					// Если заголовок CSV не активен
-					if($("#from > li > a[href=#CSV]").hasClass("active"))
+					if($("#from-containers > li > a[href=#CSV]").hasClass("active"))
 						// Отображаем переключатель вывода заголовков
 						$("#csv-header").parent().removeClass("hidden");
 					// Скрываем переключатель формирования заголовков
@@ -571,9 +834,9 @@
 				// Если ковертер выбран CSV
 				case "CSV": {
 					// Активируем подсветку синтаксиса
-					toEditor.setOption("mode", "shell");
+					toEditorContainers.setOption("mode", "shell");
 					// Активируем вывод номеров строк
-					toEditor.setOption("lineNumbers", true);
+					toEditorContainers.setOption("lineNumbers", true);
 					// Скрываем переключатель вывода сформированного кода в читаемом виде
 					$("#prettify").parent().addClass("hidden");
 					// Отображаем переключатель вывода заголовков
@@ -582,20 +845,20 @@
 				// Если ковертер выбран любой другой
 				default: {
 					// Активируем подсветку синтаксиса
-					toEditor.setOption("mode", "shell");
+					toEditorContainers.setOption("mode", "shell");
 					// Активируем вывод номеров строк
-					toEditor.setOption("lineNumbers", false);
+					toEditorContainers.setOption("lineNumbers", false);
 					// Выполняем подключение переноса строк
-					toEditor.setOption("lineWrapping", true);
+					toEditorContainers.setOption("lineWrapping", true);
 					// Скрываем переключатель вывода сформированного кода в читаемом виде
 					$("#prettify").parent().addClass("hidden");
 					// Если заголовок CSV не активен
-					if($("#from > li > a[href=#CSV]").hasClass("active"))
+					if($("#from-containers > li > a[href=#CSV]").hasClass("active"))
 						// Отображаем переключатель вывода заголовков
 						$("#csv-header").parent().removeClass("hidden");
 					// Скрываем переключатель формирования заголовков
 					else $("#csv-header").parent().addClass("hidden");
-				} break;
+				}
 			}
 			// Запрещаем дальнейшие действия для ссылки
 			return false;

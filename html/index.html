@@ -104,126 +104,227 @@
 			<!-- Шапка сайта КОНЕЦ -->
 			<!-- Контейнер сайта НАЧАЛО -->
 			<section id="container" class="no_left no_right">
-				<!-- Контент сайта НАЧАЛО -->			
+				<!-- Контент сайта НАЧАЛО -->
 				<article id="content" class="column">
 					<!-- Блок текстовых полей НАЧАЛО -->
 					<div class="wrap" id="formatter">
 						<div class="block">
-							<!-- Кнопка переключателя НАЧАЛО -->
-							<div class="form-check form-switch" style="float: left; padding-right: 20px;">
-								<input class="form-check-input" type="checkbox" role="switch" id="prettify">
-								<label class="form-check-label" for="prettify">Prettify</label>
-							</div>
-							<!-- Кнопка переключателя КОНЕЦ -->
-							<!-- Кнопка переключателя НАЧАЛО -->
-							<div class="form-check form-switch hidden" style="float: left; padding-right: 60px;">
-								<input class="form-check-input" type="checkbox" role="switch" id="csv-header">
-								<label class="form-check-label" for="csv-header">Header</label>
-							</div>
-							<!-- Кнопка переключателя КОНЕЦ -->
-							<!-- Кнопка отправки запроса НАЧАЛО -->
-							<div class="button d-grid gap-2 d-md-flex justify-content-md-end">
-								<button type="button" class="btn btn-success" id="submit">Конвертировать</button>
-							</div>
-							<!-- Кнопка отправки запроса КОНЕЦ -->
-							<!-- Блок ввода регулярного выражения GROK НАЧАЛО -->
-							<div class="mb-3 hidden">
-								<!-- Текстовое поле регулярного выражения GROK НАЧАЛО -->
-								<input type="text" class="form-control" id="grok-expression" placeholder="GROK Expression">
-								<!-- Текстовое поле регулярного выражения GROK КОНЕЦ -->
-								<!-- Кнопка очистки поля НАЧАЛО -->
-								<button type="button" class="btn-close hidden" aria-label="Close"></button>
-								<!-- Кнопка очистки поля КОНЕЦ -->
-							</div>
-							<!-- Блок ввода регулярного выражения GROK КОНЕЦ -->
-							<!-- Блоки текстовых полей НАЧАЛО -->
-							<div class="row row-cols-1 row-cols-md-2 mb-2">
-								<div class="col">
-									<div class="card mb-4 rounded-2 shadow-sm">
-										<div class="card">
-											<!-- Блок выбора форматов НАЧАЛО -->
-											<ul class="nav nav-underline" id="from">
-												<li class="nav-item">
-													<a class="nav-link active" aria-current="page" href="#XML">XML</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#JSON">JSON</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#YAML">YAML</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#INI">INI</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#CSV">CSV</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#CEF">CEF</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#GROK">GROK</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#SYSLOG">SYSLOG</a>
-												</li>
-											</ul>
-											<!-- Блок выбора форматов КОНЕЦ -->
-											<div class="card-body" id="code-editor-from"></div>
-											<!-- Кнопка очистки поля НАЧАЛО -->
-											<button type="button" class="btn-close hidden" aria-label="Close"></button>
-											<!-- Кнопка очистки поля КОНЕЦ -->
-										</div>
-									</div>
+							<div class="card">
+								<!-- Блок табов НАЧАЛО -->
+								<div class="card-header text-center">
+									<ul class="nav nav-tabs card-header-tabs">
+										<li class="nav-item">
+											<a class="nav-link active" aria-current="true" href="#containers">Контейнеры</a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link" aria-current="true" href="#hashing">Хеширование</a>
+										</li>
+									</ul>
 								</div>
-								<div class="col">
-									<div class="card mb-4 rounded-2 shadow-sm">
-										<div class="card">
-											<!-- Блок выбора форматов НАЧАЛО -->
-											<ul class="nav nav-underline" id="to">
-												<li class="nav-item">
-													<a class="nav-link" href="#XML">XML</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link active" aria-current="page" href="#JSON">JSON</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#YAML">YAML</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" href="#INI">INI</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link disabled" href="#CSV">CSV</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link disabled" href="#CEF">CEF</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link disabled" href="#SYSLOG">SYSLOG</a>
-												</li>
-											</ul>
-											<!-- Блок выбора форматов КОНЕЦ -->
-											<div class="card-body" id="code-editor-to"></div>
-											<!-- Блок спиннера загрузки НАЧАЛО -->
-											<div class="spinner-border text-success hidden" role="status" id="spinner">
-												<span class="visually-hidden">Loading...</span>
+								<!-- Блок табов КОНЕЦ -->
+								<!-- Блок работы с контейнерами НАЧАЛО -->
+								<div class="card-body" id="containers">
+									<!-- Кнопка переключателя НАЧАЛО -->
+									<div class="form-check form-switch" style="float: left; padding-right: 20px;">
+										<input class="form-check-input" type="checkbox" role="switch" id="prettify">
+										<label class="form-check-label" for="prettify">Prettify</label>
+									</div>
+									<!-- Кнопка переключателя КОНЕЦ -->
+									<!-- Кнопка переключателя НАЧАЛО -->
+									<div class="form-check form-switch hidden" style="float: left; padding-right: 60px;">
+										<input class="form-check-input" type="checkbox" role="switch" id="csv-header">
+										<label class="form-check-label" for="csv-header">Header</label>
+									</div>
+									<!-- Кнопка переключателя КОНЕЦ -->
+									<!-- Кнопка отправки запроса НАЧАЛО -->
+									<div class="button d-grid gap-2 d-md-flex justify-content-md-end">
+										<button type="button" class="btn btn-success" id="submit-containers">Конвертировать</button>
+									</div>
+									<!-- Кнопка отправки запроса КОНЕЦ -->
+									<!-- Блок ввода регулярного выражения GROK НАЧАЛО -->
+									<div class="mb-3 hidden">
+										<!-- Текстовое поле регулярного выражения GROK НАЧАЛО -->
+										<input type="text" class="form-control" id="grok-expression" placeholder="GROK Expression">
+										<!-- Текстовое поле регулярного выражения GROK КОНЕЦ -->
+										<!-- Кнопка очистки поля НАЧАЛО -->
+										<button type="button" class="btn-close hidden" aria-label="Close"></button>
+										<!-- Кнопка очистки поля КОНЕЦ -->
+									</div>
+									<!-- Блок ввода регулярного выражения GROK КОНЕЦ -->
+									<!-- Блоки текстовых полей НАЧАЛО -->
+									<div class="row row-cols-1 row-cols-md-2 mb-2">
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="from-containers">
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#XML">XML</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#JSON">JSON</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#YAML">YAML</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#INI">INI</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#CSV">CSV</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#CEF">CEF</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#GROK">GROK</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#SYSLOG">SYSLOG</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-from-containers"></div>
+													<!-- Кнопка очистки поля НАЧАЛО -->
+													<button type="button" class="btn-close hidden" aria-label="Close"></button>
+													<!-- Кнопка очистки поля КОНЕЦ -->
+												</div>
 											</div>
-											<!-- Блок спиннера загрузки КОНЕЦ -->
+										</div>
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="to-containers">
+														<li class="nav-item">
+															<a class="nav-link" href="#XML">XML</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#JSON">JSON</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#YAML">YAML</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#INI">INI</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link disabled" href="#CSV">CSV</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link disabled" href="#CEF">CEF</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link disabled" href="#SYSLOG">SYSLOG</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-to-containers"></div>
+													<!-- Блок спиннера загрузки НАЧАЛО -->
+													<div class="spinner-border text-success hidden" role="status" id="spinner">
+														<span class="visually-hidden">Loading...</span>
+													</div>
+													<!-- Блок спиннера загрузки КОНЕЦ -->
+												</div>
+											</div>
 										</div>
 									</div>
+									<!-- Блоки текстовых полей КОНЕЦ -->
+									<!-- Блок подсветки синтаксиса шаблонов GROK НАЧАЛО -->
+									<div class="card hidden" id="grok-template">
+										<div class="card-header"><strong>GROK Templates (JSON)</strong></div>
+										<div class="card-body" id="code-editor-grok"></div>
+										<!-- Кнопка очистки поля НАЧАЛО -->
+										<button type="button" class="btn-close hidden" aria-label="Close"></button>
+										<!-- Кнопка очистки поля КОНЕЦ -->
+									</div>
+									<!-- Блок подсветки синтаксиса шаблонов GROK КОНЕЦ -->
 								</div>
+								<!-- Блок работы с контейнерами КОНЕЦ -->
+								<!-- Блок работы с контейнерами НАЧАЛО -->
+								<div class="card-body hidden" id="hashing">
+									<!-- Кнопка отправки запроса НАЧАЛО -->
+									<div class="button d-grid gap-2 d-md-flex justify-content-md-end">
+										<button type="button" class="btn btn-success" id="submit-hashing">Хешировать</button>
+									</div>
+									<!-- Кнопка отправки запроса КОНЕЦ -->
+									<!-- Блок ввода регулярного выражения HMAC НАЧАЛО -->
+									<div class="mb-3 hidden">
+										<!-- Текстовое поле регулярного выражения HMAC НАЧАЛО -->
+										<input type="text" class="form-control" id="hmac-key" placeholder="HMAC key">
+										<!-- Текстовое поле регулярного выражения HMAC КОНЕЦ -->
+										<!-- Кнопка очистки поля НАЧАЛО -->
+										<button type="button" class="btn-close hidden" aria-label="Close"></button>
+										<!-- Кнопка очистки поля КОНЕЦ -->
+									</div>
+									<!-- Блок ввода регулярного выражения HMAC КОНЕЦ -->
+									<!-- Блоки текстовых полей НАЧАЛО -->
+									<div class="row row-cols-1 row-cols-md-2 mb-2">
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="from-hashing">
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#TEXT">TEXT</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#BASE64">BASE64</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-from-hashing"></div>
+													<!-- Кнопка очистки поля НАЧАЛО -->
+													<button type="button" class="btn-close hidden" aria-label="Close"></button>
+													<!-- Кнопка очистки поля КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="to-hashing">
+														<li class="nav-item">
+															<a class="nav-link" href="#TEXT">TEXT</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#BASE64">BASE64</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#MD5">MD5</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#SHA1">SHA1</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#SHA224">SHA224</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#SHA256">SHA256</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#SHA384">SHA384</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#SHA512">SHA512</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-to-hashing"></div>
+													<!-- Блок спиннера загрузки НАЧАЛО -->
+													<div class="spinner-border text-success hidden" role="status" id="spinner">
+														<span class="visually-hidden">Loading...</span>
+													</div>
+													<!-- Блок спиннера загрузки КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+									</div>
+									<!-- Блоки текстовых полей КОНЕЦ -->
+								</div>
+								<!-- Блок работы с контейнерами КОНЕЦ -->
 							</div>
-							<!-- Блоки текстовых полей КОНЕЦ -->
-							<!-- Блок подсветки синтаксиса шаблонов GROK НАЧАЛО -->
-							<div class="card hidden" id="grok-template">
-								<div class="card-header"><strong>GROK Templates (JSON)</strong></div>
-								<div class="card-body" id="code-editor-grok"></div>
-								<!-- Кнопка очистки поля НАЧАЛО -->
-								<button type="button" class="btn-close hidden" aria-label="Close"></button>
-								<!-- Кнопка очистки поля КОНЕЦ -->
-							</div>
-							<!-- Блок подсветки синтаксиса шаблонов GROK КОНЕЦ -->
 						</div>
 					</div>
 					<!-- Блок текстовых полей КОНЕЦ -->

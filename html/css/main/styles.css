@@ -106,11 +106,12 @@
 	position:	relative;
 	display:	block;
 }
-#body #container #content .wrap .block > .mb-3 > input {
+#body #container #content .wrap .block .card-body .mb-3 {position: relative;}
+#body #container #content .wrap .block .card-body .mb-3 > input {
 	font-size:		.8em;
 	padding-right:	45px;
 }
-#body #container #content .wrap .block > .mb-3 > .btn-close {
+#body #container #content .wrap .block .card-body .mb-3 > .btn-close {
 	position:	absolute;
 	top:		5px;
 	right:		5px;
@@ -134,9 +135,9 @@
 #body #container #content .wrap .block
 .CodeMirror pre.CodeMirror-line,
 #body #container #content .wrap .block
-.CodeMirror pre.CodeMirror-line-like {
-	font-size: small;
-}
+.CodeMirror pre.CodeMirror-line-like {font-size: small;}
+#body #container #content
+.nav-underline .nav-link {--bs-nav-link-font-size: 10px;}
 /* Основной контент */
 #body #container #content p {
 	position:		relative;
