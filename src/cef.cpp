@@ -2467,7 +2467,7 @@ anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
 		{"destinationTranslatedZoneExternalID", "destination TranslatedZoneExternalID"}
 	};
 	// Выполняем сборку регулярных выражений для извлечения параметров расширений
-	this->_exp = this->_reg.build(R"(([\w\-]+)=(?:\"([^=]*|(?:[^=]+\\\=[^=]+)+)\"|([^=]*|(?:[^=]+\\\=[^=]+)+))(?:\s+[\w\-]+=|\s*$))", {
+	this->_exp = this->_reg.build(R"(([\w\-]+)=(?:\"([^\"]+)\"|([^=]*|(?:[^=]+\\\=[^=]+)+))(?:\s+[\w\-]+=|\s*$))", {
 		regexp_t::option_t::UTF8,
 		regexp_t::option_t::UCP
 	});

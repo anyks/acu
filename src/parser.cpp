@@ -1429,6 +1429,115 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 		 * Выполняем отлов ошибок
 		 */
 		try {
+			/**
+			 * Symbol Структура поиска запрещённого символа
+			 */
+			typedef struct Symbol {
+				// Позиция символа для замены
+				size_t pos;
+				// Текст замены
+				string val;
+				/**
+				 * Symbol Конструктор
+				 */
+				Symbol() noexcept : pos(string::npos), val{""} {}
+			} symbol_t;
+			/**
+			 * findSymbolFn Функция поиска запрещённого символа
+			 * @param text текст для поиска
+			 * @param pos  начальная позиция поиска
+			 * @return     позиция найденного символа
+			 */
+			auto findSymbolFn = [](const string & text, const size_t pos = 0) noexcept -> symbol_t {
+				// Результат работы функции
+				symbol_t result;
+				// Если текст для парсинга передан
+				if(!text.empty()){
+					// Перебираем полученный текст
+					for(size_t i = pos; i < text.length(); i++){
+						// Выполняем проверку символа
+						switch(text.at(i)){
+							// Если найден символ кавычка
+							case '"': {
+								// Устанавливаем позицию символа
+								result.pos = i;
+								// Устанавливаем текст для замены
+								result.val = "&quot;";
+								// Выводим результат
+								return result;
+							}
+							// Если найден символ апострофа
+							case '\'': {
+								// Устанавливаем позицию символа
+								result.pos = i;
+								// Устанавливаем текст для замены
+								result.val = "&apos;";
+								// Выводим результат
+								return result;
+							}
+							// Если найден символ знака меньше
+							case '<': {
+								// Устанавливаем позицию символа
+								result.pos = i;
+								// Устанавливаем текст для замены
+								result.val = "&lt;";
+								// Выводим результат
+								return result;
+							}
+							// Если найден символ знака больше
+							case '>': {
+								// Устанавливаем позицию символа
+								result.pos = i;
+								// Устанавливаем текст для замены
+								result.val = "&gt;";
+								// Выводим результат
+								return result;
+							}
+							// Если найден символ знака амперсанда
+							case '&': {
+								// Устанавливаем позицию символа
+								result.pos = i;
+								// Устанавливаем текст для замены
+								result.val = "&amp;";
+								// Выводим результат
+								return result;
+							}
+						}
+					}
+				}
+				// Выводим результат
+				return result;
+			};
+			/**
+			 * removeBracketsFn Метод удаления скобок
+			 * @param text текст в котором следует удалить скобки
+			 */
+			auto removeBracketsFn = [&findSymbolFn](const string & text) noexcept -> string {
+				// Результат работы функции
+				string result = text;
+				// Если текст для обработки передан
+				if(!result.empty()){
+					// Позиция скобки в тексте
+					symbol_t symbol;
+					// Устанавливаем начальную позицию поиска
+					symbol.pos = 0;
+					// Флаг начала извлечения всего списка переменных
+					Process:
+					// Выполняем поиск скобки в тексте
+					symbol = findSymbolFn(result, symbol.pos);
+					// Если позиция скобки в тексте найдена
+					if(symbol.pos != string::npos){
+						// Выполняем замену в тексте скобки
+						result.replace(symbol.pos, 1, symbol.val);
+						// Увеличиваем текущую позицию
+						symbol.pos += symbol.val.length();
+						// Выполняем поиск скобок дальше
+						goto Process;
+					}
+				}
+				// Выводим полученный результат
+				return result;
+			};
 			// Результат работы функции
 			result = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
 			// Если разрешено выполнять разложение XML-объекта
@@ -1448,7 +1557,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 			 * @param node объект текущей ноды
 			 * @param tabs количество отступов
 			 */
-			parseFn = [pretty, &parseFn, this](string & root, const nlohmann::json & node, const uint16_t tabs) -> void {
+			parseFn = [pretty, &parseFn, &removeBracketsFn, this](string & root, const nlohmann::json & node, const uint16_t tabs) -> void {
 				// Создаём объект результата
 				string result = "";
 				// Выполняем перебор всего объекта
@@ -1510,7 +1619,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем закрытие тега
 						result.append(1, '>');
 						// Выполняем установку строки
-						result.append(el.value().get <string> ());
+						result.append(removeBracketsFn(el.value().get <string> ()));
 						// Выполняем закрытие тега
 						result.append("</");
 						// Выполняем установку тега
@@ -1658,7 +1767,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 										// Если значение является строкой
 										} else if(item.value().is_string()) {
 											// Выполняем установку полученного значения
-											value = item.value().get <string> ();
+											value = removeBracketsFn(item.value().get <string> ());
 											// Продолжаем дальше
 											continue;
 										// Если значение является булевым значением
@@ -1709,7 +1818,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Выполняем добавление знака присвоения
 									result.append("=\"");
 									// Выполняем добавление значения
-									result.append(item.value().get <string> ());
+									result.append(removeBracketsFn(item.value().get <string> ()));
 									// Выполняем добавление экранирование параметра
 									result.append(1, '"');
 								// Если значение является булевым значением
@@ -1864,7 +1973,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем закрытие тега
 								result.append(1, '>');
 								// Выполняем установку строки
-								result.append(item.get <string> ());
+								result.append(removeBracketsFn(item.get <string> ()));
 								// Выполняем закрытие тега
 								result.append("</");
 								// Выполняем установку тега
@@ -2001,7 +2110,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 												// Если значение является строкой
 												} else if(el.value().is_string()) {
 													// Выполняем установку полученного значения
-													value = el.value().get <string> ();
+													value = removeBracketsFn(el.value().get <string> ());
 													// Продолжаем дальше
 													continue;
 												// Если значение является булевым значением
@@ -2052,7 +2161,7 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 											// Выполняем добавление знака присвоения
 											result.append("=\"");
 											// Выполняем добавление значения
-											result.append(el.value().get <string> ());
+											result.append(removeBracketsFn(el.value().get <string> ()));
 											// Выполняем добавление экранирование параметра
 											result.append(1, '"');
 										// Если значение является булевым значением
