@@ -222,15 +222,20 @@
 							switch($(this).text()){
 								// Если ковертер выбран BASE64
 								case "BASE64": {
+									// Выполняем включение переноса строк
+									fromEditorHashing.setOption("lineWrapping", true);
 									// Переключаем на вкладку по умолчанию
 									$("#to-hashing > li > a[href=#TEXT]").click();
 									// Блокируем вкладку конвертера
 									$("#to-hashing > li > a[href=#BASE64]").addClass("disabled");
 								} break;
 								// Если активирован любой другой конвертер
-								default:
+								default: {
+									// Выполняем отключение переноса строк
+									fromEditorHashing.setOption("lineWrapping", false);
 									// Разблокируем вкладку конвертера
 									$("#to-hashing > li > a[href=#BASE64]").removeClass("disabled");
+								}
 							}
 						}			
 						// Запрещаем дальнейшие действия для ссылки
@@ -267,14 +272,26 @@
 							// Если ковертер выбран SHA384
 							case "SHA384":
 							// Если ковертер выбран SHA512
-							case "SHA512":
+							case "SHA512": {
 								// Отображаем текстовое поле HMAC ключа
 								$("#hmac-key").parent().removeClass("hidden");
-							break;
-							// Если ковертер выбран любой другой
-							default:
+								// Выполняем включение переноса строк
+								toEditorHashing.setOption("lineWrapping", true);
+							} break;
+							// Если ковертер выбран BASE64
+							case "BASE64": {
 								// Скрываем текстовое поле HMAC ключа
 								$("#hmac-key").parent().addClass("hidden");
+								// Выполняем включение переноса строк
+								toEditorHashing.setOption("lineWrapping", true);
+							} break;
+							// Если ковертер выбран любой другой
+							default: {
+								// Скрываем текстовое поле HMAC ключа
+								$("#hmac-key").parent().addClass("hidden");
+								// Выполняем отключение переноса строк
+								toEditorHashing.setOption("lineWrapping", false);
+							}
 						}
 						// Запрещаем дальнейшие действия для ссылки
 						return false;
