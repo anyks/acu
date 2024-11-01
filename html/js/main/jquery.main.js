@@ -76,7 +76,7 @@
 						mode: 'shell',
 						theme: 'eclipse',
 						lineNumbers: false,
-						lineWrapping: true
+						lineWrapping: false
 					});
 					// Выполняем инициализацию блока подсветки синтаксиса для редактора формата в который производится конвертация
 					toEditorHashing = CodeMirror(document.getElementById('code-editor-to-hashing'), {
