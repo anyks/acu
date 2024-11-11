@@ -370,6 +370,27 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			formatDate = env.get("formatDate", true);
 		// Устанавливаем формат вывода даты
 		log.format(formatDate);
+		// Если адрес файла лога передан
+		if(env.isString("log")){
+			// Получаем адрес файла лога
+			const string & filename = env.get("log");
+			// Если адрес файла лога получен
+			if(!filename.empty()){
+				// Позиция разделителя каталога
+				size_t pos = 0;
+				// Выполняем поиск разделителя каталога
+				if((pos = string(filename).rfind(FS_SEPARATOR)) != string::npos){
+					// Извлекаем путь сохранения файла лога
+					const string & path = fs.realPath(filename.substr(0, pos));
+					// Если путь для сохранения каталога не существует
+					if(!path.empty() && !fs.isDir(path))
+						// Выполняем создание адреса каталога
+						fs.makePath(path);
+				}
+				// Устанавливаем адрес файла лога
+				log.filename(fs.realPath(filename));
+			}
+		}
 		// Если нужно вывести справочную помощь
 		if(!env.size() || (env.is("info") || env.is("H"))){
 			// Выполняем установку конфига
