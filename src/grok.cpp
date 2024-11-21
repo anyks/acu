@@ -708,15 +708,6 @@ uint64_t anyks::Grok::build(string & text, const bool pure) const noexcept {
 		try {
 			// Выполняем генерацию идентификатора кэша
 			result = CityHash64(text.c_str(), text.size());
-			// Выполняем поиск запись в кэше
-			auto i = this->_cache.find(result);
-			// Если в кэше найдена запись
-			if(i != this->_cache.end()){
-				// Выполняем установку регулярное выражение
-				text = i->second->expression;
-				// Выводим идентификатор записи в кэше
-				return result;
-			}
 			// Если нам не нужно собирать чистое регулярное выражение
 			if(!pure)
 				// Выполняем удаление лишних скобок
@@ -780,8 +771,16 @@ uint64_t anyks::Grok::build(string & text, const bool pure) const noexcept {
 					// Выполняем добавление переменной
 					this->_variables.push(var.first, var.second);
 			}
+			// Выполняем поиск запись в кэше
+			auto i = this->_cache.find(result);
+			// Если в кэше найдена запись
+			if(i != this->_cache.end()){
+				// Выполняем установку регулярное выражение
+				text = i->second->expression;
+				// Выводим идентификатор записи в кэше
+				return result;
 			// Если текст регулярного выражения сформирован верно
-			if(!pure && !text.empty()){
+			} else if(!pure && !text.empty()) {
 				// Выполняем блокировку потока
 				this->_mtx.cache.lock();
 				// Выполняем создании записи кэша
