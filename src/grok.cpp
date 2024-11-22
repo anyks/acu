@@ -85,17 +85,17 @@ string anyks::Grok::Variable::get(const string & text, const uint8_t index) noex
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & e) {
+		} catch(const std::exception & error) {
 			// Формируем полученную ошибку
-			string error = e.what();
+			string message = error.what();
 			// Добавляем описание
-			error.append(". Input text [");
+			message.append(". Input text [");
 			// Добавляем переданный текст
-			error.append(text);
+			message.append(text);
 			// Добавляем завершение строки
-			error.append(1, ']');
+			message.append(1, ']');
 			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
+			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
 		}
 	// Выполняем сброс параметров объекта
 	} else this->reset();
@@ -574,17 +574,17 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & e) {
+		} catch(const std::exception & error) {
 			// Формируем полученную ошибку
-			string error = e.what();
+			string message = error.what();
 			// Добавляем описание
-			error.append(". Input text [");
+			message.append(". Input text [");
 			// Добавляем переданный текст
-			error.append(text);
+			message.append(text);
 			// Добавляем завершение строки
-			error.append(1, ']');
+			message.append(1, ']');
 			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
+			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
 		}
 	}
 	// Выводим результат
@@ -675,17 +675,17 @@ bool anyks::Grok::parse(const string & text, const string & rule) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & e) {
+		} catch(const std::exception & error) {
 			// Формируем полученную ошибку
-			string error = e.what();
+			string message = error.what();
 			// Добавляем описание
-			error.append(". Input text [");
+			message.append(". Input text [");
 			// Добавляем переданный текст
-			error.append(text);
+			message.append(text);
 			// Добавляем завершение строки
-			error.append(1, ']');
+			message.append(1, ']');
 			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
+			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
 		}
 	}
 	// Выводим результат
@@ -827,17 +827,17 @@ uint64_t anyks::Grok::build(string & text, const bool pure) const noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & e) {
+		} catch(const std::exception & error) {
 			// Формируем полученную ошибку
-			string error = e.what();
+			string message = error.what();
 			// Добавляем описание
-			error.append(". Input text [");
+			message.append(". Input text [");
 			// Добавляем переданный текст
-			error.append(text);
+			message.append(text);
 			// Добавляем завершение строки
-			error.append(1, ']');
+			message.append(1, ']');
 			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
+			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
 		}
 	}
 	// Выводим результат
@@ -856,20 +856,60 @@ json anyks::Grok::dump() const noexcept {
 		for(auto & item : this->_mapping){
 			// Если результат получен в виде обычного числа
 			if(this->_fmk->is(item.second, fmk_t::check_t::NUMBER)){
-				// Получаем переданное число
-				const long long number = std::stoll(item.second);
-				// Если число положительное
-				if(number > 0)
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Если число положительное
+					if(item.second.front() != '-')
+						// Выполняем конвертацию в число
+						result.emplace(item.first, ::stoull(item.second));
 					// Выполняем конвертацию в число
-					result.emplace(item.first, std::stoull(item.second));
-				// Выполняем конвертацию в число
-				else result.emplace(item.first, number);
+					else result.emplace(item.first, ::stoll(item.second));
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Формируем полученную ошибку
+					string message = error.what();
+					// Добавляем описание
+					message.append(". Input text [");
+					// Добавляем переданный текст
+					message.append(item.second);
+					// Добавляем завершение строки
+					message.append(1, ']');
+					// Добавляем в список полученные ошибки
+					this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
+					// Выполняем конвертацию в число
+					result.emplace(item.first, item.second);
+				}
 			// Если результат получен в виде числа с плавающей точкой
-			} else if(this->_fmk->is(item.second, fmk_t::check_t::DECIMAL))
-				// Выполняем конвертацию в число с плавающей точкой
-				result.emplace(item.first, std::stod(item.second));
+			} else if(this->_fmk->is(item.second, fmk_t::check_t::DECIMAL)) {
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Выполняем конвертацию в число с плавающей точкой
+					result.emplace(item.first, ::stold(item.second));
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Формируем полученную ошибку
+					string message = error.what();
+					// Добавляем описание
+					message.append(". Input text [");
+					// Добавляем переданный текст
+					message.append(item.second);
+					// Добавляем завершение строки
+					message.append(1, ']');
+					// Добавляем в список полученные ошибки
+					this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
+					// Выполняем конвертацию в число
+					result.emplace(item.first, item.second);
+				}
 			// Формируем результат в формате JSON
-			else result.emplace(item.first, item.second);
+			} else result.emplace(item.first, item.second);
 		}
 	}
 	// Выводим результат

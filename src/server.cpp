@@ -390,21 +390,31 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						auto j = headers.find("if-none-match");
 						// Если заголовок с хештегом найден
 						if(j != headers.end()){
-							// Получаем заголовко запроса
-							const string header(j->second.begin() + 1, j->second.end() - 1);
-							// Выводим значение заголовка
-							if(i->second.first == ::stoull(header)){
-								// Отправляем сообщение клиенту
-								this->_awh.send(sid, bid, 304, "Not Modified", {}, {
-									{"Vary", "Accept-Encoding"},
-									{"Last-Modified", this->_http.date(date)},
-									{"Date", this->_http.date(::time(nullptr))},
-									{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
-									{"ETag", this->_fmk->format("\"%llu\"", i->second.first)},
-									{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
-								});
-								// Выходим из функции
-								return;
+							/**
+							 * Выполняем отлов ошибок
+							 */
+							try {
+								// Получаем заголовко запроса
+								const string header(j->second.begin() + 1, j->second.end() - 1);
+								// Выводим значение заголовка
+								if(i->second.first == ::stoull(header)){
+									// Отправляем сообщение клиенту
+									this->_awh.send(sid, bid, 304, "Not Modified", {}, {
+										{"Vary", "Accept-Encoding"},
+										{"Last-Modified", this->_http.date(date)},
+										{"Date", this->_http.date(::time(nullptr))},
+										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+										{"ETag", this->_fmk->format("\"%llu\"", i->second.first)},
+										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+									});
+									// Выходим из функции
+									return;
+								}
+							/**
+							 * Если возникает ошибка
+							 */
+							} catch(const std::exception &) {
+								/* Ничего не делаем */
 							}
 						}
 						// Отправляем сообщение клиенту
@@ -431,21 +441,31 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						auto j = headers.find("if-none-match");
 						// Если заголовок с хештегом найден
 						if(j != headers.end()){
-							// Получаем заголовко запроса
-							const string header(j->second.begin() + 1, j->second.end() - 1);
-							// Выводим значение заголовка
-							if(etag == ::stoull(header)){
-								// Отправляем сообщение клиенту
-								this->_awh.send(sid, bid, 304, "Not Modified", {}, {
-									{"Vary", "Accept-Encoding"},
-									{"Last-Modified", this->_http.date(date)},
-									{"Date", this->_http.date(::time(nullptr))},
-									{"ETag", this->_fmk->format("\"%llu\"", etag)},
-									{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
-									{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
-								});
-								// Выходим из функции
-								return;
+							/**
+							 * Выполняем отлов ошибок
+							 */
+							try {
+								// Получаем заголовко запроса
+								const string header(j->second.begin() + 1, j->second.end() - 1);
+								// Выводим значение заголовка
+								if(etag == ::stoull(header)){
+									// Отправляем сообщение клиенту
+									this->_awh.send(sid, bid, 304, "Not Modified", {}, {
+										{"Vary", "Accept-Encoding"},
+										{"Last-Modified", this->_http.date(date)},
+										{"Date", this->_http.date(::time(nullptr))},
+										{"ETag", this->_fmk->format("\"%llu\"", etag)},
+										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+									});
+									// Выходим из функции
+									return;
+								}
+							/**
+							 * Если возникает ошибка
+							 */
+							} catch(const std::exception &) {
+								/* Ничего не делаем */
 							}
 						}
 						// Отправляем сообщение клиенту

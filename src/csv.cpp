@@ -482,20 +482,40 @@ json anyks::CSV::dump() const noexcept {
 						this->_fmk->transform(item, fmk_t::transform_t::LOWER);
 						// Если запись является числом
 						if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
-							// Получаем переданное число
-							const long long number = std::stoll(item);
-							// Если число положительное
-							if(number > 0)
+							/**
+							 * Выполняем отлов ошибок
+							 */
+							try {
+								// Если число положительное
+								if(item.front() != '-')
+									// Добавляем полученное значение в массив
+									result[key].push_back(::stoull(item));
 								// Добавляем полученное значение в массив
-								result[key].push_back(::stoull(item));
-							// Добавляем полученное значение в массив
-							else result[key].push_back(number);
+								else result[key].push_back(::stoll(item));
+							/**
+							 * Если возникает ошибка
+							 */
+							} catch(const std::exception &) {
+								// Добавляем полученное значение в массив
+								result[key].push_back(this->_mapping.at(i).at(index));
+							}
 						// Если запись является числом с плавающей точкой
-						} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL))
-							// Добавляем полученное значение в массив
-							result[key].push_back(::stod(item));
+						} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL)) {
+							/**
+							 * Выполняем отлов ошибок
+							 */
+							try {
+								// Добавляем полученное значение в массив
+								result[key].push_back(::stold(item));
+							/**
+							 * Если возникает ошибка
+							 */
+							} catch(const std::exception &) {
+								// Добавляем полученное значение в массив
+								result[key].push_back(this->_mapping.at(i).at(index));
+							}
 						// Если число является булевым истинным значением
-						else if(this->_fmk->compare("true", item))
+						} else if(this->_fmk->compare("true", item))
 							// Добавляем полученное значение в массив
 							result[key].push_back(true);
 						// Если число является булевым ложным значением
@@ -523,20 +543,40 @@ json anyks::CSV::dump() const noexcept {
 					const string & item = this->_mapping.at(i).at(j);
 					// Если запись является числом
 					if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
-						// Получаем переданное число
-						const long long number = std::stoll(item);
-						// Если число положительное
-						if(number > 0)
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Если число положительное
+							if(item.front() != '-')
+								// Добавляем полученное значение в массив
+								result.back().push_back(::stoull(item));
 							// Добавляем полученное значение в массив
-							result.back().push_back(::stoull(item));
-						// Добавляем полученное значение в массив
-						else result.back().push_back(number);
+							else result.back().push_back(::stoll(item));
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
+							// Добавляем полученное значение в массив
+							result.back().push_back(item);
+						}
 					// Если запись является числом с плавающей точкой
-					} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL))
-						// Добавляем полученное значение в массив
-						result.back().push_back(::stod(item));
+					} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL)) {
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Добавляем полученное значение в массив
+							result.back().push_back(::stold(item));
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
+							// Добавляем полученное значение в массив
+							result.back().push_back(item);
+						}
 					// Если число является булевым истинным значением
-					else if(this->_fmk->compare("true", item))
+					} else if(this->_fmk->compare("true", item))
 						// Добавляем полученное значение в массив
 						result.back().push_back(true);
 					// Если число является булевым ложным значением

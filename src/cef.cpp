@@ -38,170 +38,181 @@ void anyks::Cef::clear() noexcept {
 void anyks::Cef::parse(const string & cef) noexcept {
 	// Если строка в формате CEF передана
 	if(!cef.empty()){
-		// Выполняем поиск CEF заголовка
-		size_t stop = cef.find("CEF:");
-		// Если заголовок получен
-		if(stop != string::npos){
-			// Получаем позицию начала строки
-			size_t start = (stop + 4);
-			// Если заголовок не найден
-			if(stop > 0){
-				// Получаем заголовок контейнера
-				this->_header = cef.substr(0, stop);
-				// Удаляем лишние пробелы
-				this->_fmk->transform(this->_header, fmk_t::transform_t::TRIM);
-			}
-			// Если версия контейнера найдена
-			if((stop = cef.find("|", start)) != string::npos){
-				// Получаем данные строки
-				string value = cef.substr(start, stop - start);
-				// Выполняем проверку полученного значения
-				if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-					// Получаем позицию начала строки
-					start = (stop + 1);
-					// Получаем версию протокола
-					this->_version = std::stod(value);
-					// Выполняем поиск вендора
-					if((stop = cef.find("|", start)) != string::npos){
-						// Получаем данные строки
-						value = cef.substr(start, stop - start);
-						// Если вендор получен
-						if(!value.empty()){
-							// Получаем позицию начала строки
-							start = (stop + 1);
-							// Выполняем копирование вендора
-							::memcpy(this->_event.devVendor, value.data(), sizeof(this->_event.devVendor));
-							// Выполняем поиск продукта
-							if((stop = cef.find("|", start)) != string::npos){
-								// Получаем данные строки
-								value = cef.substr(start, stop - start);
-								// Если продукт получен
-								if(!value.empty()){
-									// Получаем позицию начала строки
-									start = (stop + 1);
-									// Выполняем копирование продукта
-									::memcpy(this->_event.devProduct, value.data(), sizeof(this->_event.devProduct));
-									// Выполняем поиск версии
-									if((stop = cef.find("|", start)) != string::npos){
-										// Получаем данные строки
-										value = cef.substr(start, stop - start);
-										// Если версия получена
-										if(!value.empty()){
-											// Получаем позицию начала строки
-											start = (stop + 1);
-											// Выполняем копирование версии
-											::memcpy(this->_event.devVersion, value.data(), sizeof(this->_event.devVersion));
-											// Выполняем поиск подписи
-											if((stop = cef.find("|", start)) != string::npos){
-												// Получаем данные строки
-												value = cef.substr(start, stop - start);
-												// Если версия получена
-												if(!value.empty()){
-													// Получаем позицию начала строки
-													start = (stop + 1);
-													// Выполняем копирование подписи
-													::memcpy(this->_event.signatureId, value.data(), sizeof(this->_event.signatureId));
-													// Выполняем поиск названия события
-													if((stop = cef.find("|", start)) != string::npos){
-														// Получаем данные строки
-														value = cef.substr(start, stop - start);
-														// Если название события получено
-														if(!value.empty()){
-															// Получаем позицию начала строки
-															start = (stop + 1);
-															// Выполняем копирование названия события
-															::memcpy(this->_event.name, value.data(), sizeof(this->_event.name));
-															// Выполняем поиск важности события
-															if((stop = cef.find("|", start)) != string::npos){
-																// Получаем данные строки
-																value = cef.substr(start, stop - start);
-																// Если важность события получено
-																if(!value.empty()){
-																	// Получаем позицию начала строки
-																	start = (stop + 1);
-																	// Если важность события получено в виде числа
-																	if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-																		// Выполняем получение числа
-																		this->_event.severity.level = static_cast <uint8_t> (::stoi(value));
-																		// Заполняем нулями буфер названия важности
-																		::memset(this->_event.severity.name, 0, sizeof(this->_event.severity.name));
-																		// Если событие не больше 4-х
-																		if((this->_event.severity.level >= 0) && (this->_event.severity.level <= 3))
-																			// Устанавливаем уровень важности
-																			::memcpy(this->_event.severity.name, "Low", 3);
-																		// Если событие не больше 6-и
-																		else if((this->_event.severity.level >= 4) && (this->_event.severity.level <= 6))
-																			// Устанавливаем уровень важности
-																			::memcpy(this->_event.severity.name, "Medium", 6);
-																		// Если событие не больше 8-и
-																		else if((this->_event.severity.level >= 7) && (this->_event.severity.level <= 8))
-																			// Устанавливаем уровень важности
-																			::memcpy(this->_event.severity.name, "High", 4);
-																		// Если событие не больше 10-и
-																		else if((this->_event.severity.level >= 9) && (this->_event.severity.level <= 10))
-																			// Устанавливаем уровень важности
-																			::memcpy(this->_event.severity.name, "Very-High", 9);
-																	// Если важность события получено в виде строки
-																	} else {
-																		// Выполняем копирование важность события
-																		::memcpy(this->_event.severity.name, value.data(), sizeof(this->_event.severity.name));
-																		// Преобразуем важность в верхний регистр
-																		this->_fmk->transform(value, fmk_t::transform_t::UPPER);
-																		// Если сложность является низкой
-																		if(value.compare("LOW") == 0)
-																			// Устанавливаем низкое значение сложности
-																			this->_event.severity.level = 0;
-																		// Если сложность является средней
-																		else if(value.compare("MEDIUM") == 0)
-																			// Устанавливаем среднее значение сложности
-																			this->_event.severity.level = 4;
-																		// Если сложность является высокой
-																		else if(value.compare("HIGH") == 0)
-																			// Устанавливаем высокое значение сложности
-																			this->_event.severity.level = 7;
-																		// Если сложность является очень-высокой
-																		else if(value.compare("VERY-HIGH") == 0)
-																			// Устанавливаем очень-высокое значение сложности
-																			this->_event.severity.level = 9;
-																	}
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем поиск CEF заголовка
+			size_t stop = cef.find("CEF:");
+			// Если заголовок получен
+			if(stop != string::npos){
+				// Получаем позицию начала строки
+				size_t start = (stop + 4);
+				// Если заголовок не найден
+				if(stop > 0){
+					// Получаем заголовок контейнера
+					this->_header = cef.substr(0, stop);
+					// Удаляем лишние пробелы
+					this->_fmk->transform(this->_header, fmk_t::transform_t::TRIM);
+				}
+				// Если версия контейнера найдена
+				if((stop = cef.find("|", start)) != string::npos){
+					// Получаем данные строки
+					string value = cef.substr(start, stop - start);
+					// Выполняем проверку полученного значения
+					if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+						// Получаем позицию начала строки
+						start = (stop + 1);
+						// Получаем версию протокола
+						this->_version = ::stod(value);
+						// Выполняем поиск вендора
+						if((stop = cef.find("|", start)) != string::npos){
+							// Получаем данные строки
+							value = cef.substr(start, stop - start);
+							// Если вендор получен
+							if(!value.empty()){
+								// Получаем позицию начала строки
+								start = (stop + 1);
+								// Выполняем копирование вендора
+								::memcpy(this->_event.devVendor, value.data(), sizeof(this->_event.devVendor));
+								// Выполняем поиск продукта
+								if((stop = cef.find("|", start)) != string::npos){
+									// Получаем данные строки
+									value = cef.substr(start, stop - start);
+									// Если продукт получен
+									if(!value.empty()){
+										// Получаем позицию начала строки
+										start = (stop + 1);
+										// Выполняем копирование продукта
+										::memcpy(this->_event.devProduct, value.data(), sizeof(this->_event.devProduct));
+										// Выполняем поиск версии
+										if((stop = cef.find("|", start)) != string::npos){
+											// Получаем данные строки
+											value = cef.substr(start, stop - start);
+											// Если версия получена
+											if(!value.empty()){
+												// Получаем позицию начала строки
+												start = (stop + 1);
+												// Выполняем копирование версии
+												::memcpy(this->_event.devVersion, value.data(), sizeof(this->_event.devVersion));
+												// Выполняем поиск подписи
+												if((stop = cef.find("|", start)) != string::npos){
+													// Получаем данные строки
+													value = cef.substr(start, stop - start);
+													// Если версия получена
+													if(!value.empty()){
+														// Получаем позицию начала строки
+														start = (stop + 1);
+														// Выполняем копирование подписи
+														::memcpy(this->_event.signatureId, value.data(), sizeof(this->_event.signatureId));
+														// Выполняем поиск названия события
+														if((stop = cef.find("|", start)) != string::npos){
+															// Получаем данные строки
+															value = cef.substr(start, stop - start);
+															// Если название события получено
+															if(!value.empty()){
+																// Получаем позицию начала строки
+																start = (stop + 1);
+																// Выполняем копирование названия события
+																::memcpy(this->_event.name, value.data(), sizeof(this->_event.name));
+																// Выполняем поиск важности события
+																if((stop = cef.find("|", start)) != string::npos){
 																	// Получаем данные строки
-																	value = cef.substr(start);
+																	value = cef.substr(start, stop - start);
 																	// Если важность события получено
-																	if(!value.empty())
-																		// Выполняем препарирование расширений
-																		this->prepare(value);
-																	// Добавляем в список полученные ошибки
-																	else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "extensions is not found");
+																	if(!value.empty()){
+																		// Получаем позицию начала строки
+																		start = (stop + 1);
+																		// Если важность события получено в виде числа
+																		if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+																			// Выполняем получение числа
+																			this->_event.severity.level = static_cast <uint8_t> (::stoi(value));
+																			// Заполняем нулями буфер названия важности
+																			::memset(this->_event.severity.name, 0, sizeof(this->_event.severity.name));
+																			// Если событие не больше 4-х
+																			if((this->_event.severity.level >= 0) && (this->_event.severity.level <= 3))
+																				// Устанавливаем уровень важности
+																				::memcpy(this->_event.severity.name, "Low", 3);
+																			// Если событие не больше 6-и
+																			else if((this->_event.severity.level >= 4) && (this->_event.severity.level <= 6))
+																				// Устанавливаем уровень важности
+																				::memcpy(this->_event.severity.name, "Medium", 6);
+																			// Если событие не больше 8-и
+																			else if((this->_event.severity.level >= 7) && (this->_event.severity.level <= 8))
+																				// Устанавливаем уровень важности
+																				::memcpy(this->_event.severity.name, "High", 4);
+																			// Если событие не больше 10-и
+																			else if((this->_event.severity.level >= 9) && (this->_event.severity.level <= 10))
+																				// Устанавливаем уровень важности
+																				::memcpy(this->_event.severity.name, "Very-High", 9);
+																		// Если важность события получено в виде строки
+																		} else {
+																			// Выполняем копирование важность события
+																			::memcpy(this->_event.severity.name, value.data(), sizeof(this->_event.severity.name));
+																			// Преобразуем важность в верхний регистр
+																			this->_fmk->transform(value, fmk_t::transform_t::UPPER);
+																			// Если сложность является низкой
+																			if(value.compare("LOW") == 0)
+																				// Устанавливаем низкое значение сложности
+																				this->_event.severity.level = 0;
+																			// Если сложность является средней
+																			else if(value.compare("MEDIUM") == 0)
+																				// Устанавливаем среднее значение сложности
+																				this->_event.severity.level = 4;
+																			// Если сложность является высокой
+																			else if(value.compare("HIGH") == 0)
+																				// Устанавливаем высокое значение сложности
+																				this->_event.severity.level = 7;
+																			// Если сложность является очень-высокой
+																			else if(value.compare("VERY-HIGH") == 0)
+																				// Устанавливаем очень-высокое значение сложности
+																				this->_event.severity.level = 9;
+																		}
+																		// Получаем данные строки
+																		value = cef.substr(start);
+																		// Если важность события получено
+																		if(!value.empty())
+																			// Выполняем препарирование расширений
+																			this->prepare(value);
+																		// Добавляем в список полученные ошибки
+																		else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "extensions is not found");
+																	// Выводим сообщение об ошибке
+																	} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "severity is not found");
 																// Выводим сообщение об ошибке
 																} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "severity is not found");
 															// Выводим сообщение об ошибке
-															} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "severity is not found");
+															} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "event name is not found");
 														// Выводим сообщение об ошибке
 														} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "event name is not found");
 													// Выводим сообщение об ошибке
-													} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "event name is not found");
+													} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "signature ID is not found");
 												// Выводим сообщение об ошибке
 												} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "signature ID is not found");
 											// Выводим сообщение об ошибке
-											} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "signature ID is not found");
+											} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device version is not found");
 										// Выводим сообщение об ошибке
 										} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device version is not found");
 									// Выводим сообщение об ошибке
-									} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device version is not found");
+									} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device product is not found");
 								// Выводим сообщение об ошибке
 								} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device product is not found");
 							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device product is not found");
+							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device vendor is not found");
 						// Выводим сообщение об ошибке
 						} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device vendor is not found");
 					// Выводим сообщение об ошибке
-					} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device vendor is not found");
-				// Выводим сообщение об ошибке
-				} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "container version must be a number");
+					} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "container version must be a number");
+				// Если получена ошибка
+				} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "version is not found");
 			// Если получена ошибка
-			} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "version is not found");
-		// Если получена ошибка
-		} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "an invalid data format was passed");
+			} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "an invalid data format was passed");
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			// Выводим сообщение об ошибке
+			this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, error.what());
+		}
 	// Если получена ошибка
 	} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "no parsing data passed");
 }
@@ -896,14 +907,23 @@ json anyks::Cef::dump() const noexcept {
 							} else {
 								// Получаем значение числа
 								const string value(extension.second.begin(), extension.second.end());
-								// Получаем переданное число
-								const long long number = std::stol(value);
-								// Если число положительное
-								if(number > 0)
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число положительное
+									if(value.front() != '-')
+										// Добавляем полученное значения расширения
+										result["extensions"].emplace(extension.first, ::stoul(value));
 									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, ::stoul(value));
-								// Добавляем полученное значения расширения
-								else result["extensions"].emplace(extension.first, number);
+									else result["extensions"].emplace(extension.first, ::stol(value));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, value);
+								}
 							}
 						} break;
 						// Если тип ключа является INT32
@@ -920,14 +940,23 @@ json anyks::Cef::dump() const noexcept {
 							} else {
 								// Получаем значение числа
 								const string value(extension.second.begin(), extension.second.end());
-								// Получаем переданное число
-								const long long number = std::stoi(value);
-								// Если число положительное
-								if(number > 0)
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число положительное
+									if(value.front() != '-')
+										// Добавляем полученное значения расширения
+										result["extensions"].emplace(extension.first, ::stoul(value));
 									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, ::stoul(value));
-								// Добавляем полученное значения расширения
-								else result["extensions"].emplace(extension.first, number);
+									else result["extensions"].emplace(extension.first, ::stoi(value));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, value);
+								}
 							}
 						} break;
 						// Если тип ключа является INT64
@@ -944,14 +973,23 @@ json anyks::Cef::dump() const noexcept {
 							} else {
 								// Получаем значение числа
 								const string value(extension.second.begin(), extension.second.end());
-								// Получаем переданное число
-								const long long number = std::stoll(value);
-								// Если число положительное
-								if(number > 0)
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число положительное
+									if(value.front() != '-')
+										// Добавляем полученное значения расширения
+										result["extensions"].emplace(extension.first, ::stoull(value));
 									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, ::stoull(value));
-								// Добавляем полученное значения расширения
-								else result["extensions"].emplace(extension.first, number);
+									else result["extensions"].emplace(extension.first, ::stoll(value));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, value);
+								}
 							}
 						} break;
 						// Если тип ключа является FLOAT
@@ -965,7 +1003,21 @@ json anyks::Cef::dump() const noexcept {
 								// Устанавливаем значение ключа
 								result["extensions"].emplace(extension.first, value);
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, std::stof(string(extension.second.begin(), extension.second.end())));
+							} else {
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, ::stof(string(extension.second.begin(), extension.second.end())));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+								}
+							}
 						} break;
 						// Если тип ключа является DOUBLE
 						case static_cast <uint8_t> (type_t::DOUBLE): {
@@ -978,7 +1030,21 @@ json anyks::Cef::dump() const noexcept {
 								// Устанавливаем значение ключа
 								result["extensions"].emplace(extension.first, value);
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, std::stod(string(extension.second.begin(), extension.second.end())));
+							} else {
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, ::stold(string(extension.second.begin(), extension.second.end())));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значения расширения
+									result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+								}
+							}
 						} break;
 						// Если тип ключа является STRING
 						case static_cast <uint8_t> (type_t::STRING):
@@ -1019,20 +1085,40 @@ json anyks::Cef::dump() const noexcept {
 				string value(extension.second.begin(), extension.second.end());
 				// Если запись является числом
 				if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-					// Получаем переданное число
-					const long long number = std::stoll(value);
-					// Если число положительное
-					if(number > 0)
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
+						// Если число положительное
+						if(value.front() != '-')
+							// Устанавливаем значение ключа как число без знака
+							result["extensions"].emplace(extension.first, ::stoull(value));
+						// Устанавливаем значение ключа как число со знаком
+						else result["extensions"].emplace(extension.first, ::stoll(value));
+					/**
+					 * Если возникает ошибка
+					 */
+					} catch(const std::exception &) {
 						// Устанавливаем значение ключа как число без знака
-						result["extensions"].emplace(extension.first, ::stoull(value));
-					// Устанавливаем значение ключа как число со знаком
-					else result["extensions"].emplace(extension.first, number);
+						result["extensions"].emplace(extension.first, value);
+					}
 				// Если запись является числом с плавающей точкой
-				} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL))
-					// Устанавливаем значение ключа как число с плавающей точкой
-					result["extensions"].emplace(extension.first, ::stod(value));
+				} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
+						// Устанавливаем значение ключа как число с плавающей точкой
+						result["extensions"].emplace(extension.first, ::stold(value));
+					/**
+					 * Если возникает ошибка
+					 */
+					} catch(const std::exception &) {
+						// Устанавливаем значение ключа как число без знака
+						result["extensions"].emplace(extension.first, value);
+					}
 				// Если число является булевым истинным значением
-				else if(this->_fmk->compare("true", value))
+				} else if(this->_fmk->compare("true", value))
 					// Устанавливаем значение ключа как булевое положительное значение
 					result["extensions"].emplace(extension.first, true);
 				// Если число является булевым ложным значением
@@ -1500,14 +1586,23 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							} else {
 								// Получаем значение числа
 								const string value(extension.second.begin(), extension.second.end());
-								// Получаем переданное число
-								const long long number = std::stol(value);
-								// Если число положительное
-								if(number > 0)
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число положительное
+									if(value.front() != '-')
+										// Добавляем полученное значения расширения
+										result.emplace(extension.first, std::to_string(::stoul(value)));
 									// Добавляем полученное значения расширения
-									result.emplace(extension.first, std::to_string(::stoul(value)));
-								// Добавляем полученное значения расширения
-								else result.emplace(extension.first, std::to_string(number));
+									else result.emplace(extension.first, std::to_string(::stol(value)));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значения расширения
+									result.emplace(extension.first, value);
+								}
 							}
 						} break;
 						// Если тип ключа является INT32
@@ -1524,14 +1619,23 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							} else {
 								// Получаем значение числа
 								const string value(extension.second.begin(), extension.second.end());
-								// Получаем переданное число
-								const long long number = std::stoi(value);
-								// Если число положительное
-								if(number > 0)
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число положительное
+									if(value.front() != '-')
+										// Добавляем полученное значения расширения
+										result.emplace(extension.first, std::to_string(::stoul(value)));
 									// Добавляем полученное значения расширения
-									result.emplace(extension.first, std::to_string(::stoul(value)));
-								// Добавляем полученное значения расширения
-								else result.emplace(extension.first, std::to_string(number));
+									else result.emplace(extension.first, std::to_string(::stoi(value)));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значения расширения
+									result.emplace(extension.first, value);
+								}
 							}
 						} break;
 						// Если тип ключа является INT64
@@ -1548,14 +1652,23 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							} else {
 								// Получаем значение числа
 								const string value(extension.second.begin(), extension.second.end());
-								// Получаем переданное число
-								const long long number = std::stoll(value);
-								// Если число положительное
-								if(number > 0)
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число положительное
+									if(value.front() != '-')
+										// Добавляем полученное значения расширения
+										result.emplace(extension.first, std::to_string(::stoull(value)));
 									// Добавляем полученное значения расширения
-									result.emplace(extension.first, std::to_string(::stoull(value)));
-								// Добавляем полученное значения расширения
-								else result.emplace(extension.first, std::to_string(number));
+									else result.emplace(extension.first, std::to_string(::stoll(value)));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значения расширения
+									result.emplace(extension.first, value);
+								}
 							}
 						} break;
 						// Если тип ключа является FLOAT
@@ -1569,7 +1682,21 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Устанавливаем значение ключа
 								result.emplace(extension.first, this->_fmk->noexp(value, true));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, this->_fmk->noexp(std::stof(string(extension.second.begin(), extension.second.end())), true));
+							} else {
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, this->_fmk->noexp(::stof(string(extension.second.begin(), extension.second.end())), true));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+								}
+							}
 						} break;
 						// Если тип ключа является DOUBLE
 						case static_cast <uint8_t> (type_t::DOUBLE): {
@@ -1582,7 +1709,21 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Устанавливаем значение ключа
 								result.emplace(extension.first, this->_fmk->noexp(value, true));
 							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, this->_fmk->noexp(std::stod(string(extension.second.begin(), extension.second.end())), true));
+							} else {
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, this->_fmk->noexp(::stold(string(extension.second.begin(), extension.second.end())), true));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+								}
+							}
 						} break;
 						// Если тип ключа является STRING
 						case static_cast <uint8_t> (type_t::STRING):
@@ -1623,20 +1764,40 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 				string value(extension.second.begin(), extension.second.end());
 				// Если запись является числом
 				if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-					// Получаем переданное число
-					const long long number = std::stoll(value);
-					// Если число положительное
-					if(number > 0)
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
+						// Если число положительное
+						if(value.front() != '-')
+							// Устанавливаем значение ключа как число без знака
+							result.emplace(extension.first, std::to_string(::stoull(value)));
+						// Устанавливаем значение ключа как число со знаком
+						else result.emplace(extension.first, std::to_string(::stoll(value)));
+					/**
+					 * Если возникает ошибка
+					 */
+					} catch(const std::exception &) {
 						// Устанавливаем значение ключа как число без знака
-						result.emplace(extension.first, std::to_string(::stoull(value)));
-					// Устанавливаем значение ключа как число со знаком
-					else result.emplace(extension.first, std::to_string(number));
+						result.emplace(extension.first, value);
+					}
 				// Если запись является числом с плавающей точкой
-				} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL))
-					// Устанавливаем значение ключа как число с плавающей точкой
-					result.emplace(extension.first, this->_fmk->noexp(::stod(value), true));
+				} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
+						// Устанавливаем значение ключа как число с плавающей точкой
+						result.emplace(extension.first, this->_fmk->noexp(::stold(value), true));
+					/**
+					 * Если возникает ошибка
+					 */
+					} catch(const std::exception &) {
+						// Устанавливаем значение ключа как число без знака
+						result.emplace(extension.first, value);
+					}
 				// Если число является булевым истинным значением
-				else if(this->_fmk->compare("true", value))
+				} else if(this->_fmk->compare("true", value))
 					// Устанавливаем значение ключа как булевое положительное значение
 					result.emplace(extension.first, "true");
 				// Если число является булевым ложным значением
@@ -1822,13 +1983,24 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
 							// Выполняем проверку, является ли значение числом
 							if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-								// Преобразуем строку в число
-								const long data = ::stol(value);
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&data),
-									reinterpret_cast <const char *> (&data) + sizeof(data)
-								));
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Преобразуем строку в число
+									const long data = ::stol(value);
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (
+										reinterpret_cast <const char *> (&data),
+										reinterpret_cast <const char *> (&data) + sizeof(data)
+									));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (value.begin(), value.end()));
+								}
 							// Выводим сообщение об ошибке
 							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
 						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1840,13 +2012,24 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
 							// Выполняем проверку, является ли значение числом
 							if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-								// Преобразуем строку в число
-								const int32_t data = ::stoi(value);
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&data),
-									reinterpret_cast <const char *> (&data) + sizeof(data)
-								));
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Преобразуем строку в число
+									const int32_t data = ::stoi(value);
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (
+										reinterpret_cast <const char *> (&data),
+										reinterpret_cast <const char *> (&data) + sizeof(data)
+									));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (value.begin(), value.end()));
+								}
 							// Выводим сообщение об ошибке
 							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
 						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1858,13 +2041,24 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
 							// Выполняем проверку, является ли значение числом
 							if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-								// Преобразуем строку в число
-								const int64_t data = ::stoll(value);
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&data),
-									reinterpret_cast <const char *> (&data) + sizeof(data)
-								));
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Преобразуем строку в число
+									const int64_t data = ::stoll(value);
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (
+										reinterpret_cast <const char *> (&data),
+										reinterpret_cast <const char *> (&data) + sizeof(data)
+									));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (value.begin(), value.end()));
+								}
 							// Выводим сообщение об ошибке
 							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
 						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1876,13 +2070,24 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
 							// Выполняем проверку, является ли значение числом
 							if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)){
-								// Преобразуем строку в число
-								const float data = ::stof(value);
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&data),
-									reinterpret_cast <const char *> (&data) + sizeof(data)
-								));
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Преобразуем строку в число
+									const float data = ::stof(value);
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (
+										reinterpret_cast <const char *> (&data),
+										reinterpret_cast <const char *> (&data) + sizeof(data)
+									));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (value.begin(), value.end()));
+								}
 							// Выводим сообщение об ошибке
 							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
 						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1894,13 +2099,24 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
 							// Выполняем проверку, является ли значение числом
 							if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)){
-								// Преобразуем строку в число
-								const double data = ::stod(value);
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&data),
-									reinterpret_cast <const char *> (&data) + sizeof(data)
-								));
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Преобразуем строку в число
+									const double data = ::stold(value);
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (
+										reinterpret_cast <const char *> (&data),
+										reinterpret_cast <const char *> (&data) + sizeof(data)
+									));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (value.begin(), value.end()));
+								}
 							// Выводим сообщение об ошибке
 							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
 						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1929,13 +2145,24 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 							const bool decimal = (!number ? this->_fmk->is(value, fmk_t::check_t::DECIMAL) : false);
 							// Выполняем проверку, является ли значение числом
 							if(number || decimal){
-								// Преобразуем строку в число
-								const time_t date = static_cast <time_t> (number ? ::stoull(value) : ::stod(value));
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&date),
-									reinterpret_cast <const char *> (&date) + sizeof(date)
-								));
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Преобразуем строку в число
+									const time_t date = static_cast <time_t> (number ? ::stoull(value) : ::stold(value));
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (
+										reinterpret_cast <const char *> (&date),
+										reinterpret_cast <const char *> (&date) + sizeof(date)
+									));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (value.begin(), value.end()));
+								}
 							// Если режим работы не строгий
 							} else if(!this->_format.empty()) {
 								// Выполняем парсинг даты

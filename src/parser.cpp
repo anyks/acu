@@ -461,20 +461,40 @@ nlohmann::json anyks::Parser::ini(const string & text) noexcept {
 				for(auto j = i->second.begin(); j != i->second.end(); ++j){
 					// Если полученное значение является числом
 					if(this->_fmk->is(j->second, fmk_t::check_t::NUMBER)){
-						// Получаем значение числа
-						const long long number = ::stoll(j->second);
-						// Если число является отрицательным
-						if(number < 0)
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Если число является отрицательным
+							if(j->second.front() == '-')
+								// Выполняем установку полученного значения
+								result[i->first].emplace(j->first, ::stoll(j->second));
+							// Если число является положительным
+							else result[i->first].emplace(j->first, ::stoull(j->second));
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
 							// Выполняем установку полученного значения
-							result[i->first].emplace(j->first, number);
-						// Если число является положительным
-						else result[i->first].emplace(j->first, ::stoull(j->second));
+							result[i->first].emplace(j->first, j->second);
+						}
 					// Если полученное значение является числом с плавающей точкой
-					} else if(this->_fmk->is(j->second, fmk_t::check_t::DECIMAL))
-						// Выполняем установку полученного значения
-						result[i->first].emplace(j->first, ::stod(j->second));
+					} else if(this->_fmk->is(j->second, fmk_t::check_t::DECIMAL)) {
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Выполняем установку полученного значения
+							result[i->first].emplace(j->first, ::stold(j->second));
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
+							// Выполняем установку полученного значения
+							result[i->first].emplace(j->first, j->second);
+						}
 					// Если полученное значение является строкой
-					else {
+					} else {
 						// Флаг истинного значения
 						bool mode = false;
 						// Если значение является булевым
@@ -817,39 +837,71 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 												xmlChar * value = xmlNodeListGetString(node->doc, attribute->children, 1);
 												// Если полученное значение является числом
 												if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::NUMBER)){
-													// Получаем значение числа
-													const long long number = ::stoll(reinterpret_cast <const char *> (value));
-													// Если число является отрицательным
-													if(number < 0){
+													/**
+													 * Выполняем отлов ошибок
+													 */
+													try {
+														// Если число является отрицательным
+														if(reinterpret_cast <const char *> (value)[0] == '-'){
+															// Если элемент не является массивом
+															if(root[reinterpret_cast <const char *> (node->name)].is_object())
+																// Выполняем формирования списка параметров
+																root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoll(reinterpret_cast <const char *> (value));
+															// Иначе добавляем в указанный индекс массива
+															else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+																// Выполняем добавление названия атрибута
+																root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoll(reinterpret_cast <const char *> (value)));
+														// Если число является положительным
+														} else {
+															// Если элемент не является массивом
+															if(root[reinterpret_cast <const char *> (node->name)].is_object())
+																// Выполняем формирования списка параметров
+																root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
+															// Иначе добавляем в указанный индекс массива
+															else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+																// Выполняем добавление названия атрибута
+																root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoull(reinterpret_cast <const char *> (value)));
+														}
+													/**
+													 * Если возникает ошибка
+													 */
+													} catch(const std::exception &) {
 														// Если элемент не является массивом
 														if(root[reinterpret_cast <const char *> (node->name)].is_object())
 															// Выполняем формирования списка параметров
-															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = number;
+															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
 														// Иначе добавляем в указанный индекс массива
 														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
 															// Выполняем добавление названия атрибута
-															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), number);
-													// Если число является положительным
-													} else {
-														// Если элемент не является массивом
-														if(root[reinterpret_cast <const char *> (node->name)].is_object())
-															// Выполняем формирования списка параметров
-															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
-														// Иначе добавляем в указанный индекс массива
-														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-															// Выполняем добавление названия атрибута
-															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoull(reinterpret_cast <const char *> (value)));
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), reinterpret_cast <const char *> (value));
 													}
 												// Если полученное значение является числом с плавающей точкой
 												} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL)) {
-													// Если элемент не является массивом
-													if(root[reinterpret_cast <const char *> (node->name)].is_object())
-														// Выполняем формирования списка параметров
-														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stod(reinterpret_cast <const char *> (value));
-													// Иначе добавляем в указанный индекс массива
-													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-														// Выполняем добавление названия атрибута
-														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stod(reinterpret_cast <const char *> (value)));
+													/**
+													 * Выполняем отлов ошибок
+													 */
+													try {
+														// Если элемент не является массивом
+														if(root[reinterpret_cast <const char *> (node->name)].is_object())
+															// Выполняем формирования списка параметров
+															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stold(reinterpret_cast <const char *> (value));
+														// Иначе добавляем в указанный индекс массива
+														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+															// Выполняем добавление названия атрибута
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stold(reinterpret_cast <const char *> (value)));
+													/**
+													 * Если возникает ошибка
+													 */
+													} catch(const std::exception &) {
+														// Если элемент не является массивом
+														if(root[reinterpret_cast <const char *> (node->name)].is_object())
+															// Выполняем формирования списка параметров
+															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
+														// Иначе добавляем в указанный индекс массива
+														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+															// Выполняем добавление названия атрибута
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), reinterpret_cast <const char *> (value));
+													}
 												// Если полученное значения является строкой
 												} else {
 													// Флаг булевого значения
@@ -914,39 +966,71 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 												xmlChar * value = xmlNodeListGetString(node->doc, attribute->children, 1);
 												// Если полученное значение является числом
 												if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::NUMBER)){
-													// Получаем значение числа
-													const long long number = ::stoll(reinterpret_cast <const char *> (value));
-													// Если число является отрицательным
-													if(number < 0){
+													/**
+													 * Выполняем отлов ошибок
+													 */
+													try {
+														// Если число является отрицательным
+														if(reinterpret_cast <const char *> (value)[0] == '-'){
+															// Если элемент не является массивом
+															if(root[reinterpret_cast <const char *> (node->name)].is_object())
+																// Выполняем формирования списка параметров
+																root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoll(reinterpret_cast <const char *> (value));
+															// Иначе добавляем в указанный индекс массива
+															else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+																// Выполняем добавление названия атрибута
+																root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoll(reinterpret_cast <const char *> (value)));
+														// Если число является положительным
+														} else {
+															// Если элемент не является массивом
+															if(root[reinterpret_cast <const char *> (node->name)].is_object())
+																// Выполняем формирования списка параметров
+																root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
+															// Иначе добавляем в указанный индекс массива
+															else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+																// Выполняем добавление названия атрибута
+																root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoull(reinterpret_cast <const char *> (value)));
+														}
+													/**
+													 * Если возникает ошибка
+													 */
+													} catch(const std::exception &) {
 														// Если элемент не является массивом
 														if(root[reinterpret_cast <const char *> (node->name)].is_object())
 															// Выполняем формирования списка параметров
-															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = number;
+															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
 														// Иначе добавляем в указанный индекс массива
 														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
 															// Выполняем добавление названия атрибута
-															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), number);
-													// Если число является положительным
-													} else {
-														// Если элемент не является массивом
-														if(root[reinterpret_cast <const char *> (node->name)].is_object())
-															// Выполняем формирования списка параметров
-															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
-														// Иначе добавляем в указанный индекс массива
-														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-															// Выполняем добавление названия атрибута
-															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoull(reinterpret_cast <const char *> (value)));
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), reinterpret_cast <const char *> (value));
 													}
 												// Если полученное значение является числом с плавающей точкой
 												} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL)) {
-													// Если элемент не является массивом
-													if(root[reinterpret_cast <const char *> (node->name)].is_object())
-														// Выполняем формирования списка параметров
-														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stod(reinterpret_cast <const char *> (value));
-													// Иначе добавляем в указанный индекс массива
-													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-														// Выполняем добавление названия атрибута
-														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stod(reinterpret_cast <const char *> (value)));
+													/**
+													 * Выполняем отлов ошибок
+													 */
+													try {
+														// Если элемент не является массивом
+														if(root[reinterpret_cast <const char *> (node->name)].is_object())
+															// Выполняем формирования списка параметров
+															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stold(reinterpret_cast <const char *> (value));
+														// Иначе добавляем в указанный индекс массива
+														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+															// Выполняем добавление названия атрибута
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stold(reinterpret_cast <const char *> (value)));
+													/**
+													 * Если возникает ошибка
+													 */
+													} catch(const std::exception &) {
+														// Если элемент не является массивом
+														if(root[reinterpret_cast <const char *> (node->name)].is_object())
+															// Выполняем формирования списка параметров
+															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
+														// Иначе добавляем в указанный индекс массива
+														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+															// Выполняем добавление названия атрибута
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), reinterpret_cast <const char *> (value));
+													}
 												// Если полученное значения является строкой
 												} else {
 													// Флаг булевого значения
@@ -998,65 +1082,115 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 										xmlChar * value = xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
 										// Если полученное значение является числом
 										if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::NUMBER)){
-											// Получаем значение числа
-											const long long number = ::stoll(reinterpret_cast <const char *> (value));
-											// Если число является отрицательным
-											if(number < 0){
-												// Если элемент не является массивом
-												if(root[reinterpret_cast <const char *> (node->name)].is_object()){
-													// Если у ноды есть параметры
-													if(node->properties != nullptr)
-														// Выполняем формирования списка параметров
-														root[reinterpret_cast <const char *> (node->name)][key] = number;
-													// Выполняем установку полученного значения
-													else root[reinterpret_cast <const char *> (node->name)] = number;
-												// Иначе добавляем в указанный индекс массива
-												} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
-													// Если у ноды есть параметры
-													if(node->properties != nullptr)
-														// Выполняем добавление названия атрибута
-														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, number);
-													// Выполняем установку полученного значения
-													else root[reinterpret_cast <const char *> (node->name)].back() = number;
+											/**
+											 * Выполняем отлов ошибок
+											 */
+											try {
+												// Если число является отрицательным
+												if(reinterpret_cast <const char *> (value)[0] == '-'){
+													// Если элемент не является массивом
+													if(root[reinterpret_cast <const char *> (node->name)].is_object()){
+														// Если у ноды есть параметры
+														if(node->properties != nullptr)
+															// Выполняем формирования списка параметров
+															root[reinterpret_cast <const char *> (node->name)][key] = ::stoll(reinterpret_cast <const char *> (value));
+														// Выполняем установку полученного значения
+														else root[reinterpret_cast <const char *> (node->name)] = ::stoll(reinterpret_cast <const char *> (value));
+													// Иначе добавляем в указанный индекс массива
+													} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+														// Если у ноды есть параметры
+														if(node->properties != nullptr)
+															// Выполняем добавление названия атрибута
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stoll(reinterpret_cast <const char *> (value)));
+														// Выполняем установку полученного значения
+														else root[reinterpret_cast <const char *> (node->name)].back() = ::stoll(reinterpret_cast <const char *> (value));
+													}
+												// Если число является положительным
+												} else {
+													// Если элемент не является массивом
+													if(root[reinterpret_cast <const char *> (node->name)].is_object()){
+														// Если у ноды есть параметры
+														if(node->properties != nullptr)
+															// Выполняем формирования списка параметров
+															root[reinterpret_cast <const char *> (node->name)][key] = ::stoull(reinterpret_cast <const char *> (value));
+														// Выполняем установку полученного значения
+														else root[reinterpret_cast <const char *> (node->name)] = ::stoull(reinterpret_cast <const char *> (value));
+													// Иначе добавляем в указанный индекс массива
+													} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+														// Если у ноды есть параметры
+														if(node->properties != nullptr)
+															// Выполняем добавление названия атрибута
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stoull(reinterpret_cast <const char *> (value)));
+														// Выполняем установку полученного значения
+														else root[reinterpret_cast <const char *> (node->name)].back() = ::stoull(reinterpret_cast <const char *> (value));
+													}
 												}
-											// Если число является положительным
-											} else {
+											/**
+											 * Если возникает ошибка
+											 */
+											} catch(const std::exception &) {
 												// Если элемент не является массивом
 												if(root[reinterpret_cast <const char *> (node->name)].is_object()){
 													// Если у ноды есть параметры
 													if(node->properties != nullptr)
 														// Выполняем формирования списка параметров
-														root[reinterpret_cast <const char *> (node->name)][key] = ::stoull(reinterpret_cast <const char *> (value));
+														root[reinterpret_cast <const char *> (node->name)][key] = reinterpret_cast <const char *> (value);
 													// Выполняем установку полученного значения
-													else root[reinterpret_cast <const char *> (node->name)] = ::stoull(reinterpret_cast <const char *> (value));
+													else root[reinterpret_cast <const char *> (node->name)] = reinterpret_cast <const char *> (value);
 												// Иначе добавляем в указанный индекс массива
 												} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
 													// Если у ноды есть параметры
 													if(node->properties != nullptr)
 														// Выполняем добавление названия атрибута
-														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stoull(reinterpret_cast <const char *> (value)));
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, reinterpret_cast <const char *> (value));
 													// Выполняем установку полученного значения
-													else root[reinterpret_cast <const char *> (node->name)].back() = ::stoull(reinterpret_cast <const char *> (value));
+													else root[reinterpret_cast <const char *> (node->name)].back() = reinterpret_cast <const char *> (value);
 												}
 											}
 										// Если полученное значение является числом с плавающей точкой
 										} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL)) {
-											// Если элемент не является массивом
-											if(root[reinterpret_cast <const char *> (node->name)].is_object()){
-												// Если у ноды есть параметры
-												if(node->properties != nullptr)
-													// Выполняем формирования списка параметров
-													root[reinterpret_cast <const char *> (node->name)][key] = ::stod(reinterpret_cast <const char *> (value));
-												// Выполняем установку полученного значения
-												else root[reinterpret_cast <const char *> (node->name)] = ::stod(reinterpret_cast <const char *> (value));
-											// Иначе добавляем в указанный индекс массива
-											} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
-												// Если у ноды есть параметры
-												if(node->properties != nullptr)
-													// Выполняем добавление названия атрибута
-													root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stod(reinterpret_cast <const char *> (value)));
-												// Выполняем установку полученного значения
-												else root[reinterpret_cast <const char *> (node->name)].back() = ::stod(reinterpret_cast <const char *> (value));
+											/**
+											 * Выполняем отлов ошибок
+											 */
+											try {
+												// Если элемент не является массивом
+												if(root[reinterpret_cast <const char *> (node->name)].is_object()){
+													// Если у ноды есть параметры
+													if(node->properties != nullptr)
+														// Выполняем формирования списка параметров
+														root[reinterpret_cast <const char *> (node->name)][key] = ::stold(reinterpret_cast <const char *> (value));
+													// Выполняем установку полученного значения
+													else root[reinterpret_cast <const char *> (node->name)] = ::stold(reinterpret_cast <const char *> (value));
+												// Иначе добавляем в указанный индекс массива
+												} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+													// Если у ноды есть параметры
+													if(node->properties != nullptr)
+														// Выполняем добавление названия атрибута
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stold(reinterpret_cast <const char *> (value)));
+													// Выполняем установку полученного значения
+													else root[reinterpret_cast <const char *> (node->name)].back() = ::stold(reinterpret_cast <const char *> (value));
+												}
+											/**
+											 * Если возникает ошибка
+											 */
+											} catch(const std::exception &) {
+												// Если элемент не является массивом
+												if(root[reinterpret_cast <const char *> (node->name)].is_object()){
+													// Если у ноды есть параметры
+													if(node->properties != nullptr)
+														// Выполняем формирования списка параметров
+														root[reinterpret_cast <const char *> (node->name)][key] = reinterpret_cast <const char *> (value);
+													// Выполняем установку полученного значения
+													else root[reinterpret_cast <const char *> (node->name)] = reinterpret_cast <const char *> (value);
+												// Иначе добавляем в указанный индекс массива
+												} else if(root[reinterpret_cast <const char *> (node->name)].is_array()) {
+													// Если у ноды есть параметры
+													if(node->properties != nullptr)
+														// Выполняем добавление названия атрибута
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(key, reinterpret_cast <const char *> (value));
+													// Выполняем установку полученного значения
+													else root[reinterpret_cast <const char *> (node->name)].back() = reinterpret_cast <const char *> (value);
+												}
 											}
 										// Если значение не является числом
 										} else {
@@ -1137,39 +1271,71 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 											xmlChar * value = xmlNodeListGetString(node->doc, attribute->children, 1);
 											// Если полученное значение является числом
 											if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::NUMBER)){
-												// Получаем значение числа
-												const long long number = ::stoll(reinterpret_cast <const char *> (value));
-												// Если число является отрицательным
-												if(number < 0){
+												/**
+												 * Выполняем отлов ошибок
+												 */
+												try {
+													// Если число является отрицательным
+													if(reinterpret_cast <const char *> (value)[0] == '-'){
+														// Если корневой тег является объектом
+														if(root[reinterpret_cast <const char *> (node->name)].is_object())
+															// Выполняем формирования списка параметров
+															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoll(reinterpret_cast <const char *> (value));
+														// Если корневой тег является массивом
+														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+															// Добавляем в объект наше значение
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoll(reinterpret_cast <const char *> (value)));
+													// Если число является положительным
+													} else {
+														// Если корневой тег является объектом
+														if(root[reinterpret_cast <const char *> (node->name)].is_object())
+															// Выполняем формирования списка параметров
+															root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
+														// Если корневой тег является массивом
+														else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+															// Добавляем в объект наше значение
+															root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoull(reinterpret_cast <const char *> (value)));
+													}
+												/**
+												 * Если возникает ошибка
+												 */
+												} catch(const std::exception &) {
 													// Если корневой тег является объектом
 													if(root[reinterpret_cast <const char *> (node->name)].is_object())
 														// Выполняем формирования списка параметров
-														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = number;
+														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
 													// Если корневой тег является массивом
 													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
 														// Добавляем в объект наше значение
-														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), number);
-												// Если число является положительным
-												} else {
-													// Если корневой тег является объектом
-													if(root[reinterpret_cast <const char *> (node->name)].is_object())
-														// Выполняем формирования списка параметров
-														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
-													// Если корневой тег является массивом
-													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-														// Добавляем в объект наше значение
-														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stoull(reinterpret_cast <const char *> (value)));
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), reinterpret_cast <const char *> (value));
 												}
 											// Если полученное значение является числом с плавающей точкой
 											} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL)) {
-												// Если корневой тег является объектом
-												if(root[reinterpret_cast <const char *> (node->name)].is_object())
-													// Выполняем формирования списка параметров
-													root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stod(reinterpret_cast <const char *> (value));
-												// Если корневой тег является массивом
-												else if(root[reinterpret_cast <const char *> (node->name)].is_array())
-													// Добавляем в объект наше значение
-													root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stod(reinterpret_cast <const char *> (value)));
+												/**
+												 * Выполняем отлов ошибок
+												 */
+												try {
+													// Если корневой тег является объектом
+													if(root[reinterpret_cast <const char *> (node->name)].is_object())
+														// Выполняем формирования списка параметров
+														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stold(reinterpret_cast <const char *> (value));
+													// Если корневой тег является массивом
+													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+														// Добавляем в объект наше значение
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), ::stold(reinterpret_cast <const char *> (value)));
+												/**
+												 * Если возникает ошибка
+												 */
+												} catch(const std::exception &) {
+													// Если корневой тег является объектом
+													if(root[reinterpret_cast <const char *> (node->name)].is_object())
+														// Выполняем формирования списка параметров
+														root[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
+													// Если корневой тег является массивом
+													else if(root[reinterpret_cast <const char *> (node->name)].is_array())
+														// Добавляем в объект наше значение
+														root[reinterpret_cast <const char *> (node->name)].back().emplace(reinterpret_cast <const char *> (attribute->name), reinterpret_cast <const char *> (value));
+												}
 											// Если значение является строковым
 											} else {
 												// Флаг булевого значения
@@ -1228,20 +1394,40 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 							xmlChar * value = xmlNodeListGetString(node->doc, attribute->children, 1);
 							// Если полученное значение является числом
 							if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::NUMBER)){
-								// Получаем значение числа
-								const long long number = ::stoll(reinterpret_cast <const char *> (value));
-								// Если число является отрицательным
-								if(number < 0)
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число является отрицательным
+									if(reinterpret_cast <const char *> (value)[0] == '-')
+										// Выполняем формирования списка параметров
+										result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoll(reinterpret_cast <const char *> (value));
 									// Выполняем формирования списка параметров
-									result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = number;
-								// Выполняем формирования списка параметров
-								else result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
+									else result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stoull(reinterpret_cast <const char *> (value));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Выполняем формирования списка параметров
+									result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
+								}
 							// Если полученное значение является числом с плавающей точкой
-							} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL))
-								// Выполняем формирования списка параметров
-								result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stod(reinterpret_cast <const char *> (value));
+							} else if(this->_fmk->is(reinterpret_cast <const char *> (value), fmk_t::check_t::DECIMAL)) {
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Выполняем формирования списка параметров
+									result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = ::stold(reinterpret_cast <const char *> (value));
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Выполняем формирования списка параметров
+									result[reinterpret_cast <const char *> (node->name)][reinterpret_cast <const char *> (attribute->name)] = reinterpret_cast <const char *> (value);
+								}
 							// Если значение является строковым
-							else {
+							} else {
 								// Флаг булевого значения
 								bool isTrue = false;
 								// Если строка является булевым значением
@@ -1282,65 +1468,115 @@ nlohmann::json anyks::Parser::xml(const string & text) noexcept {
 						}
 						// Если полученное значение является числом
 						if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
-							// Получаем значение числа
-							const long long number = ::stoll(item);
-							// Если число является отрицательным
-							if(number < 0){
-								// Если элемент не является массивом
-								if(result[reinterpret_cast <const char *> (node->name)].is_object()){
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем формирования списка параметров
-										result[reinterpret_cast <const char *> (node->name)][key] = number;
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)] = number;
-								// Иначе добавляем в указанный индекс массива
-								} else if(result[reinterpret_cast <const char *> (node->name)].is_array()) {
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем добавление названия атрибута
-										result[reinterpret_cast <const char *> (node->name)].back().emplace(key, number);
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)].back() = number;
+							/**
+							 * Выполняем отлов ошибок
+							 */
+							try {
+								// Если число является отрицательным
+								if(item.front() == '-'){
+									// Если элемент не является массивом
+									if(result[reinterpret_cast <const char *> (node->name)].is_object()){
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем формирования списка параметров
+											result[reinterpret_cast <const char *> (node->name)][key] = ::stoll(item);
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)] = ::stoll(item);
+									// Иначе добавляем в указанный индекс массива
+									} else if(result[reinterpret_cast <const char *> (node->name)].is_array()) {
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем добавление названия атрибута
+											result[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stoll(item));
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)].back() = ::stoll(item);
+									}
+								// Если число является положительным
+								} else {
+									// Если элемент не является массивом
+									if(result[reinterpret_cast <const char *> (node->name)].is_object()){
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем формирования списка параметров
+											result[reinterpret_cast <const char *> (node->name)][key] = ::stoull(item);
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)] = ::stoull(item);
+									// Иначе добавляем в указанный индекс массива
+									} else if(result[reinterpret_cast <const char *> (node->name)].is_array()) {
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем добавление названия атрибута
+											result[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stoull(item));
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)].back() = ::stoull(item);
+									}
 								}
-							// Если число является положительным
-							} else {
+							/**
+							 * Если возникает ошибка
+							 */
+							} catch(const std::exception &) {
 								// Если элемент не является массивом
 								if(result[reinterpret_cast <const char *> (node->name)].is_object()){
 									// Если у ноды есть параметры
 									if(node->properties != nullptr)
 										// Выполняем формирования списка параметров
-										result[reinterpret_cast <const char *> (node->name)][key] = ::stoull(item);
+										result[reinterpret_cast <const char *> (node->name)][key] = item;
 									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)] = ::stoull(item);
+									else result[reinterpret_cast <const char *> (node->name)] = item;
 								// Иначе добавляем в указанный индекс массива
 								} else if(result[reinterpret_cast <const char *> (node->name)].is_array()) {
 									// Если у ноды есть параметры
 									if(node->properties != nullptr)
 										// Выполняем добавление названия атрибута
-										result[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stoull(item));
+										result[reinterpret_cast <const char *> (node->name)].back().emplace(key, item);
 									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)].back() = ::stoull(item);
+									else result[reinterpret_cast <const char *> (node->name)].back() = item;
 								}
 							}
 						// Если полученное значение является числом с плавающей точкой
 						} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL)) {
-							// Если элемент не является массивом
-							if(result[reinterpret_cast <const char *> (node->name)].is_object()){
-								// Если у ноды есть параметры
-								if(node->properties != nullptr)
-									// Выполняем формирования списка параметров
-									result[reinterpret_cast <const char *> (node->name)][key] = ::stod(item);
-								// Выполняем установку полученного значения
-								else result[reinterpret_cast <const char *> (node->name)] = ::stod(item);
-							// Иначе добавляем в указанный индекс массива
-							} else if(result[reinterpret_cast <const char *> (node->name)].is_array()) {
-								// Если у ноды есть параметры
-								if(node->properties != nullptr)
-									// Выполняем добавление названия атрибута
-									result[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stod(item));
-								// Выполняем установку полученного значения
-								else result[reinterpret_cast <const char *> (node->name)].back() = ::stod(item);
+							/**
+							 * Выполняем отлов ошибок
+							 */
+							try {
+								// Если элемент не является массивом
+								if(result[reinterpret_cast <const char *> (node->name)].is_object()){
+									// Если у ноды есть параметры
+									if(node->properties != nullptr)
+										// Выполняем формирования списка параметров
+										result[reinterpret_cast <const char *> (node->name)][key] = ::stold(item);
+									// Выполняем установку полученного значения
+									else result[reinterpret_cast <const char *> (node->name)] = ::stold(item);
+								// Иначе добавляем в указанный индекс массива
+								} else if(result[reinterpret_cast <const char *> (node->name)].is_array()) {
+									// Если у ноды есть параметры
+									if(node->properties != nullptr)
+										// Выполняем добавление названия атрибута
+										result[reinterpret_cast <const char *> (node->name)].back().emplace(key, ::stold(item));
+									// Выполняем установку полученного значения
+									else result[reinterpret_cast <const char *> (node->name)].back() = ::stold(item);
+								}
+							/**
+							 * Если возникает ошибка
+							 */
+							} catch(const std::exception &) {
+								// Если элемент не является массивом
+								if(result[reinterpret_cast <const char *> (node->name)].is_object()){
+									// Если у ноды есть параметры
+									if(node->properties != nullptr)
+										// Выполняем формирования списка параметров
+										result[reinterpret_cast <const char *> (node->name)][key] = item;
+									// Выполняем установку полученного значения
+									else result[reinterpret_cast <const char *> (node->name)] = item;
+								// Иначе добавляем в указанный индекс массива
+								} else if(result[reinterpret_cast <const char *> (node->name)].is_array()) {
+									// Если у ноды есть параметры
+									if(node->properties != nullptr)
+										// Выполняем добавление названия атрибута
+										result[reinterpret_cast <const char *> (node->name)].back().emplace(key, item);
+									// Выполняем установку полученного значения
+									else result[reinterpret_cast <const char *> (node->name)].back() = item;
+								}
 							}
 						// Если значение не является числом
 						} else {

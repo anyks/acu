@@ -98,8 +98,19 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 									case 0: {
 										// Если обнаружен экранирующий символ приоритета
 										if(syslog.at(i) == '>'){
-											// Извлекаем значение приоритета
-											this->_pri = static_cast <uint16_t> (::stoi(syslog.substr(pos, i - pos)));
+											/**
+											 * Выполняем отлов ошибок
+											 */
+											try {
+												// Извлекаем значение приоритета
+												this->_pri = static_cast <uint16_t> (::stoi(syslog.substr(pos, i - pos)));
+											/**
+											 * Если возникает ошибка
+											 */
+											} catch(const std::exception &) {
+												// Добавляем полученное значение в массив
+												this->_pri = 0;
+											}
 											// Запоминаем начало строки с версией
 											pos = (i + 1);
 											// Увеличиваем значение статуса
@@ -131,8 +142,19 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 										if(std == std_t::RFC5424){
 											// Если установлен пробел
 											if(syslog.at(i) == ' '){
-												// Получаем версию сообщения
-												this->_ver = static_cast <uint8_t> (::stoi(syslog.substr(pos, i - pos)));
+												/**
+												 * Выполняем отлов ошибок
+												 */
+												try {
+													// Получаем версию сообщения
+													this->_ver = static_cast <uint8_t> (::stoi(syslog.substr(pos, i - pos)));
+												/**
+												 * Если возникает ошибка
+												 */
+												} catch(const std::exception &) {
+													// Получаем версию сообщения
+													this->_ver = 0;
+												}
 												// Запоминаем начало строки с версией
 												pos = (i + 1);
 												// Увеличиваем значение статуса
@@ -214,11 +236,22 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 															// Устанавливаем название сообщения
 															const string & pid = this->_app.substr(pos + 1, this->_app.length() - (pos + 2));
 															// Выполняем установку идентификатора процесса
-															if(this->_fmk->is(pid, fmk_t::check_t::NUMBER))
-																// Выполняем получение идентификатора процесса
-																this->_pid = static_cast <pid_t> (::stoi(pid));
+															if(this->_fmk->is(pid, fmk_t::check_t::NUMBER)){
+																/**
+																 * Выполняем отлов ошибок
+																 */
+																try {
+																	// Выполняем получение идентификатора процесса
+																	this->_pid = static_cast <pid_t> (::stoi(pid));
+																/**
+																 * Если возникает ошибка
+																 */
+																} catch(const std::exception &) {
+																	// Выполняем получение идентификатора процесса
+																	this->_pid = 0;
+																}
 															// Устанавливаем идентификатор процесса по умолчанию
-															else this->_pid = 0;
+															} else this->_pid = 0;
 															// Удаляем лишние символы
 															this->_app.replace(pos, this->_app.length() - pos, "");
 														}
@@ -296,11 +329,22 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 														// Устанавливаем идентификатор процесса по умолчанию
 														this->_pid = 0;
 													// Выполняем установку идентификатора процесса
-													else if(this->_fmk->is(pid, fmk_t::check_t::NUMBER))
-														// Устанавливаем идентификатор процесса
-														this->_pid = static_cast <pid_t> (::stoi(pid));
+													else if(this->_fmk->is(pid, fmk_t::check_t::NUMBER)) {
+														/**
+														 * Выполняем отлов ошибок
+														 */
+														try {
+															// Устанавливаем идентификатор процесса
+															this->_pid = static_cast <pid_t> (::stoi(pid));
+														/**
+														 * Если возникает ошибка
+														 */
+														} catch(const std::exception &) {
+															// Выполняем получение идентификатора процесса
+															this->_pid = 0;
+														}
 													// Устанавливаем идентификатор процесса по умолчанию
-													else this->_pid = 0;
+													} else this->_pid = 0;
 													// Запоминаем начало строки с версией
 													pos = (i + 1);
 													// Увеличиваем значение статуса
@@ -438,10 +482,21 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 								// Определяем номер элемента
 								switch(i){
 									// Если мы получили приоритетное значение
-									case 1:
-										// Извлекаем значение приоритета
-										this->_pri = static_cast <uint16_t> (::stoi(item));
-									break;
+									case 1: {
+										/**
+										 * Выполняем отлов ошибок
+										 */
+										try {
+											// Извлекаем значение приоритета
+											this->_pri = static_cast <uint16_t> (::stoi(item));
+										/**
+										 * Если возникает ошибка
+										 */
+										} catch(const std::exception &) {
+											// Извлекаем значение приоритета
+											this->_pri = 0;
+										}
+									} break;
 									// Если мы получили значение даты
 									case 2: {
 										// Выполняем парсинг даты
@@ -548,11 +603,22 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 									// Если мы получили идентификатор процесса
 									case 5: {
 										// Выполняем установку идентификатора процесса
-										if(this->_fmk->is(item, fmk_t::check_t::NUMBER))
-											// Выполняем получение идентификатора процесса
-											this->_pid = static_cast <pid_t> (::stoi(item));
+										if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
+											/**
+											 * Выполняем отлов ошибок
+											 */
+											try {
+												// Выполняем получение идентификатора процесса
+												this->_pid = static_cast <pid_t> (::stoi(item));
+											/**
+											 * Если возникает ошибка
+											 */
+											} catch(const std::exception &) {
+												// Выполняем получение идентификатора процесса
+												this->_pid = 0;
+											}
 										// Устанавливаем идентификатор процесса по умолчанию
-										else this->_pid = 0;
+										} else this->_pid = 0;
 									} break;
 									// Если мы получили текст сообщения
 									case 6:
@@ -583,15 +649,37 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 									// Определяем номер элемента
 									switch(i){
 										// Если мы получили приоритетное значение
-										case 1:
-											// Извлекаем значение приоритета
-											this->_pri = static_cast <uint16_t> (::stoi(item));
-										break;
+										case 1: {
+											/**
+											 * Выполняем отлов ошибок
+											 */
+											try {
+												// Извлекаем значение приоритета
+												this->_pri = static_cast <uint16_t> (::stoi(item));
+											/**
+											 * Если возникает ошибка
+											 */
+											} catch(const std::exception &) {
+												// Извлекаем значение приоритета
+												this->_pri = 0;
+											}
+										} break;
 										// Если мы получили версию сообщения
-										case 2:
-											// Получаем версию сообщения
-											this->_ver = static_cast <uint8_t> (::stoi(item));
-										break;
+										case 2: {
+											/**
+											 * Выполняем отлов ошибок
+											 */
+											try {
+												// Получаем версию сообщения
+												this->_ver = static_cast <uint8_t> (::stoi(item));
+											/**
+											 * Если возникает ошибка
+											 */
+											} catch(const std::exception &) {
+												// Получаем версию сообщения
+												this->_ver = 0;
+											}
+										} break;
 										// Если мы получили значение даты
 										case 3: {
 											// Выполняем парсинг даты
@@ -698,11 +786,22 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 										// Если мы получили идентификатор процесса
 										case 6: {
 											// Выполняем установку идентификатора процесса
-											if(this->_fmk->is(item, fmk_t::check_t::NUMBER))
-												// Выполняем получение идентификатора процесса
-												this->_pid = static_cast <pid_t> (::stoi(item));
+											if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
+												/**
+												 * Выполняем отлов ошибок
+												 */
+												try {
+													// Выполняем получение идентификатора процесса
+													this->_pid = static_cast <pid_t> (::stoi(item));
+												/**
+												 * Если возникает ошибка
+												 */
+												} catch(const std::exception &) {
+													// Выполняем получение идентификатора процесса
+													this->_pid = 0;
+												}
 											// Устанавливаем идентификатор процесса по умолчанию
-											else this->_pid = 0;
+											} else this->_pid = 0;
 										} break;
 										// Если мы получили идентификатор сообщения
 										case 7:
@@ -1380,20 +1479,40 @@ json anyks::SysLog::dump() const noexcept {
 				for(auto & item2 : item1.second){
 					// Если запись является числом
 					if(this->_fmk->is(item2.second, fmk_t::check_t::NUMBER)){
-						// Получаем переданное число
-						const long long number = std::stoll(item2.second);
-						// Если число положительное
-						if(number > 0)
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Если число положительное
+							if(item2.second.front() != '-')
+								// Добавляем полученные парасетры структурированных данных
+								result.at("sd").at(item1.first).emplace(item2.first, ::stoull(item2.second));
 							// Добавляем полученные парасетры структурированных данных
-							result.at("sd").at(item1.first).emplace(item2.first, ::stoull(item2.second));
-						// Добавляем полученные парасетры структурированных данных
-						else result.at("sd").at(item1.first).emplace(item2.first, number);
+							else result.at("sd").at(item1.first).emplace(item2.first, ::stoll(item2.second));
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
+							// Добавляем полученные парасетры структурированных данных
+							result.at("sd").at(item1.first).emplace(item2.first, item2.second);
+						}
 					// Если запись является числом с плавающей точкой
-					} else if(this->_fmk->is(item2.second, fmk_t::check_t::DECIMAL))
-						// Добавляем полученные парасетры структурированных данных
-						result.at("sd").at(item1.first).emplace(item2.first, ::stod(item2.second));
+					} else if(this->_fmk->is(item2.second, fmk_t::check_t::DECIMAL)) {
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Добавляем полученные парасетры структурированных данных
+							result.at("sd").at(item1.first).emplace(item2.first, ::stold(item2.second));
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
+							// Добавляем полученные парасетры структурированных данных
+							result.at("sd").at(item1.first).emplace(item2.first, item2.second);
+						}
 					// Если число является булевым истинным значением
-					else if(this->_fmk->compare("true", item2.second))
+					} else if(this->_fmk->compare("true", item2.second))
 						// Добавляем полученные парасетры структурированных данных
 						result.at("sd").at(item1.first).emplace(item2.first, true);
 					// Если число является булевым ложным значением
