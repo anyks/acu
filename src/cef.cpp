@@ -416,7 +416,7 @@ string anyks::Cef::cef() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Если количество байт в буфере 4
 								if(extension.second.size() == 4){
 									// Формируем число из бинарного буфера
@@ -455,7 +455,7 @@ string anyks::Cef::cef() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем число из бинарного буфера
 								uint64_t value = 0;
 								// Копируем в бинарный буфер данные IP адреса
@@ -483,7 +483,7 @@ string anyks::Cef::cef() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем число из бинарного буфера
 								uint32_t value = 0;
 								// Копируем в бинарный буфер данные IP адреса
@@ -511,7 +511,7 @@ string anyks::Cef::cef() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем бинарный буфер данных
 								array <uint64_t, 2> buffer;
 								// Копируем в бинарный буфер данные IP адреса
@@ -819,7 +819,7 @@ json anyks::Cef::dump() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Если количество байт в буфере 4
 								if(extension.second.size() == 4){
 									// Формируем число из бинарного буфера
@@ -847,7 +847,7 @@ json anyks::Cef::dump() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем число из бинарного буфера
 								uint64_t value = 0;
 								// Копируем в бинарный буфер данные IP адреса
@@ -864,7 +864,7 @@ json anyks::Cef::dump() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем число из бинарного буфера
 								uint32_t value = 0;
 								// Копируем в бинарный буфер данные IP адреса
@@ -881,7 +881,7 @@ json anyks::Cef::dump() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем бинарный буфер данных
 								array <uint64_t, 2> buffer;
 								// Копируем в бинарный буфер данные IP адреса
@@ -1498,7 +1498,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Если количество байт в буфере 4
 								if(extension.second.size() == 4){
 									// Формируем число из бинарного буфера
@@ -1526,7 +1526,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем число из бинарного буфера
 								uint64_t value = 0;
 								// Копируем в бинарный буфер данные IP адреса
@@ -1543,7 +1543,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем число из бинарного буфера
 								uint32_t value = 0;
 								// Копируем в бинарный буфер данные IP адреса
@@ -1560,7 +1560,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
 								// Создаём объект сети
-								net_t net;
+								net_t net(this->_log);
 								// Формируем бинарный буфер данных
 								array <uint64_t, 2> buffer;
 								// Копируем в бинарный буфер данные IP адреса
@@ -1892,7 +1892,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						// Если включён строгий режим парсинга
 						if(this->_mode == mode_t::STRONG){
 							// Создаём объект сети
-							net_t net;
+							net_t net(this->_log);
 							// Выполняем парсинг сетевого адреса
 							if(net.parse(value)){
 								// Выполняем определение типа IP адреса
@@ -1925,7 +1925,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						// Если включён строгий режим парсинга
 						if(this->_mode == mode_t::STRONG){
 							// Создаём объект сети
-							net_t net;
+							net_t net(this->_log);
 							// Выполняем парсинг аппаратного адреса
 							if(net.parse(value, net_t::type_t::MAC)){
 								// Извлекаем данные MAC адреса
@@ -1945,7 +1945,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						// Если включён строгий режим парсинга
 						if(this->_mode == mode_t::STRONG){
 							// Создаём объект сети
-							net_t net;
+							net_t net(this->_log);
 							// Выполняем парсинг сетевого адреса
 							if(net.parse(value, net_t::type_t::IPV4)){
 								// Извлекаем данные IP адреса
@@ -1965,7 +1965,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						// Если включён строгий режим парсинга
 						if(this->_mode == mode_t::STRONG){
 							// Создаём объект сети
-							net_t net;
+							net_t net(this->_log);
 							// Выполняем парсинг сетевого адреса
 							if(net.parse(value, net_t::type_t::IPV6)){
 								// Извлекаем данные IP адреса

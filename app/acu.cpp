@@ -23,7 +23,7 @@
  * Подключаем модуль файловой системы
  */
 #include <sys/fs.hpp>
-#include <hash/base64.hpp>
+#include <sys/hash.hpp>
 
 // Подключаем пространство имён
 using namespace anyks;
@@ -315,7 +315,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				YAML        = 0x06, // Тип формата - YAML
 				GROK        = 0x07, // Тип формата - GROK
 				SYSLOG      = 0x08, // Тип формата - SYSLOG
-				BASE64      = 0x09, // Тип формата - Base64
+				BASE64      = 0x09, // Тип формата - BASE64
 				MD5         = 0x0A, // Тип формата - MD5
 				SHA1        = 0x0B, // Тип формата - SHA1
 				SHA224      = 0x0C, // Тип формата - SHA224
@@ -395,7 +395,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			} else if(fmk.compare("syslog", env.get("from")))
 				// Определяем формат данных
 				from = type_t::SYSLOG;
-			// Если формат входящих данных указан как Base64
+			// Если формат входящих данных указан как BASE64
 			else if(fmk.compare("base64", env.get("from")))
 				// Определяем формат данных
 				from = type_t::BASE64;
@@ -438,7 +438,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			else if(fmk.compare("syslog", env.get("to")))
 				// Определяем формат данных
 				to = type_t::SYSLOG;
-			// Если формат исходящих данных указан как Base64
+			// Если формат исходящих данных указан как BASE64
 			else if(fmk.compare("base64", env.get("to")))
 				// Определяем формат данных
 				to = type_t::BASE64;
@@ -583,11 +583,15 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						// Выполняем конвертацию данных
 						result = parser.syslog(text);
 					break;
-					// Если формат входящих данных указан как Base64
-					case static_cast <uint8_t> (type_t::BASE64):
-						// Выполняем конвертацию данных
-						result = base64_t().decode(text);
-					break;
+					// Если формат входящих данных указан как BASE64
+					case static_cast <uint8_t> (type_t::BASE64): {
+						// Результат выполнения декодирования
+						string data = "";
+						// Выполняем декодирование хэша BASE64
+						hash_t(&log).decode(text.data(), text.size(), hash_t::cipher_t::BASE64, data);
+						// Получаем результат декодирования
+						result = data;
+					} break;
 				}
 				// Если результат получен
 				if(!result.empty()){
@@ -671,11 +675,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Выполняем конвертирование в формат SysLog
 									buffer = parser.syslog(result);
 								break;
-								// Если формат входящих данных указан как Base64
-								case static_cast <uint8_t> (type_t::BASE64):
-									// Выполняем конвертирование в формат Base64
-									buffer = base64_t().encode(result);
-								break;
+								// Если формат входящих данных указан как BASE64
+								case static_cast <uint8_t> (type_t::BASE64): {
+									// Выполняем получение текста для шифрования
+									const string data = result.dump();
+									// Выполняем конвертирование в формат BASE64
+									hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, buffer);
+								} break;
 								// Если формат входящих данных указан как MD5
 								case static_cast <uint8_t> (type_t::MD5):
 									// Выполняем конвертирование в формат MD5
@@ -813,11 +819,19 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Выполняем конвертирование в формат SysLog
 								cout << parser.syslog(result) << endl;
 							break;
-							// Если формат входящих данных указан как Base64
-							case static_cast <uint8_t> (type_t::BASE64):
-								// Выполняем конвертирование в формат Base64
-								cout << base64_t().encode(result) << endl;
-							break;
+							// Если формат входящих данных указан как BASE64
+							case static_cast <uint8_t> (type_t::BASE64): {
+								// Выполняем получение текста для шифрования
+								const string data = result.dump();
+								{
+									// Результат полученный при конвертировании
+									string result = "";
+									// Выполняем конвертирование в формат BASE64
+									hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, result);
+									// Выводим полученный результат
+									cout << result << endl;
+								}
+							} break;
 							// Если формат входящих данных указан как MD5
 							case static_cast <uint8_t> (type_t::MD5):
 								// Выполняем конвертирование в формат MD5
@@ -969,11 +983,15 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Выполняем конвертацию данных
 									result = parser.syslog(text);
 								break;
-								// Если формат входящих данных указан как Base64
-								case static_cast <uint8_t> (type_t::BASE64):
-									// Выполняем конвертацию данных
-									result = base64_t().decode(text);
-								break;
+								// Если формат входящих данных указан как BASE64
+								case static_cast <uint8_t> (type_t::BASE64): {
+									// Результат выполнения декодирования
+									string data = "";
+									// Выполняем декодирование хэша BASE64
+									hash_t(&log).decode(text.data(), text.size(), hash_t::cipher_t::BASE64, data);
+									// Получаем результат декодирования
+									result = data;
+								} break;
 							}
 							// Если результат получен
 							if(!result.empty()){
@@ -1064,11 +1082,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 												// Выполняем конвертирование в формат SysLog
 												buffer = parser.syslog(result);
 											break;
-											// Если формат входящих данных указан как Base64
-											case static_cast <uint8_t> (type_t::BASE64):
-												// Выполняем конвертирование в формат Base64
-												buffer = base64_t().encode(result);
-											break;
+											// Если формат входящих данных указан как BASE64
+											case static_cast <uint8_t> (type_t::BASE64): {
+												// Выполняем получение текста для шифрования
+												const string data = result.dump();
+												// Выполняем конвертирование в формат BASE64
+												hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, buffer);
+											} break;
 											// Если формат входящих данных указан как MD5
 											case static_cast <uint8_t> (type_t::MD5):
 												// Выполняем конвертирование в формат MD5
@@ -1210,11 +1230,19 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Выполняем конвертирование в формат SysLog
 											cout << parser.syslog(result) << endl;
 										break;
-										// Если формат входящих данных указан как Base64
-										case static_cast <uint8_t> (type_t::BASE64):
-											// Выполняем конвертирование в формат Base64
-											cout << base64_t().encode(result) << endl;
-										break;
+										// Если формат входящих данных указан как BASE64
+										case static_cast <uint8_t> (type_t::BASE64): {
+											// Выполняем получение текста для шифрования
+											const string data = result.dump();
+											{
+												// Результат полученный при конвертировании
+												string result = "";
+												// Выполняем конвертирование в формат BASE64
+												hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, result);
+												// Выводим полученный результат
+												cout << result << endl;
+											}
+										} break;
 										// Если формат входящих данных указан как MD5
 										case static_cast <uint8_t> (type_t::MD5):
 											// Выполняем конвертирование в формат MD5
@@ -1358,11 +1386,15 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Выполняем конвертацию данных
 								result = parser.syslog(text);
 							break;
-							// Если формат входящих данных указан как Base64
-							case static_cast <uint8_t> (type_t::BASE64):
-								// Выполняем конвертацию данных
-								result = base64_t().decode(text);
-							break;
+							// Если формат входящих данных указан как BASE64
+							case static_cast <uint8_t> (type_t::BASE64): {
+								// Результат выполнения декодирования
+								string data = "";
+								// Выполняем декодирование хэша BASE64
+								hash_t(&log).decode(text.data(), text.size(), hash_t::cipher_t::BASE64, data);
+								// Получаем результат декодирования
+								result = data;
+							} break;
 						}
 						// Если результат получен
 						if(!result.empty()){
@@ -1446,11 +1478,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Выполняем конвертирование в формат SysLog
 											buffer = parser.syslog(result);
 										break;
-										// Если формат входящих данных указан как Base64
-										case static_cast <uint8_t> (type_t::BASE64):
-											// Выполняем конвертирование в формат Base64
-											buffer = base64_t().encode(result);
-										break;
+										// Если формат входящих данных указан как BASE64
+										case static_cast <uint8_t> (type_t::BASE64): {
+											// Выполняем получение текста для шифрования
+											const string data = result.dump();
+											// Выполняем конвертирование в формат BASE64
+											hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, buffer);
+										} break;
 										// Если формат входящих данных указан как MD5
 										case static_cast <uint8_t> (type_t::MD5):
 											// Выполняем конвертирование в формат MD5
@@ -1588,11 +1622,19 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Выполняем конвертирование в формат SysLog
 										cout << parser.syslog(result) << endl;
 									break;
-									// Если формат входящих данных указан как Base64
-									case static_cast <uint8_t> (type_t::BASE64):
-										// Выполняем конвертирование в формат Base64
-										cout << base64_t().encode(result) << endl;
-									break;
+									// Если формат входящих данных указан как BASE64
+									case static_cast <uint8_t> (type_t::BASE64): {
+										// Выполняем получение текста для шифрования
+										const string data = result.dump();
+										{
+											// Результат полученный при конвертировании
+											string result = "";
+											// Выполняем конвертирование в формат BASE64
+											hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, result);
+											// Выводим полученный результат
+											cout << result << endl;
+										}
+									} break;
 									// Если формат входящих данных указан как MD5
 									case static_cast <uint8_t> (type_t::MD5):
 										// Выполняем конвертирование в формат MD5

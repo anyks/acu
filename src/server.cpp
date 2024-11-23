@@ -748,11 +748,17 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Выполняем конвертацию данных
 									answer = parser.syslog(request.at("text").get <string> ());
 								break;
-								// Если формат входящих данных указан как Base64
-								case static_cast <uint8_t> (type_t::BASE64):
-									// Выполняем конвертацию данных
-									answer = this->_base64.decode(request.at("text").get <string> ());
-								break;
+								// Если формат входящих данных указан как BASE64
+								case static_cast <uint8_t> (type_t::BASE64): {
+									// Результат выполнения декодирования
+									string result = "";
+									// Получаем текстове значение буфера
+									const string & text = request.at("text").get <string> ();
+									// Выполняем декодирование хэша BASE64
+									this->_hash.decode(text.data(), text.size(), hash_t::cipher_t::BASE64, result);
+									// Получаем результат декодирования
+									answer = result;
+								} break;
 							}
 							// Если ответ парсера получен
 							if(!answer.empty()){
@@ -815,11 +821,13 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										// Выполняем конвертирование в формат SysLog
 										text = parser.syslog(answer);
 									break;
-									// Если формат входящих данных указан как Base64
-									case static_cast <uint8_t> (type_t::BASE64):
-										// Выполняем конвертирование в формат Base64
-										text = this->_base64.encode(answer);
-									break;
+									// Если формат входящих данных указан как BASE64
+									case static_cast <uint8_t> (type_t::BASE64): {
+										// Выполняем получение текста для шифрования
+										const string data = answer.dump();
+										// Выполняем конвертирование в формат BASE64
+										this->_hash.encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, text);
+									} break;
 									// Если формат входящих данных указан как MD5
 									case static_cast <uint8_t> (type_t::MD5):
 										// Выполняем конвертирование в формат MD5
@@ -1107,7 +1115,7 @@ void anyks::Server::config(const json & config) noexcept {
 						// Устанавливаем хост сервера
 						host = config.at("net").at("host").get <string> ();
 						// Получаем тип передаваемого адреса
-						awh::net_t::type_t type = net_t().host(host);
+						awh::net_t::type_t type = net_t(this->_log).host(host);
 						// Если тип переданного адреса не соответствует, выводим сообщение об ошибке
 						if((type != awh::net_t::type_t::FQDN) && (type != awh::net_t::type_t::IPV4) && (type != awh::net_t::type_t::IPV6)){
 							// Выполняем сброс хоста сервера
@@ -1243,7 +1251,7 @@ void anyks::Server::config(const json & config) noexcept {
 				// Если фильтры доступа к серверу переданы
 				if(config.at("net").contains("filter") && config.at("net").at("filter").is_object()){
 					// Создаём объект для работы с IP-адресами
-					net_t net;
+					net_t net(this->_log);
 					/**
 					 * Тип фильтрации пользователей
 					 */
@@ -1407,7 +1415,7 @@ void anyks::Server::start() noexcept {
  * @param log объект для работы с логами
  */
 anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
- _fs(fmk, log), _uri(fmk), _root{""}, _index{""}, _origin{""}, _favicon{""},
+ _fs(fmk, log), _uri(fmk, log), _hash(log), _root{""}, _index{""}, _origin{""}, _favicon{""},
  _http(fmk, log), _maxRequests(100), _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
 	// Выполняем установку идентификатора клиента
 	this->_awh.ident(AWH_SHORT_NAME, AWH_NAME, AWH_VERSION);

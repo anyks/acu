@@ -95,8 +95,8 @@ namespace anyks {
 			fs_t _fs;
 			// Объект работы с URI параметрами
 			uri_t _uri;
-			// Объект работы с хэшированием Base64
-			base64_t _base64;
+			// Объект работы с хэшированием
+			hash_t _hash;
 		private:
 			// Адрес корневого каталога с сайтом
 			string _root;

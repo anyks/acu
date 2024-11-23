@@ -401,7 +401,7 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch (const std::ios_base::failure & error) {
+		} catch(const std::ios_base::failure & error) {
 			// Выводим сообщение инициализации метода класса скрипта торговой платформы
 			this->_log->print("CSV: %s for filename %s", log_t::flag_t::CRITICAL, error.what(), filename.c_str());
 		}
