@@ -660,38 +660,41 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							if(request.contains("hmac") && request.at("hmac").is_string()){
 								// Получаем ключ подтверждения подлинности
 								hmac = request.at("hmac").get <string> ();
-								// Проверяем формат данных для конвертации
-								switch(static_cast <uint8_t> (to)){
-									// Если формат исходящих данных указан как MD5
-									case static_cast <uint8_t> (type_t::MD5):
-										// Определяем формат данных
-										to = type_t::HMAC_MD5;
-									break;
-									// Если формат исходящих данных указан как SHA1
-									case static_cast <uint8_t> (type_t::SHA1):
-										// Определяем формат данных
-										to = type_t::HMAC_SHA1;
-									break;
-									// Если формат исходящих данных указан как SHA224
-									case static_cast <uint8_t> (type_t::SHA224):
-										// Определяем формат данных
-										to = type_t::HMAC_SHA224;
-									break;
-									// Если формат исходящих данных указан как SHA256
-									case static_cast <uint8_t> (type_t::SHA256):
-										// Определяем формат данных
-										to = type_t::HMAC_SHA256;
-									break;
-									// Если формат исходящих данных указан как SHA384
-									case static_cast <uint8_t> (type_t::SHA384):
-										// Определяем формат данных
-										to = type_t::HMAC_SHA384;
-									break;
-									// Если формат исходящих данных указан как SHA512
-									case static_cast <uint8_t> (type_t::SHA512):
-										// Определяем формат данных
-										to = type_t::HMAC_SHA512;
-									break;
+								// Если ключ подтверждения подлинности получен
+								if(!hmac.empty()){
+									// Проверяем формат данных для конвертации
+									switch(static_cast <uint8_t> (to)){
+										// Если формат исходящих данных указан как MD5
+										case static_cast <uint8_t> (type_t::MD5):
+											// Определяем формат данных
+											to = type_t::HMAC_MD5;
+										break;
+										// Если формат исходящих данных указан как SHA1
+										case static_cast <uint8_t> (type_t::SHA1):
+											// Определяем формат данных
+											to = type_t::HMAC_SHA1;
+										break;
+										// Если формат исходящих данных указан как SHA224
+										case static_cast <uint8_t> (type_t::SHA224):
+											// Определяем формат данных
+											to = type_t::HMAC_SHA224;
+										break;
+										// Если формат исходящих данных указан как SHA256
+										case static_cast <uint8_t> (type_t::SHA256):
+											// Определяем формат данных
+											to = type_t::HMAC_SHA256;
+										break;
+										// Если формат исходящих данных указан как SHA384
+										case static_cast <uint8_t> (type_t::SHA384):
+											// Определяем формат данных
+											to = type_t::HMAC_SHA384;
+										break;
+										// Если формат исходящих данных указан как SHA512
+										case static_cast <uint8_t> (type_t::SHA512):
+											// Определяем формат данных
+											to = type_t::HMAC_SHA512;
+										break;
+									}
 								}
 							}
 							// Объект ответа парсера в формате JSON
@@ -750,14 +753,10 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								break;
 								// Если формат входящих данных указан как BASE64
 								case static_cast <uint8_t> (type_t::BASE64): {
-									// Результат выполнения декодирования
-									string result = "";
 									// Получаем текстове значение буфера
 									const string & text = request.at("text").get <string> ();
 									// Выполняем декодирование хэша BASE64
-									this->_hash.decode(text.data(), text.size(), hash_t::cipher_t::BASE64, result);
-									// Получаем результат декодирования
-									answer = result;
+									answer = this->_hash.decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
 								} break;
 							}
 							// Если ответ парсера получен
@@ -824,69 +823,69 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Если формат входящих данных указан как BASE64
 									case static_cast <uint8_t> (type_t::BASE64): {
 										// Выполняем получение текста для шифрования
-										const string data = answer.dump();
+										const string data = answer.get <string> ();
 										// Выполняем конвертирование в формат BASE64
 										this->_hash.encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, text);
 									} break;
 									// Если формат входящих данных указан как MD5
 									case static_cast <uint8_t> (type_t::MD5):
 										// Выполняем конвертирование в формат MD5
-										text = this->_fmk->hash(answer, fmk_t::hash_t::MD5);
+										this->_hash.hashing(answer.get <string> (), hash_t::type_t::MD5, text);
 									break;
 									// Если формат входящих данных указан как SHA1
 									case static_cast <uint8_t> (type_t::SHA1):
 										// Выполняем конвертирование в формат SHA1
-										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA1);
+										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA1, text);
 									break;
 									// Если формат входящих данных указан как SHA224
 									case static_cast <uint8_t> (type_t::SHA224):
 										// Выполняем конвертирование в формат SHA224
-										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA224);
+										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA224, text);
 									break;
 									// Если формат входящих данных указан как SHA256
 									case static_cast <uint8_t> (type_t::SHA256):
 										// Выполняем конвертирование в формат SHA256
-										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA256);
+										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA256, text);
 									break;
 									// Если формат входящих данных указан как SHA384
 									case static_cast <uint8_t> (type_t::SHA384):
 										// Выполняем конвертирование в формат SHA384
-										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA384);
+										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA384, text);
 									break;
 									// Если формат входящих данных указан как SHA512
 									case static_cast <uint8_t> (type_t::SHA512):
 										// Выполняем конвертирование в формат SHA512
-										text = this->_fmk->hash(answer, fmk_t::hash_t::SHA512);
+										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA512, text);
 									break;
 									// Если формат входящих данных указан как HMAC MD5
 									case static_cast <uint8_t> (type_t::HMAC_MD5):
 										// Выполняем конвертирование в формат HMAC MD5
-										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_MD5);
+										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::MD5, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA1
 									case static_cast <uint8_t> (type_t::HMAC_SHA1):
 										// Выполняем конвертирование в формат HMAC SHA1
-										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA1);
+										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA1, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA224
 									case static_cast <uint8_t> (type_t::HMAC_SHA224):
 										// Выполняем конвертирование в формат HMAC SHA224
-										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA224);
+										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA224, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA256
 									case static_cast <uint8_t> (type_t::HMAC_SHA256):
 										// Выполняем конвертирование в формат HMAC SHA256
-										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA256);
+										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA256, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA384
 									case static_cast <uint8_t> (type_t::HMAC_SHA384):
 										// Выполняем конвертирование в формат HMAC SHA384
-										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA384);
+										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA384, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA512
 									case static_cast <uint8_t> (type_t::HMAC_SHA512):
 										// Выполняем конвертирование в формат HMAC SHA512
-										text = this->_fmk->hash(hmac, answer, fmk_t::hash_t::HMAC_SHA512);
+										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA512, text);
 									break;
 								}
 								// Если текст ответа получен
@@ -1241,7 +1240,7 @@ void anyks::Server::config(const json & config) noexcept {
 						// Устанавливаем название сервера
 						this->_awh.realm(AWH_SHORT_NAME);
 						// Устанавливаем временный ключ сессии сервера
-						this->_awh.opaque(this->_fmk->hash(std::to_string(::time(nullptr)), fmk_t::hash_t::MD5));
+						this->_awh.opaque(this->_hash.hashing <string> (std::to_string(::time(nullptr)), hash_t::type_t::MD5));
 					}
 				}
 				// Если время ожидания получения сообщения передано
