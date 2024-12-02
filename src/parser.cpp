@@ -1820,13 +1820,13 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 						// Выполняем проверку есть ли дробная часть у числа
 						if(::modf(el.value().get <double> (), &intpart) == 0){
 							// Получаем целочисленные данные
-							const long long number = el.value().get <long long> ();
+							const int64_t number = el.value().get <int64_t> ();
 							// Если число отрицательное
 							if(number < 0)
 								// Выполняем получение числа с учётом знака
 								result.append(std::to_string(number));
 							// Выводим беззнаковое число
-							else result.append(std::to_string(el.value().get <unsigned long long> ()));
+							else result.append(std::to_string(el.value().get <uint64_t> ()));
 						// Если у числа имеется дробная часть
 						} else result.append(this->_fmk->noexp(el.value().get <double> (), true));
 						// Выполняем закрытие тега
@@ -1989,13 +1989,13 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 											// Выполняем проверку есть ли дробная часть у числа
 											if(::modf(item.value().get <double> (), &intpart) == 0){
 												// Получаем целочисленные данные
-												const long long number = item.value().get <long long> ();
+												const int64_t number = item.value().get <int64_t> ();
 												// Если число отрицательное
 												if(number < 0)
 													// Выполняем получение числа с учётом знака
 													value = std::to_string(number);
 												// Выводим беззнаковое число
-												else value = std::to_string(item.value().get <unsigned long long> ());
+												else value = std::to_string(item.value().get <uint64_t> ());
 											// Если у числа имеется дробная часть
 											} else value = this->_fmk->noexp(item.value().get <double> (), true);
 											// Продолжаем дальше
@@ -2034,13 +2034,13 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 									// Выполняем проверку есть ли дробная часть у числа
 									if(::modf(item.value().get <double> (), &intpart) == 0){
 										// Получаем целочисленные данные
-										const long long number = item.value().get <long long> ();
+										const int64_t number = item.value().get <int64_t> ();
 										// Если число отрицательное
 										if(number < 0)
 											// Выполняем получение числа с учётом знака
 											result.append(std::to_string(number));
 										// Выводим беззнаковое число
-										else result.append(std::to_string(item.value().get <unsigned long long> ()));
+										else result.append(std::to_string(item.value().get <uint64_t> ()));
 									// Если у числа имеется дробная часть
 									} else result.append(this->_fmk->noexp(item.value().get <double> (), true));
 									// Выполняем добавление экранирование параметра
@@ -2174,13 +2174,13 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 								// Выполняем проверку есть ли дробная часть у числа
 								if(::modf(item.get <double> (), &intpart) == 0){
 									// Получаем целочисленные данные
-									const long long number = item.get <long long> ();
+									const int64_t number = item.get <int64_t> ();
 									// Если число отрицательное
 									if(number < 0)
 										// Выполняем получение числа с учётом знака
 										result.append(std::to_string(number));
 									// Выводим беззнаковое число
-									else result.append(std::to_string(item.get <unsigned long long> ()));
+									else result.append(std::to_string(item.get <uint64_t> ()));
 								// Если у числа имеется дробная часть
 								} else result.append(this->_fmk->noexp(item.get <double> (), true));
 								// Выполняем закрытие тега
@@ -2332,13 +2332,13 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 													// Выполняем проверку есть ли дробная часть у числа
 													if(::modf(el.value().get <double> (), &intpart) == 0){
 														// Получаем целочисленные данные
-														const long long number = el.value().get <long long> ();
+														const int64_t number = el.value().get <int64_t> ();
 														// Если число отрицательное
 														if(number < 0)
 															// Выполняем получение числа с учётом знака
 															value = std::to_string(number);
 														// Выводим беззнаковое число
-														else value = std::to_string(el.value().get <unsigned long long> ());
+														else value = std::to_string(el.value().get <uint64_t> ());
 													// Если у числа имеется дробная часть
 													} else value = this->_fmk->noexp(el.value().get <double> (), true);
 													// Продолжаем дальше
@@ -2377,13 +2377,13 @@ string anyks::Parser::xml(const nlohmann::json & data, const bool pretty) noexce
 											// Выполняем проверку есть ли дробная часть у числа
 											if(::modf(el.value().get <double> (), &intpart) == 0){
 												// Получаем целочисленные данные
-												const long long number = el.value().get <long long> ();
+												const int64_t number = el.value().get <int64_t> ();
 												// Если число отрицательное
 												if(number < 0)
 													// Выполняем получение числа с учётом знака
 													result.append(std::to_string(number));
 												// Выводим беззнаковое число
-												else result.append(std::to_string(el.value().get <unsigned long long> ()));
+												else result.append(std::to_string(el.value().get <uint64_t> ()));
 											// Если у числа имеется дробная часть
 											} else result.append(this->_fmk->noexp(el.value().get <double> (), true));
 											// Выполняем добавление экранирование параметра
