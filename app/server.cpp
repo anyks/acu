@@ -419,6 +419,8 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 		}
 		// Выполняем подключение конфигурационного файла
 		config(&log, &env, &fs);
+		// Выполняем создание демона
+		daemon(&fmk, &log, &env, &fs);
 		// Выполняем инициализацию объекта сервера
 		server_t server(&fmk, &log);
 		// Выполняем установку конфигурационных параметров
@@ -447,8 +449,6 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			else if(env.isNumber("logLevel", true))
 				// Выполняем установку уровня логирования из конфигурационного файла
 				log.level(static_cast <log_t::level_t> (env.get <uint8_t> ("logLevel", true)));
-			// Выполняем создание демона
-			daemon(&fmk, &log, &env, &fs);
 			// Выполняем запуск сервера
 			server.start();
 			// Выводим удачное завершение работы

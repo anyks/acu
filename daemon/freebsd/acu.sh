@@ -38,7 +38,8 @@ start(){
 		echo "$acu_name is already running"
 	else
 		rm -f $acu_pid 2>/dev/null
-		$command --config=$acu_config --log="/var/log/$acu_name.log" --logLevel=6 2>/dev/null
+		$command --config=$acu_config --log="/var/log/$acu_name.log" --logLevel=6 &
+		# $command --config=$acu_config --log="/var/log/$acu_name.log" --logLevel=6 2>/dev/null
 		sleep 1
 		pid=`cat $acu_pid 2>/dev/null`
 		if [ "$pid" != "" ]; then
