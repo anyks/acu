@@ -130,17 +130,18 @@ void help(const string & name, const fmk_t * fmk, const env_t * env, const fs_t 
 	}
 }
 /**
- * daemon Функция создания демона
+ * pidWrite Функция записи идентификатора процесса
  * @param fmk объект фреймворка
- * @param log объект для работы с логами
  * @param env объект для работы с переменными окружения
  * @param fs  объект работы с файловой системой
  */
-static void daemon(const fmk_t * fmk, const log_t * log, const env_t * env, const fs_t * fs) noexcept {
-	// Если операционная система является *Nix-подобной
-	#if defined(__APPLE__) || defined(__MACH__) || defined(__linux__) || defined(__FreeBSD__)
+static void pidWrite(const fmk_t * fmk, const env_t * env, const fs_t * fs) noexcept {
+	/**
+	 * Выполняем работу для Unix
+	 */
+	#if !defined(_WIN32) && !defined(_WIN64)
 		// Если входящие данные переданы
-		if((fmk != nullptr) && (log != nullptr) && (env != nullptr) && (fs != nullptr)){
+		if((fmk != nullptr) && (env != nullptr) && (fs != nullptr)){
 			// Получаем название PID файла
 			const string & pidfile = env->get("pidfile", true);
 			// Если адрес PID файла получен
@@ -151,45 +152,6 @@ static void daemon(const fmk_t * fmk, const log_t * log, const env_t * env, cons
 				if(fs->isFile(filename))
 					// Удаляем PID файл
 					::unlink(filename.c_str());
-				// Если сервер должен быть запущен в виде демона
-				if(env->is("daemon", true) && env->get <bool> ("daemon", true)){
-					// Ответвляемся от родительского процесса
-					const pid_t pid = ::fork();
-					// Если пид не создан тогда выходим
-					if(pid < 0){
-						// Выводим в лог сообщение
-						log->print("%s", log_t::flag_t::CRITICAL, "Unable to detach from parent process");
-						// Выходим из приложения
-						::exit(EXIT_FAILURE);
-					// Если с PID'ом все получилось, то родительский процесс можно завершить.
-					} else if(pid > 0) {
-						// Выходим из родительского процесса
-						::exit(EXIT_SUCCESS);
-						// Изменяем файловую маску
-						::umask(0);
-						// Здесь можно открывать любые журналы
-						// Создание нового SID для дочернего процесса
-						const pid_t sid = ::setsid();
-						// Если идентификатор сессии дочернего процесса не существует
-						if(sid < 0){
-							// Выводим в лог сообщение
-							log->print("%s", log_t::flag_t::CRITICAL, "Unable to create child process");
-							// Выходим из приложения
-							::exit(EXIT_FAILURE);
-						}
-						// Изменяем текущий рабочий каталог
-						if((::chdir("/")) < 0){
-							// Выводим в лог сообщение
-							log->print("%s", log_t::flag_t::CRITICAL, "Unable to get root directory");
-							// Выходим из приложения
-							::exit(EXIT_FAILURE);
-						}
-						// Закрываем стандартные файловые дескрипторы
-						::close(STDIN_FILENO);
-						::close(STDOUT_FILENO);
-						::close(STDERR_FILENO);
-					}
-				}
 				// Открываем файл на запись
 				std::ofstream file(filename, ios::out);
 				// Если файл открыт
@@ -419,8 +381,6 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 		}
 		// Выполняем подключение конфигурационного файла
 		config(&log, &env, &fs);
-		// Выполняем создание демона
-		daemon(&fmk, &log, &env, &fs);
 		// Выполняем инициализацию объекта сервера
 		server_t server(&fmk, &log);
 		// Выполняем установку конфигурационных параметров
@@ -449,6 +409,8 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			else if(env.isNumber("logLevel", true))
 				// Выполняем установку уровня логирования из конфигурационного файла
 				log.level(static_cast <log_t::level_t> (env.get <uint8_t> ("logLevel", true)));
+			// Выполняем запись идентификатора процесса
+			pidWrite(&fmk, &env, &fs);
 			// Выполняем запуск сервера
 			server.start();
 			// Выводим удачное завершение работы
