@@ -1,6 +1,6 @@
 /**
  * @file: env.hpp
- * @date: 2024-09-22
+ * @date: 2024-12-22
  *
  * @telegram: @forman
  * @author: Yuriy Lobarev
@@ -11,13 +11,9 @@
  * @copyright: Copyright © 2024
  */
 
-#ifndef __ACU_ENV__
-#define __ACU_ENV__
 
-/**
- * Разрешаем сборку под Windows
- */
-#include <global.hpp>
+#ifndef __ANYKS_ACU_ENV__
+#define __ANYKS_ACU_ENV__
 
 /**
  * Стандартная библиотека
@@ -28,11 +24,11 @@
 #include <iostream>
 #include <unordered_map>
 #include <unistd.h>
-#include <nlohmann/json.hpp>
 
 /**
- * Наши модули
+ * Модули AWH
  */
+#include <sys/fs.hpp>
 #include <sys/fmk.hpp>
 #include <sys/log.hpp>
 
@@ -41,13 +37,23 @@
  */
 #include <lib.hpp>
 
+/**
+ * Подключаем заголовочные файлы JSON
+ */
+#include <rapidjson/writer.h>
+#include <rapidjson/error/en.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+
 // Устанавливаем область видимости
 using namespace std;
 // Подписываемся на пространство имён awh
 using namespace awh;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
 
 // Активируем пространство имён json
-using json = nlohmann::json;
+using json = Document;
 
 /**
  * anyks пространство имён
@@ -56,19 +62,39 @@ namespace anyks {
 	/**
 	 * Env Класс модуля работы с переменными окружения
 	 */
-	typedef class ACUSHARED_EXPORT Env {
+	typedef class Env {
+		private:
+			/**
+			 * Флаги типов данных
+			 */
+			enum class type_t : uint8_t {
+				ENV_NONE       = 0x00, // Тип данных не определён
+				ENV_NUMBER     = 0x01, // Тип данных Number
+				ENV_FLOAT      = 0x02, // Тип данных Float
+				ENV_DOUBLE     = 0x03, // Тип данных Double
+				ENV_ARRAY      = 0x04, // Тип данных Array
+				ENV_OBJECT     = 0x05, // Тип данных Object
+				ENV_STRING     = 0x06, // Тип данных String
+				ENV_BOOLEAN    = 0x07, // Тип данных Boolean
+				ENV_INTEGER    = 0x08, // Тип данных Integer
+				ENV_UINTEGER   = 0x09, // Тип данных Unsigned Integer
+				ENV_INTEGER64  = 0x0A, // Тип данных Integer 64
+				ENV_UINTEGER64 = 0x0B  // Тип данных Unsigned Integer 64
+			};
+		private:
+			// Объект работы с файловой системой
+			fs_t _fs;
+		private:
+			// Список полученных переменных окружения
+			json _data;
 		private:
 			// Флаг автоматического чтения текстовой переменной
 			bool _automatic;
 		private:
-			// Список полученных переменных окружения
-			mutable json _data;
-		private:
-			/**
-			 * Название переменной содержащей текст
-			 * и префикс переменной окружения
-			 */
-			string _text, _prefix;
+			// Название переменной содержащей текст
+			string _text;
+			// Префикс переменной окружения
+			string _prefix;
 		private:
 			// Создаём объект фреймворка
 			const fmk_t * _fmk;
@@ -85,14 +111,25 @@ namespace anyks {
 				string result = "";
 				// Если значение переменной передано
 				if(!key.empty() && !this->_prefix.empty() && (this->_fmk != nullptr)){
-					// Получаем суффикс переменной окружения
-					string suffix = key;
-					// Переводим суффикс в верхний регистр
-					this->_fmk->transform(suffix, fmk_t::transform_t::UPPER);
-					// Получаем значение переменной
-					const char * val = ::getenv(this->_fmk->format("%s_%s", this->_prefix.c_str(), suffix.c_str()).c_str());
-					// Запоминаем результат
-					result = (val == nullptr ? "" : val);
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
+						// Получаем суффикс переменной окружения
+						string suffix = key;
+						// Переводим суффикс в верхний регистр
+						this->_fmk->transform(suffix, fmk_t::transform_t::UPPER);
+						// Получаем значение переменной
+						const char * val = ::getenv(this->_fmk->format("%s_%s", this->_prefix.c_str(), suffix.c_str()).c_str());
+						// Запоминаем результат
+						result = (val == nullptr ? "" : val);
+					/**
+					 * Если возникает ошибка
+					 */
+					} catch(const std::exception & error) {
+						// Выводим переданный лог
+						this->_log->print("Env: \"%s\" - %s [key=%s]", log_t::flag_t::CRITICAL, "env", error.what(), key.c_str());
+					}
 				}
 				// Выводим результат
 				return result;
@@ -104,88 +141,325 @@ namespace anyks {
 			 * @param value текстовое значение для добавления
 			 */
 			void add(const string & key, const string & value) noexcept {
-				// Если строка передана
-				if(!value.empty() && (value.find("|") != string::npos)){
-					// Список параметров
-					vector <string> params;
-					// Результат работы функции
-					json result = json::array();
-					// Выполняем сплит параметров
-					if(!this->_fmk->split(value, "|", params).empty()){
-						// Заполняем массив данными
-						for(auto & param : params){
-							// Если ключ - это число или отрицательное число
-							if(this->_fmk->is(param, fmk_t::check_t::NUMBER))
-								// Выполняем добавление числа
-								result.push_back(::stoull(param));
-							// Если ключ - это дробное число
-							else if(this->_fmk->is(param, fmk_t::check_t::DECIMAL))
-								// Выполняем добавление числа
-								result.push_back(::stod(param));
-							// Если - это флаг, устанавливаем истинное булевое значение
-							else if(this->_fmk->compare(param, "true") || this->_fmk->compare(param, "on") || this->_fmk->compare(param, "yes"))
-								// Выполняем добавление истинное значение
-								result.push_back(true);
-							// Если - это флаг, устанавливаем ложное булевое значение
-							else if(this->_fmk->compare(param, "false") || this->_fmk->compare(param, "off") || this->_fmk->compare(param, "no"))
-								// Выполняем добавление ложное значение
-								result.push_back(false);
-							// Добавляем строку как она есть
-							else result.push_back(param);
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Если строка передана
+					if(!value.empty() && (value.find("|") != string::npos)){
+						// Результат работы функции
+						json result;
+						// Устанавливаем тип JSON как массив
+						result.SetArray();
+						// Список параметров
+						vector <string> params;
+						// Выполняем сплит параметров
+						if(!this->_fmk->split(value, "|", params).empty()){
+							// Заполняем массив данными
+							for(auto & param : params){
+								// Если ключ - это число или отрицательное число
+								if(this->_fmk->is(param, fmk_t::check_t::NUMBER)){
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Если число является отрицательным
+										if(param.front() == '-')
+											// Выполняем добавление отрицательного числа
+											result.PushBack(Value(static_cast <int64_t> (::stoll(param))).Move(), result.GetAllocator());
+										// Выполняем добавление положительного числа
+										else result.PushBack(Value(static_cast <uint64_t> (::stoull(param))).Move(), result.GetAllocator());
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем строку как она есть
+										result.PushBack(Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
+									}
+								// Если ключ - это дробное число
+								} else if(this->_fmk->is(param, fmk_t::check_t::DECIMAL)) {
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Выполняем добавление числа
+										result.PushBack(Value(::stod(param)).Move(), result.GetAllocator());
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем строку как она есть
+										result.PushBack(Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
+									}
+								// Если - это флаг, устанавливаем истинное булевое значение
+								} else if(this->_fmk->compare(param, "true"))
+									// Выполняем добавление истинное значение
+									result.PushBack(Value(true).Move(), result.GetAllocator());
+								// Если - это флаг, устанавливаем ложное булевое значение
+								else if(this->_fmk->compare(param, "false"))
+									// Выполняем добавление ложное значение
+									result.PushBack(Value(false).Move(), result.GetAllocator());
+								// Добавляем строку как она есть
+								else result.PushBack(Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
+							}
 						}
+						// Если ключ work не обнаружен
+						if(!this->_data.HasMember("work"))
+							// Выполняем добавление ключа work
+							this->_data.AddMember(Value("work", this->_data.GetAllocator()).Move(), Value(kObjectType).Move(), this->_data.GetAllocator());
+						// Создаём значение сообщения
+						Value value(kArrayType);
+						// Выполняем копирование полученного JSON
+						value.CopyFrom(result, result.GetAllocator());
+						// Добавляем полученный массив в базу данных
+						this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), value.Move(), this->_data.GetAllocator());
+					// Если передаваемое значение не является массивом
+					} else if(!value.empty()) {
+						// Если ключ work не обнаружен
+						if(!this->_data.HasMember("work"))
+							// Выполняем добавление ключа work
+							this->_data.AddMember(Value("work", this->_data.GetAllocator()).Move(), Value(kObjectType).Move(), this->_data.GetAllocator());
+						// Если ключ - это число или отрицательное число
+						if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+							/**
+							 * Выполняем отлов ошибок
+							 */
+							try {
+								// Если число является отрицательным
+								if(value.front() == '-')
+									// Выполняем добавление вещественного отрицательного числа в базу данных
+									this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(value))).Move(), this->_data.GetAllocator());
+								// Выполняем добавление вещественного положительного числа в базу данных
+								else this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(value))).Move(), this->_data.GetAllocator());
+							/**
+							 * Если возникает ошибка
+							 */
+							} catch(const std::exception &) {
+								// Добавляем строку как она есть
+								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+							}
+						// Если ключ - это дробное число
+						} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
+							/**
+							 * Выполняем отлов ошибок
+							 */
+							try {
+								// Выполняем добавление числа с двойной точностью в базу данных
+								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(::stod(value)).Move(), this->_data.GetAllocator());
+							/**
+							 * Если возникает ошибка
+							 */
+							} catch(const std::exception &) {
+								// Добавляем строку как она есть
+								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+							}
+						// Если - это флаг, устанавливаем истинное булевое значение
+						} else if(this->_fmk->compare(value, "true"))
+							// Выполняем добавление истинное значение
+							this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(true).Move(), this->_data.GetAllocator());
+						// Если - это флаг, устанавливаем ложное булевое значение
+						else if(this->_fmk->compare(value, "false"))
+							// Выполняем добавление ложное значение
+							this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(false).Move(), this->_data.GetAllocator());
+						// Добавляем строку как она есть
+						else this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
 					}
-					// Добавляем полученный массив в базу данных
-					this->_data["work"][key] = std::move(result);
-				// Если передаваемое значение не является массивом
-				} else {
-					// Если ключ - это число или отрицательное число
-					if(this->_fmk->is(value, fmk_t::check_t::NUMBER))
-						// Выполняем добавление вещественного числа в базу данных
-						this->_data["work"][key] = ::stoull(value);
-					// Если ключ - это дробное число
-					else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL))
-						// Выполняем добавление числа с двойной точностью в базу данных
-						this->_data["work"][key] = ::stod(value);
-					// Если - это флаг, устанавливаем истинное булевое значение
-					else if(this->_fmk->compare(value, "true") || this->_fmk->compare(value, "on") || this->_fmk->compare(value, "yes"))
-						// Выполняем добавление истинное значение
-						this->_data["work"][key] = true;
-					// Если - это флаг, устанавливаем ложное булевое значение
-					else if(this->_fmk->compare(value, "false") || this->_fmk->compare(value, "off") || this->_fmk->compare(value, "no"))
-						// Выполняем добавление ложное значение
-						this->_data["work"][key] = false;
-					// Добавляем строку как она есть
-					else this->_data["work"][key] = value;
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s [key=%s, value=%s]", log_t::flag_t::CRITICAL, "add", error.what(), key.c_str(), value.c_str());
 				}
 			}
 		public:
 			/**
-			 * size Метод извлечения количества аргументов
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * count Метод извлечения количества аргументов
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     количество полученных аргументов
 			 */
-			size_t size(const bool root = false) const noexcept {
-				// Выводим количество собранных аргументов
-				return (root ? this->_data.size() : (this->_data.contains("work") ? this->_data.at("work").size() : 0));
+			size_t count(const bool root, Args&&... args) const noexcept {
+				// Результат работы функции
+				size_t result = 0;
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Получаем список ключей
+					const vector <string> & keys = {args...};
+					// Если количество ключей получено
+					if(!keys.empty()){
+						// Значение ключа в объекте
+						Value item;
+						// Выполняем перебор всех аргументов функции
+						for(size_t i = 0; i < keys.size(); i++){
+							// Поулчаем название ключа
+							const string & key = keys.at(i);
+							// Если это первый элемент в списке
+							if(i == 0){
+								// Если ключ в базе данных существует
+								if(this->exist(root, key))
+									// Получаем значение родительского объекта
+									item.CopyFrom((root ? const_cast <Env *> (this)->_data[key.c_str()] : const_cast <Env *> (this)->_data["work"][key.c_str()]), const_cast <Env *> (this)->_data.GetAllocator());
+								// Если ключа в базе данных не найдено
+								else if(!root) {
+									// Проверяем ключ в переменных окружения
+									const string & value = this->env(key);
+									// Если данные получены в переменных окружения
+									if(!value.empty())
+										// Выполняем добавление полученных значений переменной окружения
+										const_cast <Env *> (this)->add(key, value);
+									// Если ключ в базе данных существует
+									if(this->exist(root, key))
+										// Получаем значение родительского объекта
+										item.CopyFrom((root ? const_cast <Env *> (this)->_data[key.c_str()] : const_cast <Env *> (this)->_data["work"][key.c_str()]), const_cast <Env *> (this)->_data.GetAllocator());
+									// Выходим из цикла
+									else break;
+								}
+							// Если ключ существует в объекте
+							} else if(item.IsObject() && item.HasMember(key.c_str()))
+								// Получаем значение текущего ключа
+								item = item[key.c_str()];
+							// Выходим из цикла
+							else break;
+							// Если мы перебрали все ключи
+							if(i == (keys.size() - 1)){
+								// Если элемент является массивом
+								if(item.IsArray())
+									// Выполняем получение количества элементов в массиве
+									result = item.Size();
+								// Если это объект
+								else if(item.IsObject()) {
+									// Переходим по всем ключам
+									for(auto & i : item.GetObject())
+										// Подсчитываем весь список ключей
+										result++;
+								// Запоминаем, что элемент всего один
+								} else result = 1;
+							}
+						}
+					// Получаем количество собранных элементов
+					} else {
+						// Если нужно проверить корневой элемент
+						if(root){
+							// Если элемент является массивом
+							if(this->_data.IsArray())
+								// Выполняем получение количества элементов в массиве
+								result = this->_data.Size();
+							// Если это объект
+							else if(this->_data.IsObject()) {
+								// Переходим по всем ключам
+								for(auto & i : this->_data.GetObject())
+									// Подсчитываем весь список ключей
+									result++;
+							}
+						// Если нужно проверить рабочий элемент
+						} else if(this->_data.HasMember("work")) {
+							// Если элемент является массивом
+							if(this->_data["work"].IsArray())
+								// Выполняем получение количества элементов в массиве
+								result = this->_data["work"].Size();
+							// Если это объект
+							else if(this->_data["work"].IsObject()) {
+								// Переходим по всем ключам
+								for(auto & i : this->_data["work"].GetObject())
+									// Подсчитываем весь список ключей
+									result++;
+							}
+						}
+					}
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "count", error.what());
+				}
+				// Выводим результат
+				return result;
 			}
 		public:
 			/**
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
 			 * exist Метод проверки на существование ключа
-			 * @param key  ключ переменной для проверки
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     результат проверки
 			 */
-			bool exist(const string & key, const bool root = false) const noexcept {
-				// Выполняем поиск наличия ключа
-				bool result = (root ? this->_data.contains(key) : (this->_data.contains("work") && this->_data.at("work").contains(key)));
-				// Если ключ в базе данных не существует
-				if(!root && !result){
-					// Проверяем ключ в переменных окружения
-					const string & value = this->env(key);
-					// Если данные получены в переменных окружения
-					if((result = !value.empty()))
-						// Добавляем значение новой переменной
-						const_cast <Env *> (this)->add(key, value);
+			bool exist(const bool root, Args&&... args) const noexcept {
+				// Результат работы функции
+				bool result = false;
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Получаем список ключей
+					const vector <string> & keys = {args...};
+					// Если количество ключей получено
+					if(!keys.empty()){
+						// Значение ключа в объекте
+						Value item;
+						// Выполняем перебор всех аргументов функции
+						for(size_t i = 0; i < keys.size(); i++){
+							// Поулчаем название ключа
+							const string & key = keys.at(i);
+							// Если это первый элемент в списке
+							if(i == 0){
+								// Если это корневой элемент
+								if(root){
+									// Если ключ в базе данных существует
+									if(this->_data.HasMember(key.c_str()))
+										// Получаем значение родительского объекта
+										item.CopyFrom(const_cast <Env *> (this)->_data[key.c_str()], const_cast <Env *> (this)->_data.GetAllocator());
+									// Выходим из цикла
+									else break;
+								// Если элемент дочерний
+								} else if(this->_data.HasMember("work")) {
+									// Если ключ в базе данных существует
+									if(this->_data["work"].HasMember(key.c_str()))
+										// Получаем значение родительского объекта
+										item.CopyFrom(const_cast <Env *> (this)->_data["work"][key.c_str()], const_cast <Env *> (this)->_data.GetAllocator());
+									// Если ключа в базе данных не найдено
+									else {
+										// Проверяем ключ в переменных окружения
+										const string & value = this->env(key);
+										// Если данные получены в переменных окружения
+										if(!value.empty())
+											// Выполняем добавление полученных значений переменной окружения
+											const_cast <Env *> (this)->add(key, value);
+										// Если ключ в базе данных существует
+										if(this->_data["work"].HasMember(key.c_str()))
+											// Получаем значение родительского объекта
+											item.CopyFrom(const_cast <Env *> (this)->_data["work"][key.c_str()], const_cast <Env *> (this)->_data.GetAllocator());
+										// Выходим из цикла
+										else break;
+									}
+								// Выходим из цикла
+								} else break;
+							// Если ключ существует в объекте
+							} else if(item.IsObject() && item.HasMember(key.c_str()))
+								// Получаем значение текущего ключа
+								item = item[key.c_str()];
+							// Выходим из цикла
+							else break;
+							// Если мы перебрали все ключи
+							result = (i == (keys.size() - 1));
+						}
+					}
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "exist", error.what());
 				}
 				// Выводим результат
 				return result;
@@ -193,225 +467,822 @@ namespace anyks {
 		public:
 			/**
 			 * is Метод проверки наличия и значения переменной
-			 * @param key  ключ переменной для проверки
 			 * @param root флаг чтения из корневого раздела
+			 * @param key  ключ переменной для проверки
 			 * @param val  значение переменной для проверки (если требуется)
 			 */
-			bool is(const string & key, const bool root = false, const string & val = "") const noexcept {
+			bool is(const bool root, const string & key, const string & val = "") const noexcept {
 				// Результат работы функции
 				bool result = false;
 				// Если ключ передан
 				if(!key.empty()){
-					// Выполняем чтение значения ключа
-					string data = this->get(key, root);
-					// Если значение переменной не получено
-					if(data.empty() && !root) data = this->env(key);
-					// Если искомый ключ существует и нужно выполнить сравнение значений
-					if((result = !data.empty()) && !val.empty())
-						// Выполняем сравнение полученного значения ключа с переданным значением для проверки
-						result = this->_fmk->compare(data, val);
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
+						// Выполняем чтение значения ключа
+						string data = this->get <string> (root, key);
+						// Если значение переменной не получено
+						if(data.empty() && !root)
+							// Проверяем ключ в переменных окружения
+							data = this->env(key);
+						// Если искомый ключ существует и нужно выполнить сравнение значений
+						if((result = !data.empty()) && !val.empty())
+							// Выполняем сравнение полученного значения ключа с переданным значением для проверки
+							result = this->_fmk->compare(data, val);
+					/**
+					 * Если возникает ошибка
+					 */
+					} catch(const std::exception & error) {
+						// Выводим переданный лог
+						this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "is", error.what());
+					}
+				}
+				// Выводим результат
+				return result;
+			}
+		private:
+			/**
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isType Метод проверки ключа записи на тип данных
+			 * @param root флаг чтения из корневого раздела
+			 * @param type тип элемента который необходимо проверить
+			 * @param args ключи для извлечения
+			 * @return     результат проверки
+			 */
+			bool isType(const bool root, const type_t type, Args&&... args) const noexcept {
+				// Результат работы функции
+				bool result = false;
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Получаем список ключей
+					const vector <string> & keys = {args...};
+					// Если количество ключей получено
+					if(!keys.empty()){
+						// Значение ключа в объекте
+						Value item;
+						// Выполняем перебор всех аргументов функции
+						for(size_t i = 0; i < keys.size(); i++){
+							// Поулчаем название ключа
+							const string & key = keys.at(i);
+							// Если это первый элемент в списке
+							if(i == 0){
+								// Если это корневой элемент
+								if(root){
+									// Если ключ в базе данных существует
+									if(this->_data.HasMember(key.c_str()))
+										// Получаем значение родительского объекта
+										item.CopyFrom(const_cast <Env *> (this)->_data[key.c_str()], const_cast <Env *> (this)->_data.GetAllocator());
+									// Выходим из цикла
+									else break;
+								// Если элемент дочерний
+								} else if(this->_data.HasMember("work")) {
+									// Если ключ в базе данных существует
+									if(this->_data["work"].HasMember(key.c_str()))
+										// Получаем значение родительского объекта
+										item.CopyFrom(const_cast <Env *> (this)->_data["work"][key.c_str()], const_cast <Env *> (this)->_data.GetAllocator());
+									// Если ключа в базе данных не найдено
+									else {
+										// Проверяем ключ в переменных окружения
+										const string & value = this->env(key);
+										// Если данные получены в переменных окружения
+										if(!value.empty())
+											// Выполняем добавление полученных значений переменной окружения
+											const_cast <Env *> (this)->add(key, value);
+										// Если ключ в базе данных существует
+										if(this->_data["work"].HasMember(key.c_str()))
+											// Получаем значение родительского объекта
+											item.CopyFrom(const_cast <Env *> (this)->_data["work"][key.c_str()], const_cast <Env *> (this)->_data.GetAllocator());
+										// Выходим из цикла
+										else break;
+									}
+								}
+							// Если ключ существует в объекте
+							} else if(item.IsObject() && item.HasMember(key.c_str()))
+								// Получаем значение текущего ключа
+								item = item[key.c_str()];
+							// Выходим из цикла
+							else break;
+							// Если мы перебрали все ключи
+							if((i == (keys.size() - 1))){
+								// Определяем тип запрашиваемого элемента
+								switch(static_cast <uint8_t> (type)){
+									// Если тип элемента является объектом
+									case static_cast <uint8_t> (type_t::ENV_OBJECT):
+										// Выполняем проверку типа элемента
+										result = item.IsObject();
+									break;
+									// Если тип элемента является массивом
+									case static_cast <uint8_t> (type_t::ENV_ARRAY):
+										// Выполняем проверку типа элемента
+										result = item.IsArray();
+									break;
+									// Если тип элемента является числом
+									case static_cast <uint8_t> (type_t::ENV_NUMBER):
+										// Выполняем проверку типа элемента
+										result = item.IsNumber();
+									break;
+									// Если тип элемента является строкой
+									case static_cast <uint8_t> (type_t::ENV_STRING):
+										// Выполняем проверку типа элемента
+										result = item.IsString();
+									break;
+									// Если тип элемента является булевым элементом
+									case static_cast <uint8_t> (type_t::ENV_BOOLEAN):
+										// Выполняем проверку типа элемента
+										result = item.IsBool();
+									break;
+									// Если тип элемента является Double элементом
+									case static_cast <uint8_t> (type_t::ENV_DOUBLE):
+										// Выполняем проверку типа элемента
+										result = item.IsDouble();
+									break;
+									// Если тип элемента является Float элементом
+									case static_cast <uint8_t> (type_t::ENV_FLOAT):
+										// Выполняем проверку типа элемента
+										result = item.IsFloat();
+									break;
+									// Если тип элемента является Integer элементом
+									case static_cast <uint8_t> (type_t::ENV_INTEGER):
+										// Выполняем проверку типа элемента
+										result = item.IsInt();
+									break;
+									// Если тип элемента является Unsigned Integer элементом
+									case static_cast <uint8_t> (type_t::ENV_UINTEGER):
+										// Выполняем проверку типа элемента
+										result = item.IsUint();
+									break;
+									// Если тип элемента является Integer 64 элементом
+									case static_cast <uint8_t> (type_t::ENV_INTEGER64):
+										// Выполняем проверку типа элемента
+										result = item.IsInt64();
+									break;
+									// Если тип элемента является Unsigned Integer 64 элементом
+									case static_cast <uint8_t> (type_t::ENV_UINTEGER64):
+										// Выполняем проверку типа элемента
+										result = item.IsUint64();
+									break;
+								}
+							}
+						}
+					// Выполняем проверку корневого элемента
+					} else {
+						// Если нужно выполнить поиск в корневом элементе
+						if(root){
+							// Определяем тип запрашиваемого элемента
+							switch(static_cast <uint8_t> (type)){
+								// Если тип элемента является объектом
+								case static_cast <uint8_t> (type_t::ENV_OBJECT):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsObject();
+								break;
+								// Если тип элемента является массивом
+								case static_cast <uint8_t> (type_t::ENV_ARRAY):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsArray();
+								break;
+								// Если тип элемента является числом
+								case static_cast <uint8_t> (type_t::ENV_NUMBER):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsNumber();
+								break;
+								// Если тип элемента является строкой
+								case static_cast <uint8_t> (type_t::ENV_STRING):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsString();
+								break;
+								// Если тип элемента является булевым элементом
+								case static_cast <uint8_t> (type_t::ENV_BOOLEAN):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsBool();
+								break;
+								// Если тип элемента является Double элементом
+								case static_cast <uint8_t> (type_t::ENV_DOUBLE):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsDouble();
+								break;
+								// Если тип элемента является Float элементом
+								case static_cast <uint8_t> (type_t::ENV_FLOAT):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsFloat();
+								break;
+								// Если тип элемента является Integer элементом
+								case static_cast <uint8_t> (type_t::ENV_INTEGER):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsInt();
+								break;
+								// Если тип элемента является Unsigned Integer элементом
+								case static_cast <uint8_t> (type_t::ENV_UINTEGER):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsUint();
+								break;
+								// Если тип элемента является Integer 64 элементом
+								case static_cast <uint8_t> (type_t::ENV_INTEGER64):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsInt64();
+								break;
+								// Если тип элемента является Unsigned Integer 64 элементом
+								case static_cast <uint8_t> (type_t::ENV_UINTEGER64):
+									// Выполняем проверку типа элемента
+									result = this->_data.IsUint64();
+								break;
+							}
+						// Если нужно выполнить поиск в рабочем объекте
+						} else if(this->_data.HasMember("work")) {
+							// Определяем тип запрашиваемого элемента
+							switch(static_cast <uint8_t> (type)){
+								// Если тип элемента является объектом
+								case static_cast <uint8_t> (type_t::ENV_OBJECT):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsObject();
+								break;
+								// Если тип элемента является массивом
+								case static_cast <uint8_t> (type_t::ENV_ARRAY):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsArray();
+								break;
+								// Если тип элемента является числом
+								case static_cast <uint8_t> (type_t::ENV_NUMBER):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsNumber();
+								break;
+								// Если тип элемента является строкой
+								case static_cast <uint8_t> (type_t::ENV_STRING):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsString();
+								break;
+								// Если тип элемента является булевым элементом
+								case static_cast <uint8_t> (type_t::ENV_BOOLEAN):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsBool();
+								break;
+								// Если тип элемента является Double элементом
+								case static_cast <uint8_t> (type_t::ENV_DOUBLE):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsDouble();
+								break;
+								// Если тип элемента является Float элементом
+								case static_cast <uint8_t> (type_t::ENV_FLOAT):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsFloat();
+								break;
+								// Если тип элемента является Integer элементом
+								case static_cast <uint8_t> (type_t::ENV_INTEGER):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsInt();
+								break;
+								// Если тип элемента является Unsigned Integer элементом
+								case static_cast <uint8_t> (type_t::ENV_UINTEGER):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsUint();
+								break;
+								// Если тип элемента является Integer 64 элементом
+								case static_cast <uint8_t> (type_t::ENV_INTEGER64):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsInt64();
+								break;
+								// Если тип элемента является Unsigned Integer 64 элементом
+								case static_cast <uint8_t> (type_t::ENV_UINTEGER64):
+									// Выполняем проверку типа элемента
+									result = this->_data["work"].IsUint64();
+								break;
+							}
+						}
+					}
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "isArray", error.what());
 				}
 				// Выводим результат
 				return result;
 			}
 		public:
 			/**
-			 * isNull Функция проверки ключа записи на тип Null
-			 * @param key  ключ записи для првоерки
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isArray Метод проверки ключа записи на тип Array
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     результат проверки
 			 */
-			bool isNull(const string & key, const bool root = false) const noexcept {
-				// Выполняем проверку ключа в базе
-				return (
-					root ? (this->exist(key, root) ? this->_data.at(key).is_null() : true) :
-					(this->exist(key, root) ? this->_data.at("work").at(key).is_null() : true)
-				);
+			bool isArray(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_ARRAY, args...);
 			}
 			/**
-			 * isArray Функция проверки ключа записи на тип Array
-			 * @param key  ключ записи для првоерки
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isObject Метод проверки ключа записи на тип Object
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     результат проверки
 			 */
-			bool isArray(const string & key, const bool root = false) const noexcept {
-				// Выполняем проверку ключа в базе
-				return (
-					root ? (this->exist(key, root) ? this->_data.at(key).is_array() : false) :
-					(this->exist(key, root) ? this->_data.at("work").at(key).is_array() : false)
-				);
+			bool isObject(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_OBJECT, args...);
 			}
 			/**
-			 * isObject Функция проверки ключа записи на тип Object
-			 * @param key  ключ записи для првоерки
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isNumber Метод проверки ключа записи на тип Number
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     результат проверки
 			 */
-			bool isObject(const string & key, const bool root = false) const noexcept {
-				// Выполняем проверку ключа в базе
-				return (
-					root ? (this->exist(key, root) ? this->_data.at(key).is_object() : false) :
-					(this->exist(key, root) ? this->_data.at("work").at(key).is_object() : false)
-				);
+			bool isNumber(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_NUMBER, args...);
 			}
 			/**
-			 * isNumber Функция проверки ключа записи на тип Number
-			 * @param key  ключ записи для првоерки
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isInt Метод проверки ключа записи на тип Integer
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     результат проверки
 			 */
-			bool isNumber(const string & key, const bool root = false) const noexcept {
-				// Выполняем проверку ключа в базе
-				return (
-					root ? (this->exist(key, root) ? this->_data.at(key).is_number() : false) :
-					(this->exist(key, root) ? this->_data.at("work").at(key).is_number() : false)
-				);
+			bool isInt(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_INTEGER, args...);
 			}
 			/**
-			 * isString Функция проверки ключа записи на тип String
-			 * @param key  ключ записи для првоерки
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isUint Метод проверки ключа записи на тип Unsigned Integer
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     результат проверки
 			 */
-			bool isString(const string & key, const bool root = false) const noexcept {
-				// Выполняем проверку ключа в базе
-				return (
-					root ? (this->exist(key, root) ? this->_data.at(key).is_string() : false) :
-					(this->exist(key, root) ? this->_data.at("work").at(key).is_string() : false)
-				);
+			bool isUint(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_UINTEGER, args...);
 			}
 			/**
-			 * isBoolean Функция проверки ключа записи на тип Boolean
-			 * @param key  ключ записи для првоерки
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isInt64 Метод проверки ключа записи на тип Integer 64
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     результат проверки
 			 */
-			bool isBoolean(const string & key, const bool root = false) const noexcept {
-				// Выполняем проверку ключа в базе
-				return (
-					root ? (this->exist(key, root) ? this->_data.at(key).is_boolean() : false) :
-					(this->exist(key, root) ? this->_data.at("work").at(key).is_boolean() : false)
-				);
+			bool isInt64(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_INTEGER64, args...);
+			}
+			/**
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isUint64 Метод проверки ключа записи на тип Unsigned Integer 64
+			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
+			 * @return     результат проверки
+			 */
+			bool isUint64(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_UINTEGER64, args...);
+			}
+			/**
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isDouble Метод проверки ключа записи на тип Double
+			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
+			 * @return     результат проверки
+			 */
+			bool isDouble(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_DOUBLE, args...);
+			}
+			/**
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isFloat Метод проверки ключа записи на тип Float
+			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
+			 * @return     результат проверки
+			 */
+			bool isFloat(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_FLOAT, args...);
+			}
+			/**
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isString Метод проверки ключа записи на тип String
+			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
+			 * @return     результат проверки
+			 */
+			bool isString(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_STRING, args...);
+			}
+			/**
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename... Args>
+			/**
+			 * isBoolean Метод проверки ключа записи на тип Boolean
+			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
+			 * @return     результат проверки
+			 */
+			bool isBoolean(const bool root, Args&&... args) const noexcept {
+				// Выполняем проверку ключа записи
+				return this->isType(root, type_t::ENV_BOOLEAN, args...);
+			}
+		private:
+			/**
+			 * get Метод извлечения записи в виде булевого значения
+			 * @param item   объект для извлечения данных
+			 * @param result полученный результат
+			 */
+			void get(const Value & item, bool & result) const noexcept {
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Устанавливаем отрицательное значение результата
+					result = false;
+					// Если запись является булевым значением
+					if(item.IsBool())
+						// Выводим результат в виде булевого значения
+						result = item.GetBool();
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+				}
+			}
+			/**
+			 * Шаблон извлечения нужного типа данных
+			 */
+			template <typename T>
+			/**
+			 * get Метод извлечения записи в виде числа
+			 * @param item   объект для извлечения данных
+			 * @param result полученный результат
+			 */
+			void get(const Value & item, T & result) const noexcept {
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Устанавливаем отрицательное значение результата
+					result = 0;
+					// Если запись является числом
+					if(item.IsInt())
+						// Выводим результат в виде числа
+						result = item.GetInt();
+					// Если запись является числом
+					else if(item.IsUint())
+						// Выводим результат в виде числа
+						result = item.GetUint();
+					// Если запись является числом
+					else if(item.IsInt64())
+						// Выводим результат в виде числа
+						result = item.GetInt64();
+					// Если запись является числом
+					else if(item.IsUint64())
+						// Выводим результат в виде числа
+						result = item.GetUint64();
+					// Если запись является числом с плавающей точкой
+					else if(item.IsDouble())
+						// Выводим результат в виде числа
+						result = item.GetDouble();
+					// Если запись является числом с плавающей точкой
+					else if(item.IsFloat())
+						// Выводим результат в виде числа
+						result = item.GetFloat();
+					// Если запись является булевым значением
+					else if(item.IsBool())
+						// Выводим результат в виде булевого значения
+						result = static_cast <int8_t> (item.GetBool());
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+				}
+			}
+			/**
+			 * get Метод извлечения записи в виде строки
+			 * @param item   объект для извлечения данных
+			 * @param result полученный результат
+			 */
+			void get(const Value & item, string & result) const noexcept {
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Выполняем очистку результата
+					result.clear();
+					// Если запись является строкой
+					if(item.IsString())
+						// Выводим результат в виде строки
+						result = item.GetString();
+					// Если запись является массивом или объектом
+					else if(item.IsArray() || item.IsObject()) {
+						// Создаём результьрующий буфер
+						StringBuffer data;
+						// Выполняем очистку результирующего буфера
+						data.Clear();
+						// Выполняем создание объекта писателя
+						Writer <StringBuffer> writer(data);
+						// Передаем данные объекта JSON писателю
+						item.Accept(writer);
+						// Извлекаем созданную запись сктроки в формате JSON
+						result = data.GetString();
+					// Если запись является числом
+					} else if(item.IsInt())
+						// Выводим результат в виде числа
+						result = std::to_string(item.GetInt());
+					// Если запись является числом
+					else if(item.IsUint())
+						// Выводим результат в виде числа
+						result = std::to_string(item.GetUint());
+					// Если запись является числом
+					else if(item.IsInt64())
+						// Выводим результат в виде числа
+						result = std::to_string(item.GetInt64());
+					// Если запись является числом
+					else if(item.IsUint64())
+						// Выводим результат в виде числа
+						result = std::to_string(item.GetUint64());
+					// Если запись является числом с плавающей точкой
+					else if(item.IsDouble())
+						// Выводим результат в виде числа
+						result = this->_fmk->noexp(item.GetDouble(), true);
+					// Если запись является числом с плавающей точкой
+					else if(item.IsFloat())
+						// Выводим результат в виде числа
+						result = this->_fmk->noexp(item.GetFloat(), true);
+					// Если запись является булевым значением
+					else if(item.IsBool())
+						// Выводим результат в виде булевого значения
+						result = (item.GetBool() ? "true" : "false");
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+				}
+			}
+			/**
+			 * get Метод извлечения записи в виде JSON
+			 * @param item   объект для извлечения данных
+			 * @param result полученный результат
+			 */
+			void get(const Value & item, json & result) const noexcept {
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Очищаем объект JSON
+					result = json();
+					// Выполняем копирование полученного JSON
+					result.CopyFrom(item, result.GetAllocator());
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+				}
 			}
 		public:
 			/**
 			 * Шаблон извлечения нужного типа данных
 			 */
-			template <typename T>
+			template <typename T, typename... Args>
 			/**
 			 * get Метод извлечения значения ключа из базы данных
-			 * @param key  ключ записи в базе данных
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     значение ключа в базе данных
 			 */
-			T get(const string & key, const bool root = false) const noexcept {
-				// Выводим булевые данные
-				return (
-					root ? (this->exist(key, root) ? this->_data.at(key).get <T> () : (T) 0) :
-					(this->exist(key, root) ? this->_data.at("work").at(key).get <T> () : (T) 0)
-				);
-			}
-			/**
-			 * get Метод извлечения значения ключа из базы данных в виде строки
-			 * @param key  ключ записи в базе данных
-			 * @param root флаг чтения из корневого раздела
-			 * @return     значение ключа в базе данных в виде строки
-			 */
-			string get(const string & key, const bool root = false) const noexcept {
+			T get(const bool root, Args&&... args) const noexcept {
 				// Результат работы функции
-				string result = "";
-				// Если ключ найден в объекте JSON
-				if(this->exist(key, root)){
-					// Если запись является строкой
-					if(root ? this->_data.at(key).is_string() : this->_data.at("work").at(key).is_string())
-						// Выводим результат в виде строки
-						result = (root ? this->_data.at(key).get <string> () : this->_data.at("work").at(key).get <string> ());
-					// Если запись является массивом или объектом
-					else if(root ? (this->_data.at(key).is_array() || this->_data.at(key).is_object()) : (this->_data.at("work").at(key).is_array() || this->_data.at("work").at(key).is_object()))
-						// Выводим результат в виде строки
-						result = (root ? this->_data.at(key).dump() : this->_data.at("work").at(key).dump());
-					// Если запись является числом
-					else if(root ? this->_data.at(key).is_number() : this->_data.at("work").at(key).is_number())
-						// Выводим результат в виде строки
-						result = this->_fmk->noexp((root ? this->_data.at(key).get <double> () : this->_data.at("work").at(key).get <double> ()), true);
-					// Если запись является булевым значением
-					else if(root ? this->_data.at(key).is_boolean() : this->_data.at("work").at(key).is_boolean())
-						// Выводим результат в виде строки
-						result = std::to_string(root ? this->_data.at(key).get <bool> () : this->_data.at("work").at(key).get <bool> ());
-				// Если ключа в базе данных не найдено
-				} else if(!root) {
-					// Проверяем ключ в переменных окружения
-					result = this->env(key);
-					// Если данные получены в переменных окружения
-					if(!result.empty())
-						// Добавляем значение новой переменной
-						const_cast <Env *> (this)->add(key, result);
+				T result;
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Получаем список ключей
+					const vector <string> & keys = {args...};
+					// Если количество ключей получено
+					if(!keys.empty()){
+						// Значение ключа в объекте
+						Value item;
+						// Выполняем перебор всех аргументов функции
+						for(size_t i = 0; i < keys.size(); i++){
+							// Поулчаем название ключа
+							const string & key = keys.at(i);
+							// Если это первый элемент в списке
+							if(i == 0){
+								// Если ключ в базе данных существует
+								if(this->exist(root, key))
+									// Получаем значение родительского объекта
+									item.CopyFrom((root ? const_cast <Env *> (this)->_data[key.c_str()] : const_cast <Env *> (this)->_data["work"][key.c_str()]), const_cast <Env *> (this)->_data.GetAllocator());
+								// Если ключа в базе данных не найдено
+								else if(!root) {
+									// Проверяем ключ в переменных окружения
+									const string & value = this->env(key);
+									// Если данные получены в переменных окружения
+									if(!value.empty())
+										// Выполняем добавление полученных значений переменной окружения
+										const_cast <Env *> (this)->add(key, value);
+									// Если ключ в базе данных существует
+									if(this->exist(root, key))
+										// Получаем значение родительского объекта
+										item.CopyFrom((root ? const_cast <Env *> (this)->_data[key.c_str()] : const_cast <Env *> (this)->_data["work"][key.c_str()]), const_cast <Env *> (this)->_data.GetAllocator());
+									// Выходим из цикла
+									else break;
+								}
+							// Если ключ существует в объекте
+							} else if(item.IsObject() && item.HasMember(key.c_str()))
+								// Получаем значение текущего ключа
+								item = item[key.c_str()];
+							// Выходим из цикла
+							else break;
+							// Если мы перебрали все ключи
+							if(i == (keys.size() - 1))
+								// Выполняем извлечение данных записи
+								this->get(item, result);
+						}
+					// Если список ключей не получен
+					} else {
+						// Значение ключа в объекте
+						Value item;
+						// Получаем значение родительского объекта
+						item.CopyFrom((root ? const_cast <Env *> (this)->_data : const_cast <Env *> (this)->_data["work"]), const_cast <Env *> (this)->_data.GetAllocator());
+						// Выполняем извлечение данных записи
+						this->get(item, result);
+					}
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
 				}
-				// Выводим пустоту
+				// Выводим полученный результат
 				return result;
 			}
 		public:
 			/**
 			 * Шаблон извлечения нужного типа данных
 			 */
-			template <typename T>
+			template <typename T, typename... Args>
 			/**
 			 * arr Метод извлечения значения ключа из базы данных в виде массива
-			 * @param key  ключ записи в базе данных
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     значение ключа в базе данных в виде массива
 			 */
-			const vector <T> arr(const string & key, const bool root = false) const noexcept {
+			const vector <T> arr(const bool root, Args&&... args) const noexcept {
 				// Результат работы функции
 				vector <T> result;
-				// Если ключ передан
-				if(!key.empty()){
-					// Если ключ в базе данных существует
-					if(this->exist(key, root) && (root ? this->_data.at(key).is_array() : this->_data.at("work").at(key).is_array())){
-						// Переходим по всему массиву
-						for(auto & item : (root ? this->_data.at(key) : this->_data.at("work").at(key)))
-							// Формируем список полученных значений
-							result.push_back(item.get <T> ());
-					}
-				}
-				// Выводим результат
-				return result;
-			}
-			/**
-			 * arr Метод извлечения значения ключа из базы данных в виде массива
-			 * @param key  ключ записи в базе данных
-			 * @param root флаг чтения из корневого раздела
-			 * @return     значение ключа в базе данных в виде массива
-			 */
-			const vector <string> arr(const string & key, const bool root = false) const noexcept {
-				// Результат работы функции
-				vector <string> result;
-				// Если ключ передан
-				if(!key.empty()){
-					// Если ключ в базе данных существует
-					if(this->exist(key, root) && (root ? this->_data.at(key).is_array() : this->_data.at("work").at(key).is_array())){
-						// Переходим по всему массиву
-						for(auto & item : (root ? this->_data.at(key) : this->_data.at("work").at(key))){
-							// Если значение является строкой
-							if(item.is_string())
-								// Добавляем значение как она есть
-								result.push_back(item.get <string> ());
-							// Если значение является массивом или объектом
-							else if(item.is_array() || item.is_object())
-								// Добавляем дамп объекта или массива
-								result.push_back(item.dump());
-							// Если значение является числом
-							else if(item.is_number())
-								// Добавляем сконвертированную строку
-								result.push_back(this->_fmk->noexp(item.get <double> ()));
-							// Если значение является булевым типом
-							else if(item.is_boolean())
-								// Добавляем сконвертированную строку
-								result.push_back(item.get <bool> () ? "true" : "false");
-							// Иначе добавляем NULL
-							else result.push_back("null");
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Получаем список ключей
+					const vector <string> & keys = {args...};
+					// Если количество ключей получено
+					if(!keys.empty()){
+						// Значение ключа в объекте
+						Value item;
+						// Выполняем перебор всех аргументов функции
+						for(size_t i = 0; i < keys.size(); i++){
+							// Поулчаем название ключа
+							const string & key = keys.at(i);
+							// Если это первый элемент в списке
+							if(i == 0){
+								// Если ключ в базе данных существует
+								if(this->exist(root, key))
+									// Получаем значение родительского объекта
+									item.CopyFrom((root ? const_cast <Env *> (this)->_data[key.c_str()] : const_cast <Env *> (this)->_data["work"][key.c_str()]), const_cast <Env *> (this)->_data.GetAllocator());
+								// Если ключа в базе данных не найдено
+								else if(!root) {
+									// Проверяем ключ в переменных окружения
+									const string & value = this->env(key);
+									// Если данные получены в переменных окружения
+									if(!value.empty())
+										// Выполняем добавление полученных значений переменной окружения
+										const_cast <Env *> (this)->add(key, value);
+									// Если ключ в базе данных существует
+									if(this->exist(root, key))
+										// Получаем значение родительского объекта
+										item.CopyFrom((root ? const_cast <Env *> (this)->_data[key.c_str()] : const_cast <Env *> (this)->_data["work"][key.c_str()]), const_cast <Env *> (this)->_data.GetAllocator());
+									// Выходим из цикла
+									else break;
+								}
+							// Если ключ существует в объекте
+							} else if(item.IsObject() && item.HasMember(key.c_str()))
+								// Получаем значение текущего ключа
+								item = item[key.c_str()];
+							// Выходим из цикла
+							else break;
+							// Если мы перебрали все ключи
+							if(i == (keys.size() - 1)){
+								// Если элемент является простым элементом
+								if(item.IsNumber() || item.IsBool() || item.IsString()){
+									// Создаём объект данных
+									T data;
+									// Выполняем извлечение данных записи
+									this->get(item, data);
+									// Формируем список полученных значений
+									result.push_back(std::move(data));
+								// Если элемент является массивом
+								} else if(item.IsArray()) {
+									// Создаём объект данных
+									T data;
+									// Переходим по всему массиву
+									for(auto & v : item.GetArray()){
+										// Выполняем извлечение данных записи
+										this->get(v, data);
+										// Формируем список полученных значений
+										result.push_back(std::move(data));
+									}
+								// Если элемент является объектом
+								} else if(item.IsObject()) {
+									// Создаём объект данных
+									T data;
+									// Переходим по всему объекту
+									for(auto & m : item.GetObject()){
+										// Выполняем извлечение данных записи
+										this->get(m.value, data);
+										// Формируем список полученных значений
+										result.push_back(std::move(data));
+									}
+								}
+							}
+						}
+					// Если список ключей не указан
+					} else if(this->_data.IsObject()) {
+						// Если нужно выполнить поиск в корневом элементе
+						if(root){
+							// Создаём объект данных
+							T data;
+							// Переходим по всему объекту
+							for(auto & m : this->_data.GetObject()){
+								// Выполняем извлечение данных записи
+								this->get(m.value, data);
+								// Формируем список полученных значений
+								result.push_back(std::move(data));
+							}
+						// Если нужно выполнить поиск в рабочем объекте
+						} else if(this->_data.HasMember("work")) {
+							// Создаём объект данных
+							T data;
+							// Переходим по всему объекту
+							for(auto & m : this->_data["work"].GetObject()){
+								// Выполняем извлечение данных записи
+								this->get(m.value, data);
+								// Формируем список полученных значений
+								result.push_back(std::move(data));
+							}
 						}
 					}
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
 				}
 				// Выводим результат
 				return result;
@@ -420,64 +1291,126 @@ namespace anyks {
 			/**
 			 * Шаблон извлечения нужного типа данных
 			 */
-			template <typename T>
+			template <typename T, typename... Args>
 			/**
 			 * obj Метод извлечения значения ключа из базы данных в виде объекта
-			 * @param key  ключ записи в базе данных
 			 * @param root флаг чтения из корневого раздела
+			 * @param args ключи для извлечения
 			 * @return     значение ключа в базе данных в виде объекта
 			 */
-			const unordered_map <string, T> obj(const string & key, const bool root = false) const noexcept {
+			const std::unordered_map <string, T> obj(const bool root, Args&&... args) const noexcept {
 				// Результат работы функции
-				unordered_map <string, T> result;
-				// Если ключ передан
-				if(!key.empty()){
-					// Если ключ в базе данных существует
-					if(this->exist(key, root) && (root ? this->_data.at(key).is_object() : this->_data.at("work").at(key).is_object())){
-						// Переходим по всему объекту
-						for(auto & el : (root ? this->_data.at(key).items() : this->_data.at("work").at(key).items()))
-							// Формируем список полученных значений
-							result.emplace(el.key(), el.value().get <T> ());
-					}
-				}
-				// Выводим результат
-				return result;
-			}
-			/**
-			 * obj Метод извлечения значения ключа из базы данных в виде объекта
-			 * @param key  ключ записи в базе данных
-			 * @param root флаг чтения из корневого раздела
-			 * @return     значение ключа в базе данных в виде объекта
-			 */
-			const unordered_map <string, string> obj(const string & key, const bool root = false) const noexcept {
-				// Результат работы функции
-				unordered_map <string, string> result;
-				// Если ключ передан
-				if(!key.empty()){
-					// Если ключ в базе данных существует
-					if(this->exist(key, root) && (root ? this->_data.at(key).is_object() : this->_data.at("work").at(key).is_object())){
-						// Переходим по всему объекту
-						for(auto & el : (root ? this->_data.at(key).items() : this->_data.at("work").at(key).items())){
-							// Если значение является строкой
-							if(el.value().is_string())
-								// Добавляем значение как она есть
-								result.emplace(el.key(), el.value().get <string> ());
-							// Если значение является массивом или объектом
-							else if(el.value().is_array() || el.value().is_object())
-								// Добавляем дамп объекта или массива
-								result.emplace(el.key(), el.value().dump());
-							// Если значение является числом
-							else if(el.value().is_number())
-								// Добавляем сконвертированную строку
-								result.emplace(el.key(), this->_fmk->noexp(el.value().get <double> ()));
-							// Если значение является булевым типом
-							else if(el.value().is_boolean())
-								// Добавляем сконвертированную строку
-								result.emplace(el.key(), el.value().get <bool> () ? "true" : "false");
-							// Иначе добавляем NULL
-							else result.emplace(el.key(), "null");
+				std::unordered_map <string, T> result;
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Получаем список ключей
+					const vector <string> & keys = {args...};
+					// Если количество ключей получено
+					if(!keys.empty()){
+						// Значение ключа в объекте
+						Value item;
+						// Выполняем перебор всех аргументов функции
+						for(size_t i = 0; i < keys.size(); i++){
+							// Поулчаем название ключа
+							const string & key = keys.at(i);
+							// Если это первый элемент в списке
+							if(i == 0){
+								// Если ключ в базе данных существует
+								if(this->exist(root, key))
+									// Получаем значение родительского объекта
+									item.CopyFrom((root ? const_cast <Env *> (this)->_data[key.c_str()] : const_cast <Env *> (this)->_data["work"][key.c_str()]), const_cast <Env *> (this)->_data.GetAllocator());
+								// Если ключа в базе данных не найдено
+								else if(!root) {
+									// Проверяем ключ в переменных окружения
+									const string & value = this->env(key);
+									// Если данные получены в переменных окружения
+									if(!value.empty())
+										// Выполняем добавление полученных значений переменной окружения
+										const_cast <Env *> (this)->add(key, value);
+									// Если ключ в базе данных существует
+									if(this->exist(root, key))
+										// Получаем значение родительского объекта
+										item.CopyFrom((root ? const_cast <Env *> (this)->_data[key.c_str()] : const_cast <Env *> (this)->_data["work"][key.c_str()]), const_cast <Env *> (this)->_data.GetAllocator());
+									// Выходим из цикла
+									else break;
+								}
+							// Если ключ существует в объекте
+							} else if(item.IsObject() && item.HasMember(key.c_str()))
+								// Получаем значение текущего ключа
+								item = item[key.c_str()];
+							// Выходим из цикла
+							else break;
+							// Если мы перебрали все ключи
+							if(i == (keys.size() - 1)){
+								// Если элемент является простым элементом
+								if(item.IsNumber() || item.IsBool() || item.IsString()){
+									// Создаём объект данных
+									T data;
+									// Выполняем извлечение данных записи
+									this->get(item, data);
+									// Формируем список полученных значений
+									result.emplace("item", std::move(data));
+								// Если элемент является массивом
+								} else if(item.IsArray()) {
+									// Создаём объект данных
+									T data;
+									// Индекс текущего элемента
+									size_t index = 0;
+									// Переходим по всему массиву
+									for(auto & v : item.GetArray()){
+										// Выполняем извлечение данных записи
+										this->get(v, data);
+										// Формируем список полученных значений
+										result.emplace(std::to_string(index++), std::move(data));
+									}
+								// Если элемент является объектом
+								} else if(item.IsObject()) {
+									// Создаём объект данных
+									T data;
+									// Переходим по всему объекту
+									for(auto & m : item.GetObject()){
+										// Выполняем извлечение данных записи
+										this->get(m.value, data);
+										// Формируем список полученных значений
+										result.emplace(m.name.GetString(), std::move(data));
+									}
+								}
+							}
+						}
+					// Если список ключей не указан
+					} else if(this->_data.IsObject()) {
+						// Если нужно выполнить поиск в корневом элементе
+						if(root){
+							// Создаём объект данных
+							T data;
+							// Переходим по всему объекту
+							for(auto & m : this->_data.GetObject()){
+								// Выполняем извлечение данных записи
+								this->get(m.value, data);
+								// Формируем список полученных значений
+								result.emplace(m.name.GetString(), std::move(data));
+							}
+						// Если нужно выполнить поиск в рабочем объекте
+						} else if(this->_data.HasMember("work")) {
+							// Создаём объект данных
+							T data;
+							// Переходим по всему объекту
+							for(auto & m : this->_data["work"].GetObject()){
+								// Выполняем извлечение данных записи
+								this->get(m.value, data);
+								// Формируем список полученных значений
+								result.emplace(m.name.GetString(), std::move(data));
+							}
 						}
 					}
+				/**
+				 * Если возникает ошибка
+				 */
+				} catch(const std::exception & error) {
+					// Выводим переданный лог
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
 				}
 				// Выводим результат
 				return result;
@@ -497,27 +1430,42 @@ namespace anyks {
 			 */
 			void config(const json & config) noexcept {
 				// Если данные переданы
-				if(!config.empty()){
-					// Переходим по всем ключам и добавляем всё в базу данных
-					for(auto & el : config.items()){
-						// Если мы нашли рабочий раздел, пропускаем его
-						if(this->_fmk->compare(el.key(), "work"))
-							// Пропускаем итерацию перебора
-							continue;
-						// Если такой ключ не существует
-						else if(this->_data.count(el.key()) < 1)
-							// Устанавливаем данные конфига
-							this->_data[el.key()] = el.value();
-					}
-					// Если рабочий раздел существует
-					if(config.contains("work") && config.at("work").is_object()){
+				if(config.IsObject()){
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
 						// Переходим по всем ключам и добавляем всё в базу данных
-						for(auto & el : config.at("work").items()){
+						for(auto & m : config.GetObject()){
+							// Если мы нашли рабочий раздел, пропускаем его
+							if(this->_fmk->compare(m.name.GetString(), "work"))
+								// Пропускаем итерацию перебора
+								continue;
 							// Если такой ключ не существует
-							if(this->_data.at("work").count(el.key()) < 1)
-								// Устанавливаем данные конфига
-								this->_data.at("work")[el.key()] = el.value();
+							else if(!this->_data.HasMember(m.name.GetString()))
+								// Устанавливаем данные конфига в виде строки
+								this->_data.AddMember(Value(m.name, this->_data.GetAllocator()).Move(), Value(m.value, this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
 						}
+						// Если рабочий раздел существует
+						if(config.HasMember("work")){
+							// Если ключ work не обнаружен
+							if(!this->_data.HasMember("work"))
+								// Выполняем добавление ключа work
+								this->_data.AddMember(Value("work", this->_data.GetAllocator()).Move(), Value(kObjectType).Move(), this->_data.GetAllocator());
+							// Переходим по всем ключам и добавляем всё в базу данных
+							for(auto & m : config["work"].GetObject()){
+								// Если такой ключ не существует
+								if(!this->_data["work"].HasMember(m.name.GetString()))
+									// Устанавливаем данные конфига
+									this->_data["work"].AddMember(Value(m.name, this->_data.GetAllocator()).Move(), Value(m.value, this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+							}
+						}
+					/**
+					 * Если возникает ошибка
+					 */
+					} catch(const std::exception & error) {
+						// Выводим переданный лог
+						this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "config", error.what());
 					}
 				}
 			}
@@ -530,12 +1478,50 @@ namespace anyks {
 				 * Выполняем отлов ошибок
 				 */
 				try {
-					// Устанавливаем конфигурационный файл
-					this->config(static_cast <json> (json::parse(config)));
+					// Создаём объект конфигурационного файла
+					json data;
+					// Выполняем парсинг объекта JSON
+					if(data.Parse(config.c_str(), config.length()).HasParseError())
+						// Выводим сообщение об ошибке
+						this->_log->print("Env config: (offset %d): %s", log_t::flag_t::CRITICAL, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
+					// Выполняем установку полученных данных конфигурационного файла
+					else this->config(std::move(data));
 				// Если возникает ошибка
-				} catch(const exception & error) {
+				} catch(const std::exception & error) {
 					// Выводим сообщение об ошибке
-					this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "config", error.what());
+				}
+			}
+		public:
+			/**
+			 * filename Метод загрузки данных JSON из файла
+			 * @param filename адрес файла для загрузки
+			 */
+			void filename(const string & filename) noexcept {
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Если файл найден
+					if(this->_fs.isFile(filename)){
+						// Считываем конфигурационный файл из файловой системы
+						const auto & config = this->_fs.read(filename);
+						// Если данные получены, устанавливаем их
+						if(!config.empty()){
+							// Создаём объект конфигурационного файла
+							json data;
+							// Выполняем парсинг объекта JSON
+							if(data.Parse(config.data(), config.size()).HasParseError())
+								// Выводим сообщение об ошибке
+								this->_log->print("Env filename: (offset %d): %s", log_t::flag_t::CRITICAL, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
+							// Выполняем установку полученных данных конфигурационного файла
+							else this->config(std::move(data));
+						}
+					}
+				// Если возникает ошибка
+				} catch(const std::exception & error) {
+					// Выводим сообщение об ошибке
+					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "filename", error.what());
 				}
 			}
 		public:
@@ -622,13 +1608,13 @@ namespace anyks {
 						// Убираем ожидание значения
 						isValue = false;
 						// Добавляем полученные данные в список переменных
-						if(!key.empty() && this->exist(key))
+						if(!key.empty() && this->exist(true, key))
 							// Выполняем добавление значения в базу данных
 							this->add(key, arg);
 					}
 				}
 				// Если переменная текста установлена и мы её из не получили
-				if(!this->_text.empty() && !this->exist(this->_text)){
+				if(!this->_text.empty() && !this->exist(true, this->_text)){
 					// Очищаем значение
 					val.clear();
 					// Считываем строку из буфера stdin
@@ -695,13 +1681,13 @@ namespace anyks {
 						// Выполняем конвертацию ключа
 						const string & item = this->_fmk->convert(key);
 						// Добавляем полученные данные в список переменных
-						if(!key.empty() && this->exist(item))
+						if(!key.empty() && this->exist(true, item))
 							// Выполняем добавление значения в базу данных
 							this->add(item, this->_fmk->convert(arg));
 					}
 				}
 				// Если переменная текста установлена и мы её из не получили
-				if(!this->_text.empty() && !this->exist(this->_text)){
+				if(!this->_text.empty() && !this->exist(true, this->_text)){
 					// Значение считываемое из потока
 					string value = "";
 					// Если операционной системой является Windows
@@ -728,7 +1714,7 @@ namespace anyks {
 			 * operator Создаём оператор извлечения JSON объекта
 			 * @return конфигурационные данные
 			 */
-			operator json & () const noexcept {
+			operator const json & () const noexcept {
 				// Выводим данные конфига
 				return this->_data;
 			}
@@ -739,7 +1725,11 @@ namespace anyks {
 			 * @param log объект для работы с логами
 			 */
 			Env(const fmk_t * fmk, const log_t * log) noexcept :
-			 _automatic(false), _text{""}, _prefix{ACU_SHORT_NAME}, _fmk(fmk), _log(log) {}
+			 _fs(fmk, log), _automatic(false), _text{""},
+			 _prefix{ACU_SHORT_NAME}, _fmk(fmk), _log(log) {
+				// Устанавливаем тип JSON как объект
+				this->_data.SetObject();
+			}
 			/**
 			 * Env Конструктор
 			 * @param prefix префикс переменной окружения
@@ -747,9 +1737,11 @@ namespace anyks {
 			 * @param log    объект для работы с логами
 			 */
 			Env(const string & prefix, const fmk_t * fmk, const log_t * log) noexcept :
-			 _automatic(false), _text{""}, _prefix{ACU_SHORT_NAME}, _fmk(fmk), _log(log) {
-				// Устанавливаем префикс переменных окружения
-				this->prefix(prefix);
+			 _fs(fmk, log), _automatic(false), _text{""}, _prefix{prefix}, _fmk(fmk), _log(log) {
+				// Устанавливаем тип JSON как объект
+				this->_data.SetObject();
+				// Переводим префикс в верхний регистр
+				this->_fmk->transform(this->_prefix, fmk_t::transform_t::UPPER);
 			}
 			/**
 			 * Env Конструктор
@@ -759,11 +1751,13 @@ namespace anyks {
 			 * @param log    объект для работы с логами
 			 */
 			Env(const string & prefix, const string & text, const fmk_t * fmk, const log_t * log) noexcept :
-			 _automatic(false), _text{text}, _prefix{ACU_SHORT_NAME}, _fmk(fmk), _log(log) {
-				// Устанавливаем префикс переменных окружения
-				this->prefix(prefix);
+			 _fs(fmk, log), _automatic(false), _text{text}, _prefix{prefix}, _fmk(fmk), _log(log) {
+				// Устанавливаем тип JSON как объект
+				this->_data.SetObject();
+				// Переводим префикс в верхний регистр
+				this->_fmk->transform(this->_prefix, fmk_t::transform_t::UPPER);
 			}
 	} env_t;
 };
 
-#endif // __ACU_ENV__
+#endif // __ANYKS_ACU_ENV__

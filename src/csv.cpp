@@ -23,96 +23,132 @@
 void anyks::CSV::prepare(const char * buffer, const size_t size, const char delim) noexcept {
 	// Если данные переданы
 	if((buffer != nullptr) && (size > 0)){
-		// Результирующая строка
-		string text = "";
-		// Статус получения кавычек
-		bool quote = false;
-		// Список собранных результатов
-		vector <string> result;
-		// Выполняем перебор всех полученных символов
-		for(size_t i = 0; i < size; i++){
-			// Выполняем проверку, является ли символ кавычками
-			if(buffer[i] == '"'){
-				// Если кавычки ещё не установлены
-				if(!quote){
-					// Устанавливаем флаг кавычек
-					quote = !quote;
-					// Если следующий символ тоже кавычки
-					if(buffer[i + 1] == '"'){
-						// Если и следующий символ тоже кавычки
-						if(buffer[i + 2] == '"'){
-							// Добавляем символ в строку
-							text.append(1, buffer[i]);
-							// Выполняем смещение на два символа
-							i += 2;
-						// Если следующий символ является разделителем
-						} else if((buffer[i + 2] == delim) || ((delim == '0') && ((buffer[i + 2] == ',') || (buffer[i + 2] == ';') || (buffer[i + 2] == '|')))) {
-							// Снимаем флаг кавычек
-							quote = !quote;
-							// Добавляем пустой разделитель
-							result.push_back("");
-							// Выполняем смещение на два символа
-							i += 2;
-						// Если мы получили какой-то другой символ
-						} else {
-							// Добавляем символ в строку
-							text.append(1, buffer[i]);
-							// Выполняем смещение на один символ
-							i++;
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Результирующая строка
+			string text = "";
+			// Статус получения кавычек
+			bool quote = false;
+			// Список собранных результатов
+			vector <string> result;
+			// Выполняем перебор всех полученных символов
+			for(size_t i = 0; i < size; i++){
+				// Выполняем проверку, является ли символ кавычками
+				if(buffer[i] == '"'){
+					// Если кавычки ещё не установлены
+					if(!quote){
+						// Устанавливаем флаг кавычек
+						quote = !quote;
+						// Если следующий символ тоже кавычки
+						if(buffer[i + 1] == '"'){
+							// Если и следующий символ тоже кавычки
+							if(buffer[i + 2] == '"'){
+								// Добавляем символ в строку
+								text.append(1, buffer[i]);
+								// Выполняем смещение на два символа
+								i += 2;
+							// Если следующий символ является разделителем
+							} else if((buffer[i + 2] == delim) || ((delim == '0') && ((buffer[i + 2] == ',') || (buffer[i + 2] == ';') || (buffer[i + 2] == '|')))) {
+								// Снимаем флаг кавычек
+								quote = !quote;
+								// Добавляем пустой разделитель
+								result.push_back("");
+								// Выполняем смещение на два символа
+								i += 2;
+							// Если мы получили какой-то другой символ
+							} else {
+								// Добавляем символ в строку
+								text.append(1, buffer[i]);
+								// Выполняем смещение на один символ
+								i++;
+							}
 						}
+					// Если кавычки уже установлены
+					} else {
+						// Если следующий символ тоже кавычки
+						if(buffer[i + 1] == '"'){
+							// Добавляем символ в строку
+							text.append(1, buffer[i]);
+							// Если и следующий символ тоже кавычки
+							if(buffer[i + 2] == '"'){
+								// Выполняем смещение на два символа
+								i += 2;
+								// Снимаем флаг кавычек
+								quote = !quote;
+							// Выполняем смещение на один символ
+							} else i++;
+						// Снимаем флаг кавычек
+						} else quote = !quote;
 					}
-				// Если кавычки уже установлены
-				} else {
-					// Если следующий символ тоже кавычки
-					if(buffer[i + 1] == '"'){
+					// Если мы достигли конца строки
+					if((i + 1) == size)
+						// Выполняем сборку результатов
+						result.push_back(std::move(text));
+				// Если символ не является кавычками, но является разделителем или концом строки
+				} else if(!quote && (((delim != '0') && (buffer[i] == delim)) || ((i + 1) == size))) {
+					// Если мы достигли конца строки
+					if((i + 1) == size)
 						// Добавляем символ в строку
 						text.append(1, buffer[i]);
-						// Если и следующий символ тоже кавычки
-						if(buffer[i + 2] == '"'){
-							// Выполняем смещение на два символа
-							i += 2;
-							// Снимаем флаг кавычек
-							quote = !quote;
-						// Выполняем смещение на один символ
-						} else i++;
-					// Снимаем флаг кавычек
-					} else quote = !quote;
-				}
-				// Если мы достигли конца строки
-				if((i + 1) == size)
 					// Выполняем сборку результатов
 					result.push_back(std::move(text));
-			// Если символ не является кавычками, но является разделителем или концом строки
-			} else if(!quote && (((delim != '0') && (buffer[i] == delim)) || ((i + 1) == size))) {
-				// Если мы достигли конца строки
-				if((i + 1) == size)
-					// Добавляем символ в строку
-					text.append(1, buffer[i]);
-				// Выполняем сборку результатов
-				result.push_back(std::move(text));
-				// Очищаем результирующую строку
-				text.clear();
-			// Если символ не является кавычками, но является произвольным разделителем или концом строки
-			} else if(!quote && (((delim == '0') && ((buffer[i] == ',') || (buffer[i] == ';') || (buffer[i] == '|'))) || ((i + 1) == size))) {
-				// Выполняем установку разделителя
-				(* const_cast <char *> (&delim)) = buffer[i];
-				// Если мы достигли конца строки
-				if((i + 1) == size)
-					// Добавляем символ в строку
-					text.append(1, buffer[i]);
-				// Выполняем сборку результатов
-				result.push_back(std::move(text));
-				// Очищаем результирующую строку
-				text.clear();
-			// Добавляем символ как он есть
-			} else text.append(1, buffer[i]);
+					// Очищаем результирующую строку
+					text.clear();
+				// Если символ не является кавычками, но является произвольным разделителем или концом строки
+				} else if(!quote && (((delim == '0') && ((buffer[i] == ',') || (buffer[i] == ';') || (buffer[i] == '|'))) || ((i + 1) == size))) {
+					// Выполняем установку разделителя
+					(* const_cast <char *> (&delim)) = buffer[i];
+					// Если мы достигли конца строки
+					if((i + 1) == size)
+						// Добавляем символ в строку
+						text.append(1, buffer[i]);
+					// Выполняем сборку результатов
+					result.push_back(std::move(text));
+					// Очищаем результирующую строку
+					text.clear();
+				// Добавляем символ как он есть
+				} else text.append(1, buffer[i]);
+			}
+			// Если результат получен
+			if(!result.empty())
+				// Формируем итоговый результат
+				this->_mapping.push_back(std::move(result));
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
-		// Если результат получен
-		if(!result.empty())
-			// Формируем итоговый результат
-			this->_mapping.push_back(std::move(result));
 	// Выводим сообщение об ошибке
-	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "data for preparing received corrupted");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
+		#endif
+	}
 }
 /**
  * prepare Метод выполнения препарирования полученных данных строки
@@ -124,96 +160,132 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 void anyks::CSV::prepare(const char * buffer, const size_t size, function <void (const vector <string> &)> callback, const char delim) noexcept {
 	// Если данные переданы
 	if((buffer != nullptr) && (size > 0) && (callback != nullptr)){
-		// Результирующая строка
-		string text = "";
-		// Статус получения кавычек
-		bool quote = false;
-		// Список собранных результатов
-		vector <string> result;
-		// Выполняем перебор всех полученных символов
-		for(size_t i = 0; i < size; i++){
-			// Выполняем проверку, является ли символ кавычками
-			if(buffer[i] == '"'){
-				// Если кавычки ещё не установлены
-				if(!quote){
-					// Устанавливаем флаг кавычек
-					quote = !quote;
-					// Если следующий символ тоже кавычки
-					if(buffer[i + 1] == '"'){
-						// Если и следующий символ тоже кавычки
-						if(buffer[i + 2] == '"'){
-							// Добавляем символ в строку
-							text.append(1, buffer[i]);
-							// Выполняем смещение на два символа
-							i += 2;
-						// Если следующий символ является разделителем
-						} else if((buffer[i + 2] == delim) || ((delim == '0') && ((buffer[i + 2] == ',') || (buffer[i + 2] == ';') || (buffer[i + 2] == '|')))) {
-							// Снимаем флаг кавычек
-							quote = !quote;
-							// Добавляем пустой разделитель
-							result.push_back("");
-							// Выполняем смещение на два символа
-							i += 2;
-						// Если мы получили какой-то другой символ
-						} else {
-							// Добавляем символ в строку
-							text.append(1, buffer[i]);
-							// Выполняем смещение на один символ
-							i++;
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Результирующая строка
+			string text = "";
+			// Статус получения кавычек
+			bool quote = false;
+			// Список собранных результатов
+			vector <string> result;
+			// Выполняем перебор всех полученных символов
+			for(size_t i = 0; i < size; i++){
+				// Выполняем проверку, является ли символ кавычками
+				if(buffer[i] == '"'){
+					// Если кавычки ещё не установлены
+					if(!quote){
+						// Устанавливаем флаг кавычек
+						quote = !quote;
+						// Если следующий символ тоже кавычки
+						if(buffer[i + 1] == '"'){
+							// Если и следующий символ тоже кавычки
+							if(buffer[i + 2] == '"'){
+								// Добавляем символ в строку
+								text.append(1, buffer[i]);
+								// Выполняем смещение на два символа
+								i += 2;
+							// Если следующий символ является разделителем
+							} else if((buffer[i + 2] == delim) || ((delim == '0') && ((buffer[i + 2] == ',') || (buffer[i + 2] == ';') || (buffer[i + 2] == '|')))) {
+								// Снимаем флаг кавычек
+								quote = !quote;
+								// Добавляем пустой разделитель
+								result.push_back("");
+								// Выполняем смещение на два символа
+								i += 2;
+							// Если мы получили какой-то другой символ
+							} else {
+								// Добавляем символ в строку
+								text.append(1, buffer[i]);
+								// Выполняем смещение на один символ
+								i++;
+							}
 						}
+					// Если кавычки уже установлены
+					} else {
+						// Если следующий символ тоже кавычки
+						if(buffer[i + 1] == '"'){
+							// Добавляем символ в строку
+							text.append(1, buffer[i]);
+							// Если и следующий символ тоже кавычки
+							if(buffer[i + 2] == '"'){
+								// Выполняем смещение на два символа
+								i += 2;
+								// Снимаем флаг кавычек
+								quote = !quote;
+							// Выполняем смещение на один символ
+							} else i++;
+						// Снимаем флаг кавычек
+						} else quote = !quote;
 					}
-				// Если кавычки уже установлены
-				} else {
-					// Если следующий символ тоже кавычки
-					if(buffer[i + 1] == '"'){
+					// Если мы достигли конца строки
+					if((i + 1) == size)
+						// Выполняем сборку результатов
+						result.push_back(std::move(text));
+				// Если символ не является кавычками, но является разделителем или концом строки
+				} else if(!quote && (((delim != '0') && (buffer[i] == delim)) || ((i + 1) == size))) {
+					// Если мы достигли конца строки
+					if((i + 1) == size)
 						// Добавляем символ в строку
 						text.append(1, buffer[i]);
-						// Если и следующий символ тоже кавычки
-						if(buffer[i + 2] == '"'){
-							// Выполняем смещение на два символа
-							i += 2;
-							// Снимаем флаг кавычек
-							quote = !quote;
-						// Выполняем смещение на один символ
-						} else i++;
-					// Снимаем флаг кавычек
-					} else quote = !quote;
-				}
-				// Если мы достигли конца строки
-				if((i + 1) == size)
 					// Выполняем сборку результатов
 					result.push_back(std::move(text));
-			// Если символ не является кавычками, но является разделителем или концом строки
-			} else if(!quote && (((delim != '0') && (buffer[i] == delim)) || ((i + 1) == size))) {
-				// Если мы достигли конца строки
-				if((i + 1) == size)
-					// Добавляем символ в строку
-					text.append(1, buffer[i]);
-				// Выполняем сборку результатов
-				result.push_back(std::move(text));
-				// Очищаем результирующую строку
-				text.clear();
-			// Если символ не является кавычками, но является произвольным разделителем или концом строки
-			} else if(!quote && (((delim == '0') && ((buffer[i] == ',') || (buffer[i] == ';') || (buffer[i] == '|'))) || ((i + 1) == size))) {
-				// Выполняем установку разделителя
-				(* const_cast <char *> (&delim)) = buffer[i];
-				// Если мы достигли конца строки
-				if((i + 1) == size)
-					// Добавляем символ в строку
-					text.append(1, buffer[i]);
-				// Выполняем сборку результатов
-				result.push_back(std::move(text));
-				// Очищаем результирующую строку
-				text.clear();
-			// Добавляем символ как он есть
-			} else text.append(1, buffer[i]);
+					// Очищаем результирующую строку
+					text.clear();
+				// Если символ не является кавычками, но является произвольным разделителем или концом строки
+				} else if(!quote && (((delim == '0') && ((buffer[i] == ',') || (buffer[i] == ';') || (buffer[i] == '|'))) || ((i + 1) == size))) {
+					// Выполняем установку разделителя
+					(* const_cast <char *> (&delim)) = buffer[i];
+					// Если мы достигли конца строки
+					if((i + 1) == size)
+						// Добавляем символ в строку
+						text.append(1, buffer[i]);
+					// Выполняем сборку результатов
+					result.push_back(std::move(text));
+					// Очищаем результирующую строку
+					text.clear();
+				// Добавляем символ как он есть
+				} else text.append(1, buffer[i]);
+			}
+			// Если результат получен
+			if(!result.empty())
+				// Формируем итоговый результат
+				callback(std::move(result));
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
-		// Если результат получен
-		if(!result.empty())
-			// Формируем итоговый результат
-			callback(std::move(result));
 	// Выводим сообщение об ошибке
-	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "data for preparing received corrupted");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
+		#endif
+	}
 }
 /**
  * clear Метод очистки данных
@@ -240,7 +312,21 @@ void anyks::CSV::parse(const string & text) noexcept {
 		// Выполняем парсинг переданной строки
 		this->parse(text, '0');
 	// Выводим сообщение об ошибке
-	else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "data for parsing received corrupted");
+	else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
+		#endif
+	}
 }
 /**
  * parse Метод выполнения парсинга текста
@@ -250,42 +336,78 @@ void anyks::CSV::parse(const string & text) noexcept {
 void anyks::CSV::parse(const string & text, const char delim) noexcept {
 	// Если текст передан
 	if(!text.empty()){
-		// Значение текущей и предыдущей буквы
-		char letter = 0, old = 0;
-		// Смещение в буфере и длина полученной строки
-		size_t offset = 0, length = 0;
-		// Получаем размер файла
-		const uintmax_t size = text.size();
-		// Переходим по всему буферу
-		for(uintmax_t i = 0; i < size; i++){
-			// Получаем значение текущей буквы
-			letter = text.at(i);
-			// Если текущая буква является переносом строк
-			if((i > 0) && ((letter == '\n') || (i == (size - 1)))){
-				// Если предыдущая буква была возвратом каретки, уменьшаем длину строки
-				length = ((old == '\r' ? i - 1 : i) - offset);
-				// Если это конец файла, корректируем размер последнего байта
-				if(length == 0)
-					// Выполняем кооректировку размера
-					length = 1;
-				// Если мы получили последний символ и он не является переносом строки
-				if((i == (size - 1)) && (letter != '\n'))
-					// Выполняем компенсацию размера строки
-					length++;
-				// Если длина слова получена, выводим полученную строку
-				this->prepare(text.data() + offset, length, delim);
-				// Выполняем смещение
-				offset = (i + 1);
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Значение текущей и предыдущей буквы
+			char letter = 0, old = 0;
+			// Смещение в буфере и длина полученной строки
+			size_t offset = 0, length = 0;
+			// Получаем размер файла
+			const uintmax_t size = text.size();
+			// Переходим по всему буферу
+			for(uintmax_t i = 0; i < size; i++){
+				// Получаем значение текущей буквы
+				letter = text.at(i);
+				// Если текущая буква является переносом строк
+				if((i > 0) && ((letter == '\n') || (i == (size - 1)))){
+					// Если предыдущая буква была возвратом каретки, уменьшаем длину строки
+					length = ((old == '\r' ? i - 1 : i) - offset);
+					// Если это конец файла, корректируем размер последнего байта
+					if(length == 0)
+						// Выполняем кооректировку размера
+						length = 1;
+					// Если мы получили последний символ и он не является переносом строки
+					if((i == (size - 1)) && (letter != '\n'))
+						// Выполняем компенсацию размера строки
+						length++;
+					// Если длина слова получена, выводим полученную строку
+					this->prepare(text.data() + offset, length, delim);
+					// Выполняем смещение
+					offset = (i + 1);
+				}
+				// Запоминаем предыдущую букву
+				old = letter;
 			}
-			// Запоминаем предыдущую букву
-			old = letter;
+			// Если данные не все прочитаны, выводим как есть
+			if((offset == 0) && (size > 0))
+				// Выводим полученную строку
+				this->prepare(text.data(), size, delim);
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, delim), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
-		// Если данные не все прочитаны, выводим как есть
-		if((offset == 0) && (size > 0))
-			// Выводим полученную строку
-			this->prepare(text.data(), size, delim);
 	// Выводим сообщение об ошибке
-	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "data for parsing received corrupted");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, delim), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
+		#endif
+	}
 }
 /**
  * cols Метод получения количества столбцов
@@ -318,53 +440,89 @@ string anyks::CSV::row(const size_t index, const char delim) noexcept {
 	string result = "";
 	// Если переданный индекс меньше количества записей
 	if(index < this->_mapping.size()){
-		// Символ для сравнения
-		char letter = 0;
-		// Флаг проверки на требование экранирования
-		bool shielding = false;
-		// Выполняем перебор всех столбцов
-		for(auto & item : this->_mapping.at(index)){
-			// Получаем значение столбца
-			string col = item;
-			// Выполняем сброс флага экранирования
-			shielding = false;
-			// Выполняем перебор всех символов столбца
-			for(size_t i = 0; i < col.size(); i++){
-				// Получаем символ для проверки
-				letter = col.at(i);
-				// Если флаг ещё не установлен
-				if(!shielding)
-					// Если найдены символы требующие экранирования
-					shielding = (
-						(letter == ';') || (letter == ',') || (letter == '|') || ::isspace(letter) ||
-						(letter == 32) || (letter == ' ') || (letter == '\t') || (letter == '\n') ||
-						(letter == '\r') || (letter == '\f') || (letter == '\v')
-					);
-				// Если найдена кавычка
-				if(letter == '"'){
-					// Добавляем ещё одну кавычку
-					col.insert(col.begin() + i, 1, '"');
-					// увеличиваем значение индекса
-					i++;
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Символ для сравнения
+			char letter = 0;
+			// Флаг проверки на требование экранирования
+			bool shielding = false;
+			// Выполняем перебор всех столбцов
+			for(auto & item : this->_mapping.at(index)){
+				// Получаем значение столбца
+				string col = item;
+				// Выполняем сброс флага экранирования
+				shielding = false;
+				// Выполняем перебор всех символов столбца
+				for(size_t i = 0; i < col.size(); i++){
+					// Получаем символ для проверки
+					letter = col.at(i);
+					// Если флаг ещё не установлен
+					if(!shielding)
+						// Если найдены символы требующие экранирования
+						shielding = (
+							(letter == ';') || (letter == ',') || (letter == '|') || ::isspace(letter) ||
+							(letter == 32) || (letter == ' ') || (letter == '\t') || (letter == '\n') ||
+							(letter == '\r') || (letter == '\f') || (letter == '\v')
+						);
+					// Если найдена кавычка
+					if(letter == '"'){
+						// Добавляем ещё одну кавычку
+						col.insert(col.begin() + i, 1, '"');
+						// увеличиваем значение индекса
+						i++;
+					}
 				}
+				// Если результат уже собран
+				if(!result.empty())
+					// Выполняем добавление разделителя
+					result.append(1, delim);
+				// Если требуется экранирование
+				if(shielding)
+					// Добавляем экранирование
+					result.append(1, '"');
+				// Добавляем запись
+				result.append(col);
+				// Если требуется экранирование
+				if(shielding)
+					// Добавляем экранирование
+					result.append(1, '"');
 			}
-			// Если результат уже собран
-			if(!result.empty())
-				// Выполняем добавление разделителя
-				result.append(1, delim);
-			// Если требуется экранирование
-			if(shielding)
-				// Добавляем экранирование
-				result.append(1, '"');
-			// Добавляем запись
-			result.append(col);
-			// Если требуется экранирование
-			if(shielding)
-				// Добавляем экранирование
-				result.append(1, '"');
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(index, delim), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	// Выводим сообщение об ошибке
-	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "object contains no data");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(index, delim), log_t::flag_t::CRITICAL, "Object contains no data");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "Object contains no data");
+		#endif
+	}
 	// Выводим результат
 	return result;
 }
@@ -402,11 +560,53 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 		 * Если возникает ошибка
 		 */
 		} catch(const std::ios_base::failure & error) {
-			// Выводим сообщение инициализации метода класса скрипта торговой платформы
-			this->_log->print("CSV: %s for filename %s", log_t::flag_t::CRITICAL, error.what(), filename.c_str());
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	// Выводим сообщение об ошибке
-	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "file address for writing was not set");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for writing was not set");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "File address for writing was not set");
+		#endif
+	}
 }
 /**
  * read Метод чтения данных из файла
@@ -418,7 +618,21 @@ void anyks::CSV::read(const string & filename) noexcept {
 		// Выполняем чтение файла с неустановленным разделителем
 		this->read(filename, '0');
 	// Выводим сообщение об ошибке
-	else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "file address for reading was not set");
+	else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename), log_t::flag_t::CRITICAL, "File address for reading was not set");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "File address for reading was not set");
+		#endif
+	}
 }
 /**
  * read Метод чтения данных из файла
@@ -434,7 +648,21 @@ void anyks::CSV::read(const string & filename, const char delim) noexcept {
 			this->prepare(text.data(), text.size(), delim);
 		});
 	// Выводим сообщение об ошибке
-	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "file address for reading was not set");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "File address for reading was not set");
+		#endif
+	}
 }
 /**
  * read Метод чтения данных из файла
@@ -453,7 +681,21 @@ void anyks::CSV::read(const string & filename, function <void (const vector <str
 				this->prepare(text.data(), text.size(), callback, delim);
 		});
 	// Выводим сообщение об ошибке
-	} else this->_log->print("CSV: %s", log_t::flag_t::CRITICAL, "file address for reading was not set");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "File address for reading was not set");
+		#endif
+	}
 }
 /**
  * dump Метод создания дампа данных
@@ -461,25 +703,97 @@ void anyks::CSV::read(const string & filename, function <void (const vector <str
  */
 json anyks::CSV::dump() const noexcept {
 	// Результат работы функции
-	json result = json::object();
+	json result;
 	// Если данные реально собранны
 	if(!this->_mapping.empty()){
-		// Если нужно сформировать заголовки
-		if(this->_header){
-			// Текущее значение индекса
-			size_t index = 0;
-			// Переходим по всему списку ключей
-			for(auto & key : this->_mapping.front()){
-				// Создаём объект массива
-				result[key] = json::array();
-				// Переходим по всем остальным ключам
-				for(size_t i = 1; i < this->_mapping.size(); i++){
-					// Если индекс соответствует номеру записи
-					if(index < this->_mapping.at(i).size()){
-						// Получаем запись для проверки
-						const string item = this->_mapping.at(i).at(index);
-						// Выполняем приведение строки к нижнему регистру
-						this->_fmk->transform(item, fmk_t::transform_t::LOWER);
+		/**
+		 * Выполняем перехват ошибок
+		 */
+		try {
+			// Если нужно сформировать заголовки
+			if(this->_header){
+				// Текущее значение индекса
+				size_t index = 0;
+				// Устанавливаем тип JSON как объект
+				result.SetObject();
+				// Переходим по всему списку ключей
+				for(auto & key : this->_mapping.front()){
+					// Создаём объект массива
+					result.AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(kArrayType).Move(), result.GetAllocator());
+					// Переходим по всем остальным ключам
+					for(size_t i = 1; i < this->_mapping.size(); i++){
+						// Если индекс соответствует номеру записи
+						if(index < this->_mapping.at(i).size()){
+							// Получаем запись для проверки
+							const string item = this->_mapping.at(i).at(index);
+							// Выполняем приведение строки к нижнему регистру
+							this->_fmk->transform(item, fmk_t::transform_t::LOWER);
+							// Если запись является числом
+							if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число положительное
+									if(item.front() != '-')
+										// Добавляем полученное значение в массив
+										result[key.c_str()].PushBack(Value(static_cast <uint64_t> (::stoull(item))).Move(), result.GetAllocator());
+									// Добавляем полученное значение в массив
+									else result[key.c_str()].PushBack(Value(static_cast <int64_t> (::stoll(item))).Move(), result.GetAllocator());
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значение в массив
+									result[key.c_str()].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
+								}
+							// Если запись является числом с плавающей точкой
+							} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL)) {
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Добавляем полученное значение в массив
+									result[key.c_str()].PushBack(Value(::stod(item)).Move(), result.GetAllocator());
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Добавляем полученное значение в массив
+									result[key.c_str()].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
+								}
+							// Если число является булевым истинным значением
+							} else if(this->_fmk->compare("true", item))
+								// Добавляем полученное значение в массив
+								result[key.c_str()].PushBack(Value(true).Move(), result.GetAllocator());
+							// Если число является булевым ложным значением
+							else if(this->_fmk->compare("false", item))
+								// Добавляем полученное значение в массив
+								result[key.c_str()].PushBack(Value(false).Move(), result.GetAllocator());
+							// Добавляем полученное значение в массив
+							else {
+								// Получаем строку для добавления в массив
+								const string & item = this->_mapping.at(i).at(index);
+								// Добавляем полученное значение в массив
+								result[key.c_str()].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
+							}
+						}
+					}
+					// Выполняем смещение индекса
+					index++;
+				}
+			// Если формировать заголовок не требуется
+			} else {
+				// Устанавливаем тип JSON как массив
+				result.SetArray();
+				// Выполняем перебор всего списка собранной карты
+				for(size_t i = 0; i < this->_mapping.size(); i++){
+					// Выполняем добавление нового массива
+					result.PushBack(Value(kArrayType).Move(), result.GetAllocator());
+					// Выполняем перебор всего списка строк
+					for(auto j = 0; j < this->_mapping.at(i).size(); j++){
+						// Получаем строку значения
+						const string & item = this->_mapping.at(i).at(j);
 						// Если запись является числом
 						if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
 							/**
@@ -489,15 +803,15 @@ json anyks::CSV::dump() const noexcept {
 								// Если число положительное
 								if(item.front() != '-')
 									// Добавляем полученное значение в массив
-									result[key].push_back(::stoull(item));
+									result[i].PushBack(Value(static_cast <uint64_t> (::stoull(item))).Move(), result.GetAllocator());
 								// Добавляем полученное значение в массив
-								else result[key].push_back(::stoll(item));
+								else result[i].PushBack(Value(static_cast <int64_t> (::stoll(item))).Move(), result.GetAllocator());
 							/**
 							 * Если возникает ошибка
 							 */
 							} catch(const std::exception &) {
 								// Добавляем полученное значение в массив
-								result[key].push_back(this->_mapping.at(i).at(index));
+								result[i].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 							}
 						// Если запись является числом с плавающей точкой
 						} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL)) {
@@ -506,87 +820,49 @@ json anyks::CSV::dump() const noexcept {
 							 */
 							try {
 								// Добавляем полученное значение в массив
-								result[key].push_back(::stold(item));
+								result[i].PushBack(Value(static_cast <uint64_t> (::stod(item))).Move(), result.GetAllocator());
 							/**
 							 * Если возникает ошибка
 							 */
 							} catch(const std::exception &) {
 								// Добавляем полученное значение в массив
-								result[key].push_back(this->_mapping.at(i).at(index));
+								result[i].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 							}
 						// Если число является булевым истинным значением
 						} else if(this->_fmk->compare("true", item))
 							// Добавляем полученное значение в массив
-							result[key].push_back(true);
+							result[i].PushBack(Value(true).Move(), result.GetAllocator());
 						// Если число является булевым ложным значением
 						else if(this->_fmk->compare("false", item))
 							// Добавляем полученное значение в массив
-							result[key].push_back(false);
+							result[i].PushBack(Value(false).Move(), result.GetAllocator());
 						// Добавляем полученное значение в массив
-						else result[key].push_back(this->_mapping.at(i).at(index));
+						else {
+							// Получаем строку для добавления в массив
+							const string & item = this->_mapping.at(i).at(j);
+							// Добавляем полученное значение в массив
+							result[i].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
+						}
 					}
 				}
-				// Выполняем смещение индекса
-				index++;
 			}
-		// Если формировать заголовок не требуется
-		} else {
-			// Выполняем создание массива
-			result = json::array();
-			// Выполняем перебор всего списка собранной карты
-			for(size_t i = 0; i < this->_mapping.size(); i++){
-				// Выполняем добавление нового массива
-				result.push_back(json::array());
-				// Выполняем перебор всего списка строк
-				for(auto j = 0; j < this->_mapping.at(i).size(); j++){
-					// Получаем строку значения
-					const string & item = this->_mapping.at(i).at(j);
-					// Если запись является числом
-					if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
-						/**
-						 * Выполняем отлов ошибок
-						 */
-						try {
-							// Если число положительное
-							if(item.front() != '-')
-								// Добавляем полученное значение в массив
-								result.back().push_back(::stoull(item));
-							// Добавляем полученное значение в массив
-							else result.back().push_back(::stoll(item));
-						/**
-						 * Если возникает ошибка
-						 */
-						} catch(const std::exception &) {
-							// Добавляем полученное значение в массив
-							result.back().push_back(item);
-						}
-					// Если запись является числом с плавающей точкой
-					} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL)) {
-						/**
-						 * Выполняем отлов ошибок
-						 */
-						try {
-							// Добавляем полученное значение в массив
-							result.back().push_back(::stold(item));
-						/**
-						 * Если возникает ошибка
-						 */
-						} catch(const std::exception &) {
-							// Добавляем полученное значение в массив
-							result.back().push_back(item);
-						}
-					// Если число является булевым истинным значением
-					} else if(this->_fmk->compare("true", item))
-						// Добавляем полученное значение в массив
-						result.back().push_back(true);
-					// Если число является булевым ложным значением
-					else if(this->_fmk->compare("false", item))
-						// Добавляем полученное значение в массив
-						result.back().push_back(false);
-					// Добавляем полученное значение в массив
-					else result.back().push_back(item);
-				}
-			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим результат
@@ -597,88 +873,101 @@ json anyks::CSV::dump() const noexcept {
  * @param dump дамп данных в формате JSON
  */
 void anyks::CSV::dump(const json & dump) noexcept {
-	// Если дамп данных передан и является объектом
-	if((this->_header = (dump.is_object() && !dump.empty()))){
-		// Выполняем очистку схему соответствий ключей расширения
-		this->_mapping.clear();
-		// Выполняем добавляем новый список ключей
-		this->_mapping.push_back(vector <string> ());
-		// Выполняем перебор переданного дампа данных
-		for(auto & el : dump.items()){
-			// Если данные получены верные
-			if(el.value().is_array()){
-				// Добавляем заголовочные записи
-				this->_mapping.front().push_back(el.key());
-				// Переходим по всем элементам массива
-				for(size_t i = 0; i < el.value().size(); i++){
-					// Если индекс нулевой
-					if((i + 1) == this->_mapping.size())
-						// Выполняем добавляем новый список ключей
-						this->_mapping.push_back(vector <string> ());
-					// Получаем значение записи
-					const json & item = el.value().at(i);
+	/**
+	 * Выполняем перехват ошибок
+	 */
+	try {
+		// Если дамп данных передан и является объектом
+		if((this->_header = (dump.IsObject()))){
+			// Выполняем очистку схему соответствий ключей расширения
+			this->_mapping.clear();
+			// Выполняем добавляем новый список ключей
+			this->_mapping.push_back(vector <string> ());
+			// Выполняем перебор переданного дампа данных
+			for(auto & m : dump.GetObject()){
+				// Если данные получены верные
+				if(m.value.IsArray()){
+					// Добавляем заголовочные записи
+					this->_mapping.front().push_back(m.name.GetString());
+					// Переходим по всем элементам массива
+					for(size_t i = 0; i < m.value.Size(); i++){
+						// Если индекс нулевой
+						if((i + 1) == this->_mapping.size())
+							// Выполняем добавляем новый список ключей
+							this->_mapping.push_back(vector <string> ());
+						// Получаем значение записи
+						const auto & item = m.value[i];
+						// Если запись является строкой
+						if(item.IsString())
+							// Выполняем добавление всех записей
+							this->_mapping.at(i + 1).push_back(item.GetString());
+						// Если запись является числом с плавающей точкой
+						else if(item.IsDouble())
+							// Добавляем полученное значение
+							this->_mapping.at(i + 1).push_back(this->_fmk->noexp(item.GetDouble(), true));
+						// Если запись является числом отрицательным
+						else if(item.IsInt64())
+							// Добавляем полученное значение
+							this->_mapping.at(i + 1).push_back(std::to_string(item.GetInt64()));
+						// Если запись является числом положительным
+						else if(item.IsUint64())
+							// Добавляем полученное значение
+							this->_mapping.at(i + 1).push_back(std::to_string(item.GetUint64()));
+						// Если запись является булевым значением
+						else if(item.IsBool())
+							// Выполняем добавление всех записей
+							this->_mapping.at(i + 1).push_back(item.GetBool() ? "true" : "false");
+					}
+				}
+			}
+		// Если дамп данных передан и является массивом
+		} else if(dump.IsArray() && !dump.Empty()) {
+			// Выполняем перебор всего списка массива
+			for(auto & v : dump.GetArray()){
+				// Выполняем добавляем новый список ключей
+				this->_mapping.push_back(vector <string> ());
+				// Выполняем перебор всего списка дочерних элементов
+				for(auto & item : v.GetArray()){
 					// Если запись является строкой
-					if(item.is_string())
+					if(item.IsString())
 						// Выполняем добавление всех записей
-						this->_mapping.at(i + 1).push_back(item.get <string> ());
+						this->_mapping.back().push_back(item.GetString());
 					// Если запись является числом
-					else if(item.is_number()) {
-						// Временное значение переменной
-						double intpart = 0;
-						// Выполняем извлечение числа
-						const double number = item.get <double> ();
-						// Выполняем проверку есть ли дробная часть у числа
-						if(::modf(number, &intpart) == 0){
-							// Если число является положительным
-							if(number > 0.)
-								// Преобразуем значение в тип INT64
-								this->_mapping.at(i + 1).push_back(std::to_string(item.get <uint64_t> ()));
-							// Если число является отрицательным
-							else this->_mapping.at(i + 1).push_back(std::to_string(item.get <int64_t> ()));
-						// Если у числа имеется дробная часть
-						} else this->_mapping.at(i + 1).push_back(this->_fmk->noexp(number, true));
+					else if(item.IsDouble())
+						// Добавляем полученное значение
+						this->_mapping.back().push_back(this->_fmk->noexp(item.GetDouble(), true));
+					// Если запись является числом отрицательным
+					else if(item.IsInt64())
+						// Добавляем полученное значение
+						this->_mapping.back().push_back(std::to_string(item.GetInt64()));
+					// Если запись является числом положительным
+					else if(item.IsUint64())
+						// Добавляем полученное значение
+						this->_mapping.back().push_back(std::to_string(item.GetUint64()));
 					// Если запись является булевым значением
-					} else if(item.is_boolean())
+					else if(item.IsBool())
 						// Выполняем добавление всех записей
-						this->_mapping.at(i + 1).push_back(item.get <bool> () ? "true" : "false");
-				
+						this->_mapping.back().push_back(item.GetBool() ? "true" : "false");
 				}
 			}
 		}
-	// Если дамп данных передан и является массивом
-	} else if(dump.is_array() && !dump.empty()) {
-		// Выполняем перебор всего списка массива
-		for(auto & item1 : dump){
-			// Выполняем добавляем новый список ключей
-			this->_mapping.push_back(vector <string> ());
-			// Выполняем перебор всего списка дочерних элементов
-			for(auto & item2 : item1){
-				// Если запись является строкой
-				if(item2.is_string())
-					// Выполняем добавление всех записей
-					this->_mapping.back().push_back(item2.get <string> ());
-				// Если запись является числом
-				else if(item2.is_number()) {
-					// Временное значение переменной
-					double intpart = 0;
-					// Выполняем извлечение числа
-					const double number = item2.get <double> ();
-					// Выполняем проверку есть ли дробная часть у числа
-					if(::modf(number, &intpart) == 0){
-						// Если число является положительным
-						if(number > 0.)
-							// Преобразуем значение в тип INT64
-							this->_mapping.back().push_back(std::to_string(item2.get <uint64_t> ()));
-						// Если число является отрицательным
-						else this->_mapping.back().push_back(std::to_string(item2.get <int64_t> ()));
-					// Если у числа имеется дробная часть
-					} else this->_mapping.back().push_back(this->_fmk->noexp(number, true));
-				// Если запись является булевым значением
-				} else if(item2.is_boolean())
-					// Выполняем добавление всех записей
-					this->_mapping.back().push_back(item2.get <bool> () ? "true" : "false");
-			}
-		}
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
 	}
 }
 /**
@@ -694,8 +983,16 @@ const vector <vector <string>> & anyks::CSV::get() const noexcept {
  * @return данные контейнера в качестве строки
  */
 anyks::CSV::operator std::string() const noexcept {
+	// Создаём результьрующий буфер
+	StringBuffer data;
+	// Выполняем очистку результирующего буфера
+	data.Clear();
+	// Выполняем создание объекта писателя
+	PrettyWriter <StringBuffer> writer(data);
+	// Передаем данные объекта JSON писателю
+	this->dump().Accept(writer);
 	// Выводим результат
-	return this->dump().dump(4);
+	return data.GetString();
 }
 /**
  * Оператор [=] присвоения контейнеров
@@ -744,8 +1041,16 @@ istream & anyks::operator >> (istream & is, csv_t & csv) noexcept {
  * @param csv контенер для присвоения
  */
 ostream & anyks::operator << (ostream & os, const csv_t & csv) noexcept {
+	// Создаём результьрующий буфер
+	StringBuffer data;
+	// Выполняем очистку результирующего буфера
+	data.Clear();
+	// Выполняем создание объекта писателя
+	PrettyWriter <StringBuffer> writer(data);
+	// Передаем данные объекта JSON писателю
+	csv.dump().Accept(writer);
 	// Записываем в поток CSV сообщение
-	os << csv.dump().dump(4);
+	os << data.GetString();
 	// Выводим результат
 	return os;
 }

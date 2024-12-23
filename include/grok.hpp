@@ -31,7 +31,6 @@
 #include <unordered_map>
 #include <pcre2posix.h>
 #include <cityhash/city.h>
-#include <nlohmann/json.hpp>
 
 /**
  * Модули AWH
@@ -39,12 +38,21 @@
 #include <sys/fmk.hpp>
 #include <sys/log.hpp>
 
+/**
+ * Подключаем заголовочные файлы JSON
+ */
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+
 // Объявляем пространство имен
 using namespace std;
 using namespace awh;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
 
 // Активируем пространство имён json
-using json = nlohmann::json;
+using json = Document;
 
 /**
  * anyks пространство имён
@@ -67,20 +75,39 @@ namespace anyks {
 			 * Тип выполняемого события
 			 */
 			enum class event_t : uint8_t {
-				NONE     = 0x00,
-				INTERNAL = 0x01,
-				EXTERNAL = 0x02
+				NONE     = 0x00, // Событие не установленно
+				INTERNAL = 0x01, // Внутреннее событие
+				EXTERNAL = 0x02  // Внешнее событие
 			};
 		private:
 			/**
-			 * Cache Структура кэша собранных данных
+			 * Express Структура кэша регулярных выражений
 			 */
-			typedef struct Cache {
-				// Объект контекста регулярного выражения
-				regex_t reg;
-				// Регулярное выражение в текстовом виде
-				string expression;
-			} cache_t;
+			typedef class Express {
+				public:
+					// Флаг инициализации регулярного выражения
+					bool mode;
+				public:
+					// Объект контекста регулярного выражения
+					regex_t reg;
+				public:
+					// Регулярное выражение в текстовом виде
+					string expression;
+				public:
+					/**
+					 * Express Конструктор
+					 */
+					Express() noexcept : mode(false) {}
+					/**
+					 * ~Express Деструктор
+					 */
+					~Express() noexcept {
+						// Если регулярное выражение скомпилированно
+						if(this->mode)
+							// Выполняем удаление скомпилированного регулярного выражения
+							::pcre2_regfree(&this->reg);
+					}
+			} express_t;
 		private:
 			/**
 			 * Mutex структура рабочих мютексов
@@ -103,9 +130,9 @@ namespace anyks {
 				Let() noexcept : pos(0), size(0), delim(0) {}
 			} __attribute__((packed)) let_t;
 			/**
-			 * Variable Класс работы с переменными
+			 * Variables Класс работы с переменными
 			 */
-			typedef class Variable {
+			typedef class Variables {
 				private:
 					/**
 					 * Grok Устанавливаем дружбу с родительским модулем
@@ -150,26 +177,42 @@ namespace anyks {
 					void push(const string & name, const string & pattern) noexcept;
 				public:
 					/**
-					 * Variable конструктор
+					 * Variables конструктор
 					 * @param log объект для работы с логами
 					 */
-					Variable(const log_t * log) noexcept : _log(log) {}
-			} var_t;
+					Variables(const log_t * log) noexcept : _log(log) {}
+					/**
+					 * ~Variables деструктор
+					 */
+					~Variables() noexcept;
+			} vars_t;
 		private:
-			// Флаг инициализации
-			bool _mode;
+			/**
+			 * Cache Структура кэша
+			 */
+			typedef struct Cache {
+				// Переменные регулярного выражения
+				vars_t vars;
+				// Регулярные выражения
+				express_t express;
+				// Схема соответствий ключей
+				std::unordered_map <string, string> mapping;
+				/**
+				 * Cache конструктор
+				 * @param log объект для работы с логами
+				 */
+				Cache(const log_t * log) noexcept : vars(log) {}
+			} cache_t;
+		private:
+			// Мютекс для блокировки потока
+			mtx_t _mtx;
 		private:
 			// Объект контекста регулярного выражения для формирования групп
 			regex_t _reg;
 		private:
-			// Мютекс для блокировки потока
-			mutable mtx_t _mtx;
+			// Список именованных групп
+			std::map <uint64_t, string> _nameGroups;
 		private:
-			// Параметры собранных переменных
-			mutable var_t _variables;
-		private:
-			// Схема соответствий ключей
-			std::unordered_map <string, string> _mapping;
 			// Список внутренних шаблонов для работы
 			std::unordered_map <string, string> _patternsInternal;
 			// Список внешних шаблонов для работы
@@ -189,18 +232,20 @@ namespace anyks {
 			void clear() noexcept;
 			/**
 			 * reset Метод сброса собранных данных
+			 * @param cid идентификатор записи в кэше
 			 */
-			void reset() noexcept;
+			void reset(const uint64_t cid) noexcept;
 		public:
 			/**
 			 * clearPatterns Метод очистки списка добавленных шаблонов
 			 */
 			void clearPatterns() noexcept;
+		public:
 			/**
-			 * clearPattern Метод очистки добавленного шаблона
+			 * removePattern Метод удаления добавленного шаблона
 			 * @param name название шаблона для удаления
 			 */
-			void clearPattern(const string & name) noexcept;
+			void removePattern(const string & name) noexcept;
 		private:
 			/**
 			 * variable Метод извлечения первой блоковой переменной в тексте
@@ -229,7 +274,7 @@ namespace anyks {
 			 * @param lets разрешить обработку блочных переменных
 			 * @return     список извлечённых переменных
 			 */
-			vector <pair <string, string>> prepare(string & text, const bool lets = true) const noexcept;
+			vector <std::pair <string, string>> prepare(string & text, const bool lets = true) const noexcept;
 		public:
 			/**
 			 * patterns Метод добавления списка поддерживаемых шаблонов
@@ -238,26 +283,33 @@ namespace anyks {
 			void patterns(const json & patterns) noexcept;
 			/**
 			 * pattern Метод добавления шаблона
-			 * @param name    название шаблона
-			 * @param express регуляреное выражение соответствующее переменной
+			 * @param key название переменной
+			 * @param val регуляреное выражение соответствующее переменной
 			 */
-			void pattern(const string & name, const string & express) noexcept;
+			void pattern(const string & key, const string & val) noexcept;
 		private:
 			/**
 			 * pattern Метод добавления шаблона
-			 * @param name    название шаблона
-			 * @param express регуляреное выражение соответствующее переменной
-			 * @param event   тип выполняемого события
+			 * @param key   название переменной
+			 * @param val   регуляреное выражение соответствующее переменной
+			 * @param event тип выполняемого события
 			 */
-			void pattern(const string & name, const string & express, const event_t event) noexcept;
+			void pattern(const string & key, const string & val, const event_t event) noexcept;
 		private:
 			/**
 			 * generatePattern Метод генерации шаблона
-			 * @param name    название шаблона в виде <name>
-			 * @param express значение шиблок (Регулярное выражение или Grok-шаблон)
-			 * @return        сгенерированный шаблон
+			 * @param key название шаблона в виде <name>
+			 * @param val значение шиблок (Регулярное выражение или Grok-шаблон)
+			 * @return    сгенерированный шаблон
 			 */
-			string generatePattern(const string & name, const string & express) noexcept;
+			string generatePattern(const string & key, const string & val) noexcept;
+		public:
+			/**
+			 * build Метод сборки регулярного выражения
+			 * @param text текст регулярного выражения для сборки
+			 * @return     идентификатор записи в кэше
+			 */
+			uint64_t build(string & text) const noexcept;
 		public:
 			/**
 			 * parse Метод выполнения парсинга текста
@@ -266,46 +318,21 @@ namespace anyks {
 			 * @return     результат выполнения регулярного выражения
 			 */
 			bool parse(const string & text, const uint64_t cid) noexcept;
-			/**
-			 * parse Метод выполнения парсинга текста
-			 * @param text текст для парсинга
-			 * @param rule правило парсинга текста
-			 * @return     результат выполнения регулярного выражения
-			 */
-			bool parse(const string & text, const string & rule) noexcept;
-		public:
-			/**
-			 * build Метод сборки регулярного выражения
-			 * @param text текст регулярного выражения для сборки
-			 * @param pure флаг выполнения сборки чистого регулярного выражения
-			 * @return     идентификатор записи в кэше
-			 */
-			uint64_t build(string & text, const bool pure = false) const noexcept;
 		public:
 			/**
 			 * dump Метод извлечения данных в виде JSON
-			 * @return json объект дампа данных
+			 * @param cid идентификатор записи в кэше
+			 * @return    json объект дампа данных
 			 */
-			json dump() const noexcept;
-		public:
-			/**
-			 * mapping Метод извлечения карты полученных значений
-			 * @return карта полученных значений 
-			 */
-			const std::unordered_map <string, string> & mapping() const noexcept;
+			json dump(const uint64_t cid) const noexcept;
 		public:
 			/**
 			 * get Метод извлечения записи по ключу
 			 * @param key ключ записи для извлечения
+			 * @param cid идентификатор записи в кэше
 			 * @return    значение записи ключа
 			 */
-			string get(const string & key) const noexcept;
-		public:
-			/**
-			 * Оператор вывода данные контейнера в качестве строки
-			 * @return данные контейнера в качестве строки
-			 */
-			operator std::string() const noexcept;
+			string get(const string & key, const uint64_t cid) const noexcept;
 		public:
 			/**
 			 * Grok Конструктор
@@ -318,12 +345,6 @@ namespace anyks {
 			 */
 			~Grok() noexcept;
 	} grok_t;
-	/**
-	 * Оператор [<<] вывода в поток Grok контейнера
-	 * @param os   поток куда нужно вывести данные
-	 * @param grok контенер для присвоения
-	 */
-	ACUSHARED_EXPORT ostream & operator << (ostream & os, const grok_t & grok) noexcept;
 };
 
 #endif // __ANYKS_ACU_GROK__

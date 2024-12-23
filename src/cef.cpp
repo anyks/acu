@@ -175,46 +175,295 @@ void anyks::Cef::parse(const string & cef) noexcept {
 																			// Выполняем препарирование расширений
 																			this->prepare(value);
 																		// Добавляем в список полученные ошибки
-																		else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "extensions is not found");
+																		else {
+																			/**
+																			 * Если включён режим отладки
+																			 */
+																			#if defined(DEBUG_MODE)
+																				// Выводим сообщение об ошибке
+																				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Extensions is not found");
+																			/**
+																			* Если режим отладки не включён
+																			*/
+																			#else
+																				// Выводим сообщение об ошибке
+																				this->_log->print("%s", log_t::flag_t::WARNING, "Extensions is not found");
+																			#endif
+																		}
 																	// Выводим сообщение об ошибке
-																	} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "severity is not found");
+																	} else {
+																		/**
+																		 * Если включён режим отладки
+																		 */
+																		#if defined(DEBUG_MODE)
+																			// Выводим сообщение об ошибке
+																			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
+																		/**
+																		* Если режим отладки не включён
+																		*/
+																		#else
+																			// Выводим сообщение об ошибке
+																			this->_log->print("%s", log_t::flag_t::WARNING, "Severity is not found");
+																		#endif
+																	}
 																// Выводим сообщение об ошибке
-																} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "severity is not found");
+																} else {
+																	/**
+																	 * Если включён режим отладки
+																	 */
+																	#if defined(DEBUG_MODE)
+																		// Выводим сообщение об ошибке
+																		this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
+																	/**
+																	* Если режим отладки не включён
+																	*/
+																	#else
+																		// Выводим сообщение об ошибке
+																		this->_log->print("%s", log_t::flag_t::WARNING, "Severity is not found");
+																	#endif
+																}
 															// Выводим сообщение об ошибке
-															} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "event name is not found");
+															} else {
+																/**
+																 * Если включён режим отладки
+																 */
+																#if defined(DEBUG_MODE)
+																	// Выводим сообщение об ошибке
+																	this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
+																/**
+																* Если режим отладки не включён
+																*/
+																#else
+																	// Выводим сообщение об ошибке
+																	this->_log->print("%s", log_t::flag_t::WARNING, "Event name is not found");
+																#endif
+															}
 														// Выводим сообщение об ошибке
-														} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "event name is not found");
+														} else {
+															/**
+															 * Если включён режим отладки
+															 */
+															#if defined(DEBUG_MODE)
+																// Выводим сообщение об ошибке
+																this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
+															/**
+															* Если режим отладки не включён
+															*/
+															#else
+																// Выводим сообщение об ошибке
+																this->_log->print("%s", log_t::flag_t::WARNING, "Event name is not found");
+															#endif
+														}
 													// Выводим сообщение об ошибке
-													} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "signature ID is not found");
+													} else {
+														/**
+														 * Если включён режим отладки
+														 */
+														#if defined(DEBUG_MODE)
+															// Выводим сообщение об ошибке
+															this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
+														/**
+														* Если режим отладки не включён
+														*/
+														#else
+															// Выводим сообщение об ошибке
+															this->_log->print("%s", log_t::flag_t::WARNING, "Signature ID is not found");
+														#endif
+													}
 												// Выводим сообщение об ошибке
-												} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "signature ID is not found");
+												} else {
+													/**
+													 * Если включён режим отладки
+													 */
+													#if defined(DEBUG_MODE)
+														// Выводим сообщение об ошибке
+														this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
+													/**
+													* Если режим отладки не включён
+													*/
+													#else
+														// Выводим сообщение об ошибке
+														this->_log->print("%s", log_t::flag_t::WARNING, "Signature ID is not found");
+													#endif
+												}
 											// Выводим сообщение об ошибке
-											} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device version is not found");
+											} else {
+												/**
+												 * Если включён режим отладки
+												 */
+												#if defined(DEBUG_MODE)
+													// Выводим сообщение об ошибке
+													this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
+												/**
+												* Если режим отладки не включён
+												*/
+												#else
+													// Выводим сообщение об ошибке
+													this->_log->print("%s", log_t::flag_t::WARNING, "Device version is not found");
+												#endif
+											}
 										// Выводим сообщение об ошибке
-										} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device version is not found");
+										} else {
+											/**
+											 * Если включён режим отладки
+											 */
+											#if defined(DEBUG_MODE)
+												// Выводим сообщение об ошибке
+												this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
+											/**
+											* Если режим отладки не включён
+											*/
+											#else
+												// Выводим сообщение об ошибке
+												this->_log->print("%s", log_t::flag_t::WARNING, "Device version is not found");
+											#endif
+										}
 									// Выводим сообщение об ошибке
-									} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device product is not found");
+									} else {
+										/**
+										 * Если включён режим отладки
+										 */
+										#if defined(DEBUG_MODE)
+											// Выводим сообщение об ошибке
+											this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
+										/**
+										* Если режим отладки не включён
+										*/
+										#else
+											// Выводим сообщение об ошибке
+											this->_log->print("%s", log_t::flag_t::WARNING, "Device product is not found");
+										#endif
+									}
 								// Выводим сообщение об ошибке
-								} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device product is not found");
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, "Device product is not found");
+									#endif
+								}
 							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device vendor is not found");
+							} else {
+								/**
+								 * Если включён режим отладки
+								 */
+								#if defined(DEBUG_MODE)
+									// Выводим сообщение об ошибке
+									this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
+								/**
+								* Если режим отладки не включён
+								*/
+								#else
+									// Выводим сообщение об ошибке
+									this->_log->print("%s", log_t::flag_t::WARNING, "Device vendor is not found");
+								#endif
+							}
 						// Выводим сообщение об ошибке
-						} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "device vendor is not found");
+						} else {
+							/**
+							 * Если включён режим отладки
+							 */
+							#if defined(DEBUG_MODE)
+								// Выводим сообщение об ошибке
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
+							/**
+							* Если режим отладки не включён
+							*/
+							#else
+								// Выводим сообщение об ошибке
+								this->_log->print("%s", log_t::flag_t::WARNING, "Device vendor is not found");
+							#endif
+						}
 					// Выводим сообщение об ошибке
-					} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "container version must be a number");
+					} else {
+						/**
+						 * Если включён режим отладки
+						 */
+						#if defined(DEBUG_MODE)
+							// Выводим сообщение об ошибке
+							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Container version must be a number");
+						/**
+						* Если режим отладки не включён
+						*/
+						#else
+							// Выводим сообщение об ошибке
+							this->_log->print("%s", log_t::flag_t::WARNING, "Container version must be a number");
+						#endif
+					}
 				// Если получена ошибка
-				} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "version is not found");
+				} else {
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Version is not found");
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::WARNING, "Version is not found");
+					#endif
+				}
 			// Если получена ошибка
-			} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "an invalid data format was passed");
+			} else {
+				/**
+				 * Если включён режим отладки
+				 */
+				#if defined(DEBUG_MODE)
+					// Выводим сообщение об ошибке
+					this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "An invalid data format was passed");
+				/**
+				* Если режим отладки не включён
+				*/
+				#else
+					// Выводим сообщение об ошибке
+					this->_log->print("%s", log_t::flag_t::WARNING, "An invalid data format was passed");
+				#endif
+			}
 		/**
 		 * Если возникает ошибка
 		 */
 		} catch(const std::exception & error) {
-			// Выводим сообщение об ошибке
-			this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, error.what());
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	// Если получена ошибка
-	} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, "no parsing data passed");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "No parsing data passed");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::WARNING, "No parsing data passed");
+		#endif
+	}
 }
 /**
  * prepare Метод препарирования расширений
@@ -223,89 +472,136 @@ void anyks::Cef::parse(const string & cef) noexcept {
 void anyks::Cef::prepare(const string & extensions) noexcept {
 	// Если срока расширений передана
 	if(!extensions.empty()){
-		// Смещение в сообщении
-		size_t offset = 0;
-		// Если включён строгий режим парсинга
-		if(this->_mode == mode_t::STRONG){
-			/**
-			 * matchFn Функция матчинга ключа расширения для CEF
-			 * @param key ключ для матчинга
-			 * @return    результат сравнения
-			 */
-			auto matchFn = [this](const string & key) noexcept -> bool {
-				// Результат работы функции
-				bool result = false;
-				// Если ключё передан
-				if(!key.empty()){
-					// Выполняем поиск нашего ключа
-					auto it = this->_extensionSEFv0.find(key);
-					// Выполняем поиск ключа в схеме для версии CEF:0
-					result = (it != this->_extensionSEFv0.end());
-					// Если результат не получен но версия CEF:1
-					if(!result && (this->_version == 1.0))
-						// Выполняем поиск ключа в схеме для версии CEF:1
-						result = (it != this->_extensionSEFv1.end());
-				}
-				// Выводим результат
-				return result;
-			};
-			// Выполняем извлечение всех сообщений
-			for(;;){
-				// Выполняем извлечение всего списка установленных параметров
-				const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
-				// Если список параметров получен
-				if(!items.empty()){
-					// Если элементов параметров получены 4 штуки
-					if(items.size() >= 4){
-						// Получаем ключ расширения
-						const string & key = extensions.substr(items.at(1).first + offset, items.at(1).second);
-						// Выполняем матчинг ключа
-						if(matchFn(key))
-							// Выполняем создание расширения
-							this->extension(key, (items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second)));
-						// Если ключ не интерпретирован
-						else {
-							// Формируем текст ошибки
-							string error = "";
-							// Добавляем экранирование
-							error.append(1, '\"');
-							// Добавляем брокированное значение ключа
-							error.append(key);
-							// Добавляем основной текст сообщения
-							error.append("\" key does not comply with CEF standard");
-							// Выводим сообщение, что указанный ключ, не соответствует стандарту CEF
-							this->_log->print("CEF: %s", log_t::flag_t::WARNING, error.c_str());
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Смещение в сообщении
+			size_t offset = 0;
+			// Если включён строгий режим парсинга
+			if(this->_mode == mode_t::STRONG){
+				/**
+				 * matchFn Функция матчинга ключа расширения для CEF
+				 * @param key ключ для матчинга
+				 * @return    результат сравнения
+				 */
+				auto matchFn = [this](const string & key) noexcept -> bool {
+					// Результат работы функции
+					bool result = false;
+					// Если ключё передан
+					if(!key.empty()){
+						// Выполняем поиск нашего ключа
+						auto i = this->_extensionSEFv0.find(key);
+						// Выполняем поиск ключа в схеме для версии CEF:0
+						result = (i != this->_extensionSEFv0.end());
+						// Если результат не получен но версия CEF:1
+						if(!result && (this->_version == 1.0))
+							// Выполняем поиск ключа в схеме для версии CEF:1
+							result = (i != this->_extensionSEFv1.end());
+					}
+					// Выводим результат
+					return result;
+				};
+				// Выполняем извлечение всех сообщений
+				for(;;){
+					// Выполняем извлечение всего списка установленных параметров
+					const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
+					// Если список параметров получен
+					if(!items.empty()){
+						// Если элементов параметров получены 4 штуки
+						if(items.size() >= 4){
+							// Получаем ключ расширения
+							const string & key = extensions.substr(items.at(1).first + offset, items.at(1).second);
+							// Выполняем матчинг ключа
+							if(matchFn(key))
+								// Выполняем создание расширения
+								this->extension(key, (items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second)));
+							// Если ключ не интерпретирован
+							else {
+								// Формируем текст ошибки
+								string error = "";
+								// Добавляем экранирование
+								error.append(1, '\"');
+								// Добавляем брокированное значение ключа
+								error.append(key);
+								// Добавляем основной текст сообщения
+								error.append("\" key does not comply with CEF standard");
+								/**
+								 * Если включён режим отладки
+								 */
+								#if defined(DEBUG_MODE)
+									// Выводим сообщение об ошибке
+									this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
+								/**
+								* Если режим отладки не включён
+								*/
+								#else
+									// Выводим сообщение об ошибке
+									this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
+								#endif
+							}
 						}
-					}
-					// Увеличиваем длину сообщения
-					offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
-				// Выходим из цикла
-				} else break;
+						// Увеличиваем длину сообщения
+						offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
+					// Выходим из цикла
+					} else break;
+				}
+			// Если строгий режим не активирован
+			} else {
+				// Выполняем извлечение всех сообщений
+				for(;;){
+					// Выполняем извлечение всего списка установленных параметров
+					const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
+					// Если список параметров получен
+					if(!items.empty()){
+						// Если элементов параметров получены 4 штуки
+						if(items.size() >= 4){
+							// Выполняем создание расширения
+							this->extension(
+								extensions.substr(items.at(1).first + offset, items.at(1).second),
+								(items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second))
+							);
+						}
+						// Увеличиваем длину сообщения
+						offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
+					// Выходим из цикла
+					} else break;
+				}
 			}
-		// Если строгий режим не активирован
-		} else {
-			// Выполняем извлечение всех сообщений
-			for(;;){
-				// Выполняем извлечение всего списка установленных параметров
-				const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
-				// Если список параметров получен
-				if(!items.empty()){
-					// Если элементов параметров получены 4 штуки
-					if(items.size() >= 4){
-						// Выполняем создание расширения
-						this->extension(
-							extensions.substr(items.at(1).first + offset, items.at(1).second),
-							(items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second))
-						);
-					}
-					// Увеличиваем длину сообщения
-					offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
-				// Выходим из цикла
-				} else break;
-			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(extensions), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	// Если получена ошибка
-	} else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "no parsing extensions passed");
+	} else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(extensions), log_t::flag_t::CRITICAL, "No parsing extensions passed");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "No parsing extensions passed");
+		#endif
+	}
 }
 /**
  * mode Метод установки режима парсинга
@@ -340,381 +636,403 @@ string anyks::Cef::cef() const noexcept {
 	string result = "";
 	// Если данные заполнены
 	if(!this->_extensions.empty()){
-		// Если заголовок установлен
-		if(!this->_header.empty()){
-			// Добавляем заголовок события
-			result.append(this->_header);
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Если заголовок установлен
+			if(!this->_header.empty()){
+				// Добавляем заголовок события
+				result.append(this->_header);
+				// Добавляем формат CEF
+				result.append(" CEF:");
 			// Добавляем формат CEF
-			result.append(" CEF:");
-		// Добавляем формат CEF
-		} else result.append("CEF:");
-		// Добавляем версию контейнера
-		result.append(this->_fmk->noexp(this->_version, true));
-		// Добавляем разделитель
-		result.append(1, '|');
-		// Добавляем поставщика данных
-		result.append(this->_event.devVendor);
-		// Добавляем разделитель
-		result.append(1, '|');
-		// Добавляем тип устройства поставщика данных
-		result.append(this->_event.devProduct);
-		// Добавляем разделитель
-		result.append(1, '|');
-		// Добавляем версию поставщика данных
-		result.append(this->_event.devVersion);
-		// Добавляем разделитель
-		result.append(1, '|');
-		// Добавляем подпись события поставщика данных
-		result.append(this->_event.signatureId);
-		// Добавляем разделитель
-		result.append(1, '|');
-		// Добавляем название события
-		result.append(this->_event.name);
-		// Добавляем разделитель
-		result.append(1, '|');
-		// Если требуется установить важность в числовом виде
-		if(((this->_event.severity.level >= 1) && (this->_event.severity.level <= 3)) ||
-		   ((this->_event.severity.level >= 5) && (this->_event.severity.level <= 6)) ||
-		    (this->_event.severity.level == 8) || (this->_event.severity.level == 10))
-			// Добавляем важность события
-			result.append(std::to_string(static_cast <uint16_t> (this->_event.severity.level)));
-		// Иначе добавляем важность события в текстовом виде
-		else result.append(this->_event.severity.name);
-		// Добавляем разделитель
-		result.append(1, '|');
-		// Создаём объект параметров расширения
-		const ext_t * params = nullptr;
-		// Переходим по всему списку расширений
-		for(auto & extension : this->_extensions){
-			// Если режим парсинга установлен
-			if(this->_mode != mode_t::NONE){
-				// Выполняем поиск параметров ключа
-				auto it = this->_extensionSEFv0.find(extension.first);
-				// Если параметры ключа найдены
-				if(it != this->_extensionSEFv0.end())
-					// Получаем параметры ключа
-					params = &it->second;
-				// Если параметры ключа не найдены и версия протокола №1
-				else if(this->_version > .0) {
+			} else result.append("CEF:");
+			// Добавляем версию контейнера
+			result.append(this->_fmk->noexp(this->_version, true));
+			// Добавляем разделитель
+			result.append(1, '|');
+			// Добавляем поставщика данных
+			result.append(this->_event.devVendor);
+			// Добавляем разделитель
+			result.append(1, '|');
+			// Добавляем тип устройства поставщика данных
+			result.append(this->_event.devProduct);
+			// Добавляем разделитель
+			result.append(1, '|');
+			// Добавляем версию поставщика данных
+			result.append(this->_event.devVersion);
+			// Добавляем разделитель
+			result.append(1, '|');
+			// Добавляем подпись события поставщика данных
+			result.append(this->_event.signatureId);
+			// Добавляем разделитель
+			result.append(1, '|');
+			// Добавляем название события
+			result.append(this->_event.name);
+			// Добавляем разделитель
+			result.append(1, '|');
+			// Если требуется установить важность в числовом виде
+			if(((this->_event.severity.level >= 1) && (this->_event.severity.level <= 3)) ||
+			   ((this->_event.severity.level >= 5) && (this->_event.severity.level <= 6)) ||
+				(this->_event.severity.level == 8) || (this->_event.severity.level == 10))
+				// Добавляем важность события
+				result.append(std::to_string(static_cast <uint16_t> (this->_event.severity.level)));
+			// Иначе добавляем важность события в текстовом виде
+			else result.append(this->_event.severity.name);
+			// Добавляем разделитель
+			result.append(1, '|');
+			// Создаём объект параметров расширения
+			const ext_t * params = nullptr;
+			// Переходим по всему списку расширений
+			for(auto & extension : this->_extensions){
+				// Если режим парсинга установлен
+				if(this->_mode != mode_t::NONE){
 					// Выполняем поиск параметров ключа
-					auto it = this->_extensionSEFv1.find(extension.first);
+					auto i = this->_extensionSEFv0.find(extension.first);
 					// Если параметры ключа найдены
-					if(it != this->_extensionSEFv0.end())
+					if(i != this->_extensionSEFv0.end())
 						// Получаем параметры ключа
-						params = &it->second;
-				}
-				// Если параметры ключа получены
-				if(params != nullptr){
-					// Если нужно установить разделитель
-					if(result.back() != '|')
-						// Устанавливаем разделитель расширений
-						result.append(1, ' ');
-					// Определяем тип ключа
-					switch(static_cast <uint8_t> (params->type)){
-						// Если тип ключа является IP-адресом
-						case static_cast <uint8_t> (type_t::IP): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Если количество байт в буфере 4
-								if(extension.second.size() == 4){
-									// Формируем число из бинарного буфера
-									uint32_t value = 0;
-									// Копируем в бинарный буфер данные IP адреса
-									::memcpy(&value, extension.second.data(), extension.second.size());
-									// Устанавливаем данные адреса в объект сети
-									net.v4(value);
-								// Если количество байт в буфере 16
-								} else if(extension.second.size() == 16){
-									// Формируем бинарный буфер данных
-									array <uint64_t, 2> buffer;
-									// Копируем в бинарный буфер данные IP адреса
-									::memcpy(buffer.data(), extension.second.data(), extension.second.size());
-									// Устанавливаем данные адреса в объект сети
-									net.v6(buffer);
-								}
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является MAC-адресом
-						case static_cast <uint8_t> (type_t::MAC): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем число из бинарного буфера
-								uint64_t value = 0;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.mac(value);
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является IPV4-адресом
-						case static_cast <uint8_t> (type_t::IPV4): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем число из бинарного буфера
-								uint32_t value = 0;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.v4(value);
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является IPV6-адресом
-						case static_cast <uint8_t> (type_t::IPV6): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем бинарный буфер данных
-								array <uint64_t, 2> buffer;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(buffer.data(), extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.v6(buffer);
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является LONG
-						case static_cast <uint8_t> (type_t::LONG): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								long value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(std::to_string(value));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является INT32
-						case static_cast <uint8_t> (type_t::INT32): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								int32_t value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(std::to_string(value));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является INT64
-						case static_cast <uint8_t> (type_t::INT64): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								int64_t value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(std::to_string(value));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является FLOAT
-						case static_cast <uint8_t> (type_t::FLOAT): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								float value = .0f;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(this->_fmk->noexp(value, true));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является DOUBLE
-						case static_cast <uint8_t> (type_t::DOUBLE): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								double value = .0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(this->_fmk->noexp(value, true));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Добавляем ключ расширения
-								result.append(extension.first);
-								// Добавляем разделитель
-								result.append(1, '=');
-								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
-						// Если тип ключа является STRING
-						case static_cast <uint8_t> (type_t::STRING):
-							// Добавляем ключ расширения
-							result.append(extension.first);
-							// Добавляем разделитель
-							result.append(1, '=');
-							// Добавляем значение ключа
-							result.append(extension.second.begin(), extension.second.end());
-						break;
-						// Если тип ключа является TIMESTAMP
-						case static_cast <uint8_t> (type_t::TIMESTAMP): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								time_t date = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&date, extension.second.data(), extension.second.size());
-								// Если формат даты установлен
-								if(!this->_format.empty()){
-									// Создаём объект потока
-									std::stringstream transTime;
-									// Создаем структуру времени
-									std::tm * tm = ::localtime(&date);
-									// Выполняем извлечение даты
-									transTime << std::put_time(tm, this->_format.c_str());
+						params = &i->second;
+					// Если параметры ключа не найдены и версия протокола №1
+					else if(this->_version > .0) {
+						// Выполняем поиск параметров ключа
+						auto i = this->_extensionSEFv1.find(extension.first);
+						// Если параметры ключа найдены
+						if(i != this->_extensionSEFv0.end())
+							// Получаем параметры ключа
+							params = &i->second;
+					}
+					// Если параметры ключа получены
+					if(params != nullptr){
+						// Если нужно установить разделитель
+						if(result.back() != '|')
+							// Устанавливаем разделитель расширений
+							result.append(1, ' ');
+						// Определяем тип ключа
+						switch(static_cast <uint8_t> (params->type)){
+							// Если тип ключа является IP-адресом
+							case static_cast <uint8_t> (type_t::IP): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Если количество байт в буфере 4
+									if(extension.second.size() == 4){
+										// Формируем число из бинарного буфера
+										uint32_t value = 0;
+										// Копируем в бинарный буфер данные IP адреса
+										::memcpy(&value, extension.second.data(), extension.second.size());
+										// Устанавливаем данные адреса в объект сети
+										net.v4(value);
+									// Если количество байт в буфере 16
+									} else if(extension.second.size() == 16){
+										// Формируем бинарный буфер данных
+										array <uint64_t, 2> buffer;
+										// Копируем в бинарный буфер данные IP адреса
+										::memcpy(buffer.data(), extension.second.data(), extension.second.size());
+										// Устанавливаем данные адреса в объект сети
+										net.v6(buffer);
+									}
 									// Добавляем ключ расширения
 									result.append(extension.first);
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(transTime.str());
-								// Если формат даты не установлен
+									result.append(net);
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else {
 									// Добавляем ключ расширения
 									result.append(extension.first);
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(std::to_string(date));
+									result.append(extension.second.begin(), extension.second.end());
 								}
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
+							} break;
+							// Если тип ключа является MAC-адресом
+							case static_cast <uint8_t> (type_t::MAC): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Формируем число из бинарного буфера
+									uint64_t value = 0;
+									// Копируем в бинарный буфер данные IP адреса
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем данные адреса в объект сети
+									net.mac(value);
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(net);
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+							// Если тип ключа является IPV4-адресом
+							case static_cast <uint8_t> (type_t::IPV4): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Формируем число из бинарного буфера
+									uint32_t value = 0;
+									// Копируем в бинарный буфер данные IP адреса
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем данные адреса в объект сети
+									net.v4(value);
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(net);
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+							// Если тип ключа является IPV6-адресом
+							case static_cast <uint8_t> (type_t::IPV6): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Формируем бинарный буфер данных
+									array <uint64_t, 2> buffer;
+									// Копируем в бинарный буфер данные IP адреса
+									::memcpy(buffer.data(), extension.second.data(), extension.second.size());
+									// Устанавливаем данные адреса в объект сети
+									net.v6(buffer);
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(net);
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+							// Если тип ключа является LONG
+							case static_cast <uint8_t> (type_t::LONG): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									long value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(std::to_string(value));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+							// Если тип ключа является INT32
+							case static_cast <uint8_t> (type_t::INT32): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									int32_t value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(std::to_string(value));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+							// Если тип ключа является INT64
+							case static_cast <uint8_t> (type_t::INT64): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									int64_t value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(std::to_string(value));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+							// Если тип ключа является FLOAT
+							case static_cast <uint8_t> (type_t::FLOAT): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									float value = .0f;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(this->_fmk->noexp(value, true));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+							// Если тип ключа является DOUBLE
+							case static_cast <uint8_t> (type_t::DOUBLE): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									double value = .0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(this->_fmk->noexp(value, true));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+							// Если тип ключа является STRING
+							case static_cast <uint8_t> (type_t::STRING):
 								// Добавляем ключ расширения
 								result.append(extension.first);
 								// Добавляем разделитель
 								result.append(1, '=');
 								// Добавляем значение ключа
 								result.append(extension.second.begin(), extension.second.end());
-							}
-						} break;
+							break;
+							// Если тип ключа является TIMESTAMP
+							case static_cast <uint8_t> (type_t::TIMESTAMP): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									time_t date = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&date, extension.second.data(), extension.second.size());
+									// Если формат даты установлен
+									if(!this->_format.empty()){
+										// Создаём объект потока
+										std::stringstream transTime;
+										// Создаем структуру времени
+										std::tm * tm = ::localtime(&date);
+										// Выполняем извлечение даты
+										transTime << std::put_time(tm, this->_format.c_str());
+										// Добавляем ключ расширения
+										result.append(extension.first);
+										// Добавляем разделитель
+										result.append(1, '=');
+										// Добавляем значение ключа
+										result.append(transTime.str());
+									// Если формат даты не установлен
+									} else {
+										// Добавляем ключ расширения
+										result.append(extension.first);
+										// Добавляем разделитель
+										result.append(1, '=');
+										// Добавляем значение ключа
+										result.append(std::to_string(date));
+									}
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Добавляем ключ расширения
+									result.append(extension.first);
+									// Добавляем разделитель
+									result.append(1, '=');
+									// Добавляем значение ключа
+									result.append(extension.second.begin(), extension.second.end());
+								}
+							} break;
+						}
 					}
+				// Если режим парсинга не установлен
+				} else {
+					// Добавляем ключ расширения
+					result.append(extension.first);
+					// Добавляем разделитель
+					result.append(1, '=');
+					// Добавляем значение ключа
+					result.append(extension.second.begin(), extension.second.end());
 				}
-			// Если режим парсинга не установлен
-			} else {
-				// Добавляем ключ расширения
-				result.append(extension.first);
-				// Добавляем разделитель
-				result.append(1, '=');
-				// Добавляем значение ключа
-				result.append(extension.second.begin(), extension.second.end());
 			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим заглушку
@@ -726,408 +1044,439 @@ string anyks::Cef::cef() const noexcept {
  */
 json anyks::Cef::dump() const noexcept {
 	// Результат работы функции
-	json result = json::object();
+	json result;
+	// Устанавливаем тип JSON как объект
+	result.SetObject();
 	// Если данные заполнены
 	if(!this->_extensions.empty()){
-		// Создаём объект параметров расширения
-		const ext_t * params = nullptr;
-		// Определяем активный режим парсинга
-		switch(static_cast <uint8_t> (this->_mode)){
-			// Если режим парсинга не активирован
-			case static_cast <uint8_t> (mode_t::NONE):
-				// Устанавливаем режим парсинга
-				result.emplace("mode", "NONE");
-			break;
-			// Если включён простой режим парсинга
-			case static_cast <uint8_t> (mode_t::LOW):
-				// Устанавливаем режим парсинга
-				result.emplace("mode", "LOW");
-			break;
-			// Если включён средний режим парсинга
-			case static_cast <uint8_t> (mode_t::MEDIUM):
-				// Устанавливаем режим парсинга
-				result.emplace("mode", "MEDIUM");
-			break;
-			// Если включён строгий режим парсинга
-			case static_cast <uint8_t> (mode_t::STRONG):
-				// Устанавливаем режим парсинга
-				result.emplace("mode", "STRONG");
-			break;
-		}{
-			// Временное значение переменной
-			double intpart = 0;
-			// Выполняем проверку есть ли дробная часть у числа
-			if(::modf(this->_version, &intpart) == 0){
-				// Если число является положительным
-				if(this->_version > 0.)
-					// Устанавливаем новые структурированные данные
-					result.emplace("version", static_cast <uint16_t> (this->_version));
-				// Если число является отрицательным
-				else result.emplace("version", static_cast <int16_t> (this->_version));
-			// Устанавливаем версию контейнера
-			} else result.emplace("version", this->_version);
-		}
-		// Если заголовок получен
-		if(!this->_header.empty())
-			// Устанавливаем заголовок события
-			result.emplace("header", this->_header);
-		// Формируем параметры полезной нагрузки
-		result.emplace("event", json::object());
-		// Устанавливаем название события
-		result["event"].emplace("name", this->_event.name);
-		// Устанавливаем поставщика данных
-		result["event"].emplace("vendor", this->_event.devVendor);
-		// Устанавливаем версию поставщика данных
-		result["event"].emplace("version", this->_event.devVersion);
-		// Устанавливаем тип устройства поставщика данных
-		result["event"].emplace("product", this->_event.devProduct);
-		// Устанавливаем подпись события поставщика данных
-		result["event"].emplace("signature", this->_event.signatureId);
-		// Формируем важность события
-		result["event"].emplace("severity", json::object());
-		// Устанавливаем строковое значение важности события
-		result["event"]["severity"].emplace("text", this->_event.severity.name);
-		// Устанавливаем числовое значение важности события
-		result["event"]["severity"].emplace("level", this->_event.severity.level);
-		// Формируем список разрешений
-		result.emplace("extensions", json::object());
-		// Переходим по всему списку расширений
-		for(auto & extension : this->_extensions){
-			// Если режим парсинга установлен
-			if(this->_mode != mode_t::NONE){
-				// Выполняем поиск параметров ключа
-				auto it = this->_extensionSEFv0.find(extension.first);
-				// Если параметры ключа найдены
-				if(it != this->_extensionSEFv0.end())
-					// Получаем параметры ключа
-					params = &it->second;
-				// Если параметры ключа не найдены и версия протокола №1
-				else if(this->_version > .0) {
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Создаём объект параметров расширения
+			const ext_t * params = nullptr;
+			// Определяем активный режим парсинга
+			switch(static_cast <uint8_t> (this->_mode)){
+				// Если режим парсинга не активирован
+				case static_cast <uint8_t> (mode_t::NONE):
+					// Устанавливаем режим парсинга
+					result.AddMember(Value("mode", result.GetAllocator()).Move(), Value("NONE", result.GetAllocator()).Move(), result.GetAllocator());
+				break;
+				// Если включён простой режим парсинга
+				case static_cast <uint8_t> (mode_t::LOW):
+					// Устанавливаем режим парсинга
+					result.AddMember(Value("mode", result.GetAllocator()).Move(), Value("LOW", result.GetAllocator()).Move(), result.GetAllocator());
+				break;
+				// Если включён средний режим парсинга
+				case static_cast <uint8_t> (mode_t::MEDIUM):
+					// Устанавливаем режим парсинга
+					result.AddMember(Value("mode", result.GetAllocator()).Move(), Value("MEDIUM", result.GetAllocator()).Move(), result.GetAllocator());
+				break;
+				// Если включён строгий режим парсинга
+				case static_cast <uint8_t> (mode_t::STRONG):
+					// Устанавливаем режим парсинга
+					result.AddMember(Value("mode", result.GetAllocator()).Move(), Value("STRONG", result.GetAllocator()).Move(), result.GetAllocator());
+				break;
+			}{
+				// Временное значение переменной
+				double intpart = 0;
+				// Выполняем проверку есть ли дробная часть у числа
+				if(::modf(this->_version, &intpart) == 0){
+					// Если число является положительным
+					if(this->_version > 0.)
+						// Устанавливаем новые структурированные данные
+						result.AddMember(Value("version", result.GetAllocator()).Move(), Value(static_cast <uint32_t> (this->_version)).Move(), result.GetAllocator());
+					// Если число является отрицательным
+					else result.AddMember(Value("version", result.GetAllocator()).Move(), Value(static_cast <int32_t> (this->_version)).Move(), result.GetAllocator());
+				// Устанавливаем версию контейнера
+				} else result.AddMember(Value("version", result.GetAllocator()).Move(), Value(this->_version).Move(), result.GetAllocator());
+			}
+			// Если заголовок получен
+			if(!this->_header.empty())
+				// Устанавливаем заголовок события
+				result.AddMember(Value("header", result.GetAllocator()).Move(), Value(this->_header.c_str(), this->_header.length(), result.GetAllocator()).Move(), result.GetAllocator());
+			// Формируем параметры полезной нагрузки
+			result.AddMember(Value("event", result.GetAllocator()).Move(), Value(kObjectType).Move(), result.GetAllocator());
+			// Устанавливаем название события
+			result["event"].AddMember(Value("name", result.GetAllocator()).Move(), Value(this->_event.name, ::strlen(this->_event.name), result.GetAllocator()).Move(), result.GetAllocator());
+			// Устанавливаем поставщика данных
+			result["event"].AddMember(Value("vendor", result.GetAllocator()).Move(), Value(this->_event.devVendor, ::strlen(this->_event.devVendor), result.GetAllocator()).Move(), result.GetAllocator());
+			// Устанавливаем версию поставщика данных
+			result["event"].AddMember(Value("version", result.GetAllocator()).Move(), Value(this->_event.devVersion, ::strlen(this->_event.devVersion), result.GetAllocator()).Move(), result.GetAllocator());
+			// Устанавливаем тип устройства поставщика данных
+			result["event"].AddMember(Value("product", result.GetAllocator()).Move(), Value(this->_event.devProduct, ::strlen(this->_event.devProduct), result.GetAllocator()).Move(), result.GetAllocator());
+			// Устанавливаем подпись события поставщика данных
+			result["event"].AddMember(Value("signature", result.GetAllocator()).Move(), Value(this->_event.signatureId, ::strlen(this->_event.signatureId), result.GetAllocator()).Move(), result.GetAllocator());
+			// Формируем важность события
+			result["event"].AddMember(Value("severity", result.GetAllocator()).Move(), Value(kObjectType).Move(), result.GetAllocator());
+			// Устанавливаем числовое значение важности события
+			result["event"]["severity"].AddMember(Value("level", result.GetAllocator()).Move(), Value(static_cast <uint32_t> (this->_event.severity.level)).Move(), result.GetAllocator());
+			// Устанавливаем строковое значение важности события
+			result["event"]["severity"].AddMember(Value("text", result.GetAllocator()).Move(), Value(this->_event.severity.name, ::strlen(this->_event.severity.name), result.GetAllocator()).Move(), result.GetAllocator());
+			// Формируем список разрешений
+			result.AddMember(Value("extensions", result.GetAllocator()).Move(), Value(kObjectType).Move(), result.GetAllocator());
+			// Переходим по всему списку расширений
+			for(auto & extension : this->_extensions){
+				// Если режим парсинга установлен
+				if(this->_mode != mode_t::NONE){
 					// Выполняем поиск параметров ключа
-					auto it = this->_extensionSEFv1.find(extension.first);
+					auto i = this->_extensionSEFv0.find(extension.first);
 					// Если параметры ключа найдены
-					if(it != this->_extensionSEFv0.end())
+					if(i != this->_extensionSEFv0.end())
 						// Получаем параметры ключа
-						params = &it->second;
-				}
-				// Если параметры ключа получены
-				if(params != nullptr){
-					// Определяем тип ключа
-					switch(static_cast <uint8_t> (params->type)){
-						// Если тип ключа является IP-адресом
-						case static_cast <uint8_t> (type_t::IP): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Если количество байт в буфере 4
-								if(extension.second.size() == 4){
+						params = &i->second;
+					// Если параметры ключа не найдены и версия протокола №1
+					else if(this->_version > .0) {
+						// Выполняем поиск параметров ключа
+						auto i = this->_extensionSEFv1.find(extension.first);
+						// Если параметры ключа найдены
+						if(i != this->_extensionSEFv0.end())
+							// Получаем параметры ключа
+							params = &i->second;
+					}
+					// Если параметры ключа получены
+					if(params != nullptr){
+						// Определяем тип ключа
+						switch(static_cast <uint8_t> (params->type)){
+							// Если тип ключа является IP-адресом
+							case static_cast <uint8_t> (type_t::IP): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Если количество байт в буфере 4
+									if(extension.second.size() == 4){
+										// Формируем число из бинарного буфера
+										uint32_t value = 0;
+										// Копируем в бинарный буфер данные IP адреса
+										::memcpy(&value, extension.second.data(), extension.second.size());
+										// Устанавливаем данные адреса в объект сети
+										net.v4(value);
+									// Если количество байт в буфере 16
+									} else if(extension.second.size() == 16){
+										// Формируем бинарный буфер данных
+										array <uint64_t, 2> buffer;
+										// Копируем в бинарный буфер данные IP адреса
+										::memcpy(buffer.data(), extension.second.data(), extension.second.size());
+										// Устанавливаем данные адреса в объект сети
+										net.v6(buffer);
+									}
+									// Получаем IP-адрес
+									const string & addr = net;
+									// Устанавливаем значение ключа
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(addr.c_str(), addr.length(), result.GetAllocator()).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+							} break;
+							// Если тип ключа является MAC-адресом
+							case static_cast <uint8_t> (type_t::MAC): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Формируем число из бинарного буфера
+									uint64_t value = 0;
+									// Копируем в бинарный буфер данные IP адреса
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Устанавливаем данные адреса в объект сети
+									net.mac(value);
+									// Получаем IP-адрес
+									const string & addr = net;
+									// Устанавливаем значение ключа
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(addr.c_str(), addr.length(), result.GetAllocator()).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+							} break;
+							// Если тип ключа является IPV4-адресом
+							case static_cast <uint8_t> (type_t::IPV4): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
 									// Формируем число из бинарного буфера
 									uint32_t value = 0;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Создаём объект сети
+									net_t net(this->_log);
 									// Устанавливаем данные адреса в объект сети
 									net.v4(value);
-								// Если количество байт в буфере 16
-								} else if(extension.second.size() == 16){
+									// Получаем IP-адрес
+									const string & addr = net;
+									// Устанавливаем значение ключа
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(addr.c_str(), addr.length(), result.GetAllocator()).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+							} break;
+							// Если тип ключа является IPV6-адресом
+							case static_cast <uint8_t> (type_t::IPV6): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
 									// Формируем бинарный буфер данных
 									array <uint64_t, 2> buffer;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(buffer.data(), extension.second.data(), extension.second.size());
+									// Создаём объект сети
+									net_t net(this->_log);
 									// Устанавливаем данные адреса в объект сети
 									net.v6(buffer);
-								}
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
-						// Если тип ключа является MAC-адресом
-						case static_cast <uint8_t> (type_t::MAC): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем число из бинарного буфера
-								uint64_t value = 0;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.mac(value);
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
-						// Если тип ключа является IPV4-адресом
-						case static_cast <uint8_t> (type_t::IPV4): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем число из бинарного буфера
-								uint32_t value = 0;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.v4(value);
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
-						// Если тип ключа является IPV6-адресом
-						case static_cast <uint8_t> (type_t::IPV6): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем бинарный буфер данных
-								array <uint64_t, 2> buffer;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(buffer.data(), extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.v6(buffer);
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
-						// Если тип ключа является LONG
-						case static_cast <uint8_t> (type_t::LONG): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								long value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, value);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Получаем значение числа
-								const string value(extension.second.begin(), extension.second.end());
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Если число положительное
-									if(value.front() != '-')
-										// Добавляем полученное значения расширения
-										result["extensions"].emplace(extension.first, ::stoul(value));
-									// Добавляем полученное значения расширения
-									else result["extensions"].emplace(extension.first, ::stol(value));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, value);
-								}
-							}
-						} break;
-						// Если тип ключа является INT32
-						case static_cast <uint8_t> (type_t::INT32): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								int32_t value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, value);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Получаем значение числа
-								const string value(extension.second.begin(), extension.second.end());
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Если число положительное
-									if(value.front() != '-')
-										// Добавляем полученное значения расширения
-										result["extensions"].emplace(extension.first, ::stoul(value));
-									// Добавляем полученное значения расширения
-									else result["extensions"].emplace(extension.first, ::stoi(value));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, value);
-								}
-							}
-						} break;
-						// Если тип ключа является INT64
-						case static_cast <uint8_t> (type_t::INT64): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								int64_t value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, value);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Получаем значение числа
-								const string value(extension.second.begin(), extension.second.end());
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Если число положительное
-									if(value.front() != '-')
-										// Добавляем полученное значения расширения
-										result["extensions"].emplace(extension.first, ::stoull(value));
-									// Добавляем полученное значения расширения
-									else result["extensions"].emplace(extension.first, ::stoll(value));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, value);
-								}
-							}
-						} break;
-						// Если тип ключа является FLOAT
-						case static_cast <uint8_t> (type_t::FLOAT): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								float value = .0f;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, value);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, ::stof(string(extension.second.begin(), extension.second.end())));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-								}
-							}
-						} break;
-						// Если тип ключа является DOUBLE
-						case static_cast <uint8_t> (type_t::DOUBLE): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								double value = .0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result["extensions"].emplace(extension.first, value);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, ::stold(string(extension.second.begin(), extension.second.end())));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное значения расширения
-									result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-								}
-							}
-						} break;
-						// Если тип ключа является STRING
-						case static_cast <uint8_t> (type_t::STRING):
-							// Устанавливаем значение ключа
-							result["extensions"].emplace(
-								extension.first,
-								string(extension.second.begin(), extension.second.end())
-							);
-						break;
-						// Если тип ключа является TIMESTAMP
-						case static_cast <uint8_t> (type_t::TIMESTAMP): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								time_t date = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&date, extension.second.data(), extension.second.size());
-								// Если формат даты установлен
-								if(!this->_format.empty()){
-									// Создаём объект потока
-									std::stringstream transTime;
-									// Создаем структуру времени
-									std::tm * tm = ::localtime(&date);
-									// Выполняем извлечение даты
-									transTime << std::put_time(tm, this->_format.c_str());
+									// Получаем IP-адрес
+									const string & addr = net;
 									// Устанавливаем значение ключа
-									result["extensions"].emplace(extension.first, transTime.str());
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(addr.c_str(), addr.length(), result.GetAllocator()).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+							} break;
+							// Если тип ключа является LONG
+							case static_cast <uint8_t> (type_t::LONG): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									long value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем значение ключа
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (value)).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Получаем значение числа
+									const string value(extension.second.begin(), extension.second.end());
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Если число положительное
+										if(value.front() != '-')
+											// Добавляем полученное значения расширения
+											result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoul(value))).Move(), result.GetAllocator());
+										// Добавляем полученное значения расширения
+										else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stol(value))).Move(), result.GetAllocator());
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное значения расширения
+										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
+									}
+								}
+							} break;
+							// Если тип ключа является INT32
+							case static_cast <uint8_t> (type_t::INT32): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									int32_t value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем значение ключа
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Получаем значение числа
+									const string value(extension.second.begin(), extension.second.end());
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Если число положительное
+										if(value.front() != '-')
+											// Добавляем полученное значения расширения
+											result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint32_t> (::stoul(value))).Move(), result.GetAllocator());
+										// Добавляем полученное значения расширения
+										else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <int32_t> (::stoi(value))).Move(), result.GetAllocator());
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное значения расширения
+										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
+									}
+								}
+							} break;
+							// Если тип ключа является INT64
+							case static_cast <uint8_t> (type_t::INT64): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									int64_t value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем значение ключа
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Получаем значение числа
+									const string value(extension.second.begin(), extension.second.end());
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Если число положительное
+										if(value.front() != '-')
+											// Добавляем полученное значения расширения
+											result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(value))).Move(), result.GetAllocator());
+										// Добавляем полученное значения расширения
+										else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(value))).Move(), result.GetAllocator());
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное значения расширения
+										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
+									}
+								}
+							} break;
+							// Если тип ключа является FLOAT
+							case static_cast <uint8_t> (type_t::FLOAT): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									float value = .0f;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем значение ключа
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Добавляем полученное значения расширения
+										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(::stof(string(extension.second.begin(), extension.second.end()))).Move(), result.GetAllocator());
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное значения расширения
+										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+									}
+								}
+							} break;
+							// Если тип ключа является DOUBLE
+							case static_cast <uint8_t> (type_t::DOUBLE): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									double value = .0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем значение ключа
+									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Добавляем полученное значения расширения
+										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(::stod(string(extension.second.begin(), extension.second.end()))).Move(), result.GetAllocator());
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное значения расширения
+										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+									}
+								}
+							} break;
+							// Если тип ключа является STRING
+							case static_cast <uint8_t> (type_t::STRING):
 								// Устанавливаем значение ключа
-								} else result["extensions"].emplace(extension.first, date);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result["extensions"].emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
+								result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+							break;
+							// Если тип ключа является TIMESTAMP
+							case static_cast <uint8_t> (type_t::TIMESTAMP): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									time_t date = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&date, extension.second.data(), extension.second.size());
+									// Если формат даты установлен
+									if(!this->_format.empty()){
+										// Создаём объект потока
+										std::stringstream transTime;
+										// Создаем структуру времени
+										std::tm * tm = ::localtime(&date);
+										// Выполняем извлечение даты
+										transTime << std::put_time(tm, this->_format.c_str());
+										// Получаем строку штампа времени
+										const string & stamp = transTime.str();
+										// Устанавливаем значение ключа
+										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(stamp.c_str(), stamp.length(), result.GetAllocator()).Move(), result.GetAllocator());
+									// Устанавливаем значение ключа
+									} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (date)).Move(), result.GetAllocator());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+							} break;
+						}
 					}
-				}
-			// Если режим парсинга не установлен
-			} else {
-				// Получаем значение для вывода
-				string value(extension.second.begin(), extension.second.end());
-				// Если запись является числом
-				if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-					/**
-					 * Выполняем отлов ошибок
-					 */
-					try {
-						// Если число положительное
-						if(value.front() != '-')
+				// Если режим парсинга не установлен
+				} else {
+					// Получаем значение для вывода
+					string value(extension.second.begin(), extension.second.end());
+					// Если запись является числом
+					if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Если число положительное
+							if(value.front() != '-')
+								// Устанавливаем значение ключа как число без знака
+								result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(value))).Move(), result.GetAllocator());
+							// Устанавливаем значение ключа как число со знаком
+							else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(value))).Move(), result.GetAllocator());
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
 							// Устанавливаем значение ключа как число без знака
-							result["extensions"].emplace(extension.first, ::stoull(value));
-						// Устанавливаем значение ключа как число со знаком
-						else result["extensions"].emplace(extension.first, ::stoll(value));
-					/**
-					 * Если возникает ошибка
-					 */
-					} catch(const std::exception &) {
-						// Устанавливаем значение ключа как число без знака
-						result["extensions"].emplace(extension.first, value);
-					}
-				// Если запись является числом с плавающей точкой
-				} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
-					/**
-					 * Выполняем отлов ошибок
-					 */
-					try {
-						// Устанавливаем значение ключа как число с плавающей точкой
-						result["extensions"].emplace(extension.first, ::stold(value));
-					/**
-					 * Если возникает ошибка
-					 */
-					} catch(const std::exception &) {
-						// Устанавливаем значение ключа как число без знака
-						result["extensions"].emplace(extension.first, value);
-					}
-				// Если число является булевым истинным значением
-				} else if(this->_fmk->compare("true", value))
-					// Устанавливаем значение ключа как булевое положительное значение
-					result["extensions"].emplace(extension.first, true);
-				// Если число является булевым ложным значением
-				else if(this->_fmk->compare("false", value))
-					// Устанавливаем значение ключа как булевое отрицательное значение
-					result["extensions"].emplace(extension.first, false);
-				// Устанавливаем значение ключа как оно есть
-				else result["extensions"].emplace(extension.first, std::move(value));
+							result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
+						}
+					// Если запись является числом с плавающей точкой
+					} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Устанавливаем значение ключа как число с плавающей точкой
+							result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(::stod(value)).Move(), result.GetAllocator());
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
+							// Устанавливаем значение ключа как число без знака
+							result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
+						}
+					// Если число является булевым истинным значением
+					} else if(this->_fmk->compare("true", value))
+						// Устанавливаем значение ключа как булевое положительное значение
+						result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(true).Move(), result.GetAllocator());
+					// Если число является булевым ложным значением
+					else if(this->_fmk->compare("false", value))
+						// Устанавливаем значение ключа как булевое отрицательное значение
+						result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(false).Move(), result.GetAllocator());
+					// Устанавливаем значение ключа как оно есть
+					else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
+				}
 			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим заглушку
@@ -1139,214 +1488,240 @@ json anyks::Cef::dump() const noexcept {
  */
 void anyks::Cef::dump(const json & dump) noexcept {
 	// Если данные в формате JSON получены
-	if(!dump.empty() && dump.is_object()){
-		// Выполняем очистку данных контейнера
-		this->clear();
-		// Если флаг строгого режима передан
-		if(dump.contains("mode") && dump.at("mode").is_string()){
-			// Если режим парсинга не активирован
-			if(dump.at("mode").get <string> ().compare("NONE") == 0)
-				// Выполняем установку режима парсинга
-				this->_mode = mode_t::NONE;
-			// Если включён простой режим парсинга
-			else if(dump.at("mode").get <string> ().compare("LOW") == 0)
-				// Выполняем установку режима парсинга
-				this->_mode = mode_t::LOW;
-			// Если включён средний режим парсинга
-			else if(dump.at("mode").get <string> ().compare("MEDIUM") == 0)
-				// Выполняем установку режима парсинга
-				this->_mode = mode_t::MEDIUM;
-			// Если включён строгий режим парсинга
-			else if(dump.at("mode").get <string> ().compare("STRONG") == 0)
-				// Выполняем установку режима парсинга
-				this->_mode = mode_t::STRONG;
-		}
-		// Если заголовок события передан
-		if(dump.contains("header") && dump.at("header").is_string())
-			// Устанавливаем заголовок события
-			this->_header = dump.at("header").get <string> ();
-		// Если версия события передана
-		if(dump.contains("version") && dump.at("version").is_number())
-			// Устанавливаем версию события
-			this->_version = dump.at("version").get <double> ();
-		// Если данные события переданы
-		if(dump.contains("event") && dump.at("event").is_object()){
-			// Если название события передано
-			if(dump.at("event").contains("name") && dump.at("event").at("name").is_string()){
-				// Получаем название события
-				const string & name = dump.at("event").at("name").get <string> ();
-				// Заполняем нулями буфер названия события
-				::memset(this->_event.name, 0, sizeof(this->_event.name));
-				// Устанавливаем название события
-				::memcpy(this->_event.name, name.data(), sizeof(this->_event.name));
+	if(dump.IsObject()){
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем очистку данных контейнера
+			this->clear();
+			// Если флаг строгого режима передан
+			if(dump.HasMember("mode") && dump["mode"].IsString()){
+				// Если режим парсинга не активирован
+				if(::strcmp(dump["mode"].GetString(), "NONE") == 0)
+					// Выполняем установку режима парсинга
+					this->_mode = mode_t::NONE;
+				// Если включён простой режим парсинга
+				else if(::strcmp(dump["mode"].GetString(), "LOW") == 0)
+					// Выполняем установку режима парсинга
+					this->_mode = mode_t::LOW;
+				// Если включён средний режим парсинга
+				else if(::strcmp(dump["mode"].GetString(), "MEDIUM") == 0)
+					// Выполняем установку режима парсинга
+					this->_mode = mode_t::MEDIUM;
+				// Если включён строгий режим парсинга
+				else if(::strcmp(dump["mode"].GetString(), "STRONG") == 0)
+					// Выполняем установку режима парсинга
+					this->_mode = mode_t::STRONG;
 			}
-			// Если поставщик данных передан
-			if(dump.at("event").contains("vendor") && dump.at("event").at("vendor").is_string()){
-				// Получаем поставщика данных события
-				const string & vendor = dump.at("event").at("vendor").get <string> ();
-				// Заполняем нулями буфер поставщика данных события
-				::memset(this->_event.devVendor, 0, sizeof(this->_event.devVendor));
-				// Устанавливаем поставщика данных события
-				::memcpy(this->_event.devVendor, vendor.data(), sizeof(this->_event.devVendor));
-			}
-			// Если версия поставщика данных передана
-			if(dump.at("event").contains("version") && dump.at("event").at("version").is_string()){
-				// Получаем версию поставщика данных события
-				const string & version = dump.at("event").at("version").get <string> ();
-				// Заполняем нулями буфер версии поставщика данных события
-				::memset(this->_event.devVersion, 0, sizeof(this->_event.devVersion));
-				// Устанавливаем версию поставщика данных данных события
-				::memcpy(this->_event.devVersion, version.data(), sizeof(this->_event.devVersion));
-			}
-			// Если тип устройства поставщика данных передан
-			if(dump.at("event").contains("product") && dump.at("event").at("product").is_string()){
-				// Получаем тип устройства поставщика данных события
-				const string & product = dump.at("event").at("product").get <string> ();
-				// Заполняем нулями буфер типа устройства поставщика данных события
-				::memset(this->_event.devProduct, 0, sizeof(this->_event.devProduct));
-				// Устанавливаем тип устройства поставщика данных события
-				::memcpy(this->_event.devProduct, product.data(), sizeof(this->_event.devProduct));
-			}
-			// Если подпись события поставщика данных передана
-			if(dump.at("event").contains("signature") && dump.at("event").at("signature").is_string()){
-				// Получаем подпись события поставщика данных
-				const string & signature = dump.at("event").at("signature").get <string> ();
-				// Заполняем нулями буфер подписи события поставщика данных
-				::memset(this->_event.signatureId, 0, sizeof(this->_event.signatureId));
-				// Устанавливаем подпись события поставщика данных
-				::memcpy(this->_event.signatureId, signature.data(), sizeof(this->_event.signatureId));
-			}
-			// Если важность события передана
-			if(dump.at("event").contains("severity") && dump.at("event").at("severity").is_object()){
-				// Если важность события в текстовом виде передана
-				if(dump.at("event").at("severity").contains("text") && dump.at("event").at("severity").at("text").is_string()){
-					// Получаем важность события в текстовом виде
-					string severity = dump.at("event").at("severity").at("text").get <string> ();
-					// Заполняем нулями буфер важности события в текстовом виде
-					::memset(this->_event.severity.name, 0, sizeof(this->_event.severity.name));
-					// Устанавливаем важность события в текстовом виде
-					::memcpy(this->_event.severity.name, severity.data(), sizeof(this->_event.severity.name));
-					// Если важность события в числовом виде не передана
-					if(!dump.at("event").at("severity").contains("level")){
-						// Преобразуем важность в верхний регистр
-						this->_fmk->transform(severity, fmk_t::transform_t::UPPER);
-						// Если сложность является низкой
-						if(severity.compare("LOW") == 0)
-							// Устанавливаем низкое значение сложности
-							this->_event.severity.level = 0;
-						// Если сложность является средней
-						else if(severity.compare("MEDIUM") == 0)
-							// Устанавливаем среднее значение сложности
-							this->_event.severity.level = 4;
-						// Если сложность является высокой
-						else if(severity.compare("HIGH") == 0)
-							// Устанавливаем высокое значение сложности
-							this->_event.severity.level = 7;
-						// Если сложность является очень-высокой
-						else if(severity.compare("VERY-HIGH") == 0)
-							// Устанавливаем очень-высокое значение сложности
-							this->_event.severity.level = 9;
-					}
+			// Если заголовок события передан
+			if(dump.HasMember("header") && dump["header"].IsString())
+				// Устанавливаем заголовок события
+				this->_header = dump["header"].GetString();
+			// Если версия события передана
+			if(dump.HasMember("version") && dump["version"].IsDouble())
+				// Устанавливаем версию события
+				this->_version = dump["version"].GetDouble();
+			// Если версия события передана
+			else if(dump.HasMember("version") && dump["version"].IsUint())
+				// Устанавливаем версию события
+				this->_version = static_cast <double> (dump["version"].GetUint());
+			// Если данные события переданы
+			if(dump.HasMember("event") && dump["event"].IsObject()){
+				// Если название события передано
+				if(dump["event"].HasMember("name") && dump["event"]["name"].IsString()){
+					// Получаем название события
+					const string & name = dump["event"]["name"].GetString();
+					// Заполняем нулями буфер названия события
+					::memset(this->_event.name, 0, sizeof(this->_event.name));
+					// Устанавливаем название события
+					::memcpy(this->_event.name, name.data(), sizeof(this->_event.name));
 				}
-				// Если важность события в числовом виде передана
-				if(dump.at("event").at("severity").contains("level") && dump.at("event").at("severity").at("level").is_number()){
-					// Получаем важность события в текстовом виде
-					this->_event.severity.level = dump.at("event").at("severity").at("level").get <uint8_t> ();
-					// Если важность события в текстовом виде не передана
-					if(!dump.at("event").at("severity").contains("text") || dump.at("event").at("severity").at("text").empty()){
-						// Заполняем нулями буфер названия важности
+				// Если поставщик данных передан
+				if(dump["event"].HasMember("vendor") && dump["event"]["vendor"].IsString()){
+					// Получаем поставщика данных события
+					const string & vendor = dump["event"]["vendor"].GetString();
+					// Заполняем нулями буфер поставщика данных события
+					::memset(this->_event.devVendor, 0, sizeof(this->_event.devVendor));
+					// Устанавливаем поставщика данных события
+					::memcpy(this->_event.devVendor, vendor.data(), sizeof(this->_event.devVendor));
+				}
+				// Если версия поставщика данных передана
+				if(dump["event"].HasMember("version") && dump["event"]["version"].IsString()){
+					// Получаем версию поставщика данных события
+					const string & version = dump["event"]["version"].GetString();
+					// Заполняем нулями буфер версии поставщика данных события
+					::memset(this->_event.devVersion, 0, sizeof(this->_event.devVersion));
+					// Устанавливаем версию поставщика данных данных события
+					::memcpy(this->_event.devVersion, version.data(), sizeof(this->_event.devVersion));
+				}
+				// Если тип устройства поставщика данных передан
+				if(dump["event"].HasMember("product") && dump["event"]["product"].IsString()){
+					// Получаем тип устройства поставщика данных события
+					const string & product = dump["event"]["product"].GetString();
+					// Заполняем нулями буфер типа устройства поставщика данных события
+					::memset(this->_event.devProduct, 0, sizeof(this->_event.devProduct));
+					// Устанавливаем тип устройства поставщика данных события
+					::memcpy(this->_event.devProduct, product.data(), sizeof(this->_event.devProduct));
+				}
+				// Если подпись события поставщика данных передана
+				if(dump["event"].HasMember("signature") && dump["event"]["signature"].IsString()){
+					// Получаем подпись события поставщика данных
+					const string & signature = dump["event"]["signature"].GetString();
+					// Заполняем нулями буфер подписи события поставщика данных
+					::memset(this->_event.signatureId, 0, sizeof(this->_event.signatureId));
+					// Устанавливаем подпись события поставщика данных
+					::memcpy(this->_event.signatureId, signature.data(), sizeof(this->_event.signatureId));
+				}
+				// Если важность события передана
+				if(dump["event"].HasMember("severity") && dump["event"]["severity"].IsObject()){
+					// Если важность события в текстовом виде передана
+					if(dump["event"]["severity"].HasMember("text") && dump["event"]["severity"]["text"].IsString()){
+						// Получаем важность события в текстовом виде
+						string severity = dump["event"]["severity"]["text"].GetString();
+						// Заполняем нулями буфер важности события в текстовом виде
 						::memset(this->_event.severity.name, 0, sizeof(this->_event.severity.name));
-						// Если событие не больше 4-х
-						if((this->_event.severity.level >= 0) && (this->_event.severity.level <= 3))
-							// Устанавливаем уровень важности
-							::memcpy(this->_event.severity.name, "Low", 3);
-						// Если событие не больше 6-и
-						else if((this->_event.severity.level >= 4) && (this->_event.severity.level <= 6))
-							// Устанавливаем уровень важности
-							::memcpy(this->_event.severity.name, "Medium", 6);
-						// Если событие не больше 8-и
-						else if((this->_event.severity.level >= 7) && (this->_event.severity.level <= 8))
-							// Устанавливаем уровень важности
-							::memcpy(this->_event.severity.name, "High", 4);
-						// Если событие не больше 10-и
-						else if((this->_event.severity.level >= 9) && (this->_event.severity.level <= 10))
-							// Устанавливаем уровень важности
-							::memcpy(this->_event.severity.name, "Very-High", 9);
+						// Устанавливаем важность события в текстовом виде
+						::memcpy(this->_event.severity.name, severity.data(), sizeof(this->_event.severity.name));
+						// Если важность события в числовом виде не передана
+						if(!dump["event"]["severity"].HasMember("level")){
+							// Преобразуем важность в верхний регистр
+							this->_fmk->transform(severity, fmk_t::transform_t::UPPER);
+							// Если сложность является низкой
+							if(severity.compare("LOW") == 0)
+								// Устанавливаем низкое значение сложности
+								this->_event.severity.level = 0;
+							// Если сложность является средней
+							else if(severity.compare("MEDIUM") == 0)
+								// Устанавливаем среднее значение сложности
+								this->_event.severity.level = 4;
+							// Если сложность является высокой
+							else if(severity.compare("HIGH") == 0)
+								// Устанавливаем высокое значение сложности
+								this->_event.severity.level = 7;
+							// Если сложность является очень-высокой
+							else if(severity.compare("VERY-HIGH") == 0)
+								// Устанавливаем очень-высокое значение сложности
+								this->_event.severity.level = 9;
+						}
 					}
-				}
-			}
-		}
-		// Если список доступных расширений передан
-		if(dump.contains("extensions") && dump.at("extensions").is_object()){
-			// Создаём объект параметров расширения
-			const ext_t * params = nullptr;
-			// Выполняем перебор всех расширений
-			for(auto & el : dump.at("extensions").items()){
-				// Если значение является строкой
-				if(el.value().is_string())
-					// Выполняем добавление расширение
-					this->extension(el.key(), el.value().get <string> ());
-				// Если значение является числом
-				else if(el.value().is_number()) {
-					// Выполняем поиск параметров ключа
-					auto it = this->_extensionSEFv0.find(el.key());
-					// Если параметры ключа найдены
-					if(it != this->_extensionSEFv0.end())
-						// Получаем параметры ключа
-						params = &it->second;
-					// Если параметры ключа не найдены и версия протокола №1
-					else if(this->_version > .0) {
-						// Выполняем поиск параметров ключа
-						auto it = this->_extensionSEFv1.find(el.key());
-						// Если параметры ключа найдены
-						if(it != this->_extensionSEFv0.end())
-							// Получаем параметры ключа
-							params = &it->second;
-					}
-					// Если параметры ключа получены
-					if(params != nullptr){
-						// Определяем тип ключа
-						switch(static_cast <uint8_t> (params->type)){
-							// Если тип ключа является LONG
-							case static_cast <uint8_t> (type_t::LONG):
-								// Выполняем добавление расширение
-								this->extension(el.key(), std::to_string(el.value().get <long> ()));
-							break;
-							// Если тип ключа является INT32
-							case static_cast <uint8_t> (type_t::INT32):
-								// Выполняем добавление расширение
-								this->extension(el.key(), std::to_string(el.value().get <int32_t> ()));
-							break;
-							// Если тип ключа является INT64
-							case static_cast <uint8_t> (type_t::INT64):
-								// Выполняем добавление расширение
-								this->extension(el.key(), std::to_string(el.value().get <int64_t> ()));
-							break;
-							// Если тип ключа является FLOAT
-							case static_cast <uint8_t> (type_t::FLOAT):
-								// Выполняем добавление расширение
-								this->extension(el.key(), this->_fmk->noexp(el.value().get <float> (), true));
-							break;
-							// Если тип ключа является DOUBLE
-							case static_cast <uint8_t> (type_t::DOUBLE):
-								// Выполняем добавление расширение
-								this->extension(el.key(), this->_fmk->noexp(el.value().get <double> (), true));
-							break;
-							// Если тип ключа является TIMESTAMP
-							case static_cast <uint8_t> (type_t::TIMESTAMP):
-								// Если переданное значение является числом
-								if(el.value().is_number())
-									// Выполняем добавление расширение
-									this->extension(el.key(), std::to_string(el.value().get <time_t> ()));
-								// Если значение является текстовой строкой
-								else if(el.value().is_string())
-									// Выполняем добавление расширение
-									this->extension(el.key(), el.value().get <string> ());
-							break;
+					// Если важность события в числовом виде передана
+					if(dump["event"]["severity"].HasMember("level") && dump["event"]["severity"]["level"].IsNumber()){
+						// Получаем важность события в текстовом виде
+						this->_event.severity.level = static_cast <uint8_t> (dump["event"]["severity"]["level"].GetInt());
+						// Если важность события в текстовом виде не передана
+						if(!dump["event"]["severity"].HasMember("text")){
+							// Заполняем нулями буфер названия важности
+							::memset(this->_event.severity.name, 0, sizeof(this->_event.severity.name));
+							// Если событие не больше 4-х
+							if((this->_event.severity.level >= 0) && (this->_event.severity.level <= 3))
+								// Устанавливаем уровень важности
+								::memcpy(this->_event.severity.name, "Low", 3);
+							// Если событие не больше 6-и
+							else if((this->_event.severity.level >= 4) && (this->_event.severity.level <= 6))
+								// Устанавливаем уровень важности
+								::memcpy(this->_event.severity.name, "Medium", 6);
+							// Если событие не больше 8-и
+							else if((this->_event.severity.level >= 7) && (this->_event.severity.level <= 8))
+								// Устанавливаем уровень важности
+								::memcpy(this->_event.severity.name, "High", 4);
+							// Если событие не больше 10-и
+							else if((this->_event.severity.level >= 9) && (this->_event.severity.level <= 10))
+								// Устанавливаем уровень важности
+								::memcpy(this->_event.severity.name, "Very-High", 9);
 						}
 					}
 				}
 			}
+			// Если список доступных расширений передан
+			if(dump.HasMember("extensions") && dump["extensions"].IsObject()){
+				// Создаём объект параметров расширения
+				const ext_t * params = nullptr;
+				// Выполняем перебор всех расширений
+				for(auto & m : dump["extensions"].GetObject()){
+					// Если значение является строкой
+					if(m.value.IsString())
+						// Выполняем добавление расширение
+						this->extension(m.name.GetString(), m.value.GetString());
+					// Если значение является числом
+					else if(m.value.IsNumber()) {
+						// Выполняем поиск параметров ключа
+						auto i = this->_extensionSEFv0.find(m.name.GetString());
+						// Если параметры ключа найдены
+						if(i != this->_extensionSEFv0.end())
+							// Получаем параметры ключа
+							params = &i->second;
+						// Если параметры ключа не найдены и версия протокола №1
+						else if(this->_version > .0) {
+							// Выполняем поиск параметров ключа
+							auto i = this->_extensionSEFv1.find(m.name.GetString());
+							// Если параметры ключа найдены
+							if(i != this->_extensionSEFv0.end())
+								// Получаем параметры ключа
+								params = &i->second;
+						}
+						// Если параметры ключа получены
+						if(params != nullptr){
+							// Определяем тип ключа
+							switch(static_cast <uint8_t> (params->type)){
+								// Если тип ключа является LONG
+								case static_cast <uint8_t> (type_t::LONG):
+									// Выполняем добавление расширение
+									this->extension(m.name.GetString(), std::to_string(m.value.GetInt64()));
+								break;
+								// Если тип ключа является INT32
+								case static_cast <uint8_t> (type_t::INT32):
+									// Выполняем добавление расширение
+									this->extension(m.name.GetString(), std::to_string(m.value.GetInt()));
+								break;
+								// Если тип ключа является INT64
+								case static_cast <uint8_t> (type_t::INT64):
+									// Выполняем добавление расширение
+									this->extension(m.name.GetString(), std::to_string(m.value.GetInt64()));
+								break;
+								// Если тип ключа является FLOAT
+								case static_cast <uint8_t> (type_t::FLOAT):
+									// Выполняем добавление расширение
+									this->extension(m.name.GetString(), this->_fmk->noexp(m.value.GetFloat(), true));
+								break;
+								// Если тип ключа является DOUBLE
+								case static_cast <uint8_t> (type_t::DOUBLE):
+									// Выполняем добавление расширение
+									this->extension(m.name.GetString(), this->_fmk->noexp(m.value.GetDouble(), true));
+								break;
+								// Если тип ключа является TIMESTAMP
+								case static_cast <uint8_t> (type_t::TIMESTAMP):
+									// Если переданное значение является числом
+									if(m.value.IsNumber())
+										// Выполняем добавление расширение
+										this->extension(m.name.GetString(), std::to_string(m.value.GetInt64()));
+									// Если значение является текстовой строкой
+									else if(m.value.IsString())
+										// Выполняем добавление расширение
+										this->extension(m.name.GetString(), m.value.GetString());
+								break;
+							}
+						}
+					}
+				}
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 }
@@ -1368,7 +1743,21 @@ void anyks::Cef::header(const string & header) noexcept {
 		// Устанавливаем данные заголовка
 		this->_header = header;
 	// Выводим сообщение об ошибке
-	else this->_log->print("CEF: %s", log_t::flag_t::CRITICAL, "header not passed");
+	else {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(header), log_t::flag_t::CRITICAL, "Header not passed");
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, "Header not passed");
+		#endif
+	}
 }
 /**
  * event Метод извлечения события
@@ -1402,36 +1791,58 @@ void anyks::Cef::format(const string & format) noexcept {
 anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
 	// Если ключ для извлечения типа расширения передан
 	if(!key.empty()){
-		// Выполняем поиск соответствие нашему ключу
-		auto i = this->_mapping.find(key);
-		// Если соответствие ключу найдено
-		if(i != this->_mapping.end()){
-			// Выполняем поиск данных нашего ключа
-			auto j = this->_extensions.find(i->second);
-			// Если данные запрашиваемого ключа получены
-			if(j != this->_extensions.end()){
-				// Создаём объект параметров расширения
-				const ext_t * params = nullptr;
-				// Выполняем поиск параметров ключа
-				auto i = this->_extensionSEFv0.find(j->first);
-				// Если параметры ключа найдены
-				if(i != this->_extensionSEFv0.end())
-					// Получаем параметры ключа
-					params = &i->second;
-				// Если параметры ключа не найдены и версия протокола №1
-				else if(this->_version > .0) {
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем поиск соответствие нашему ключу
+			auto i = this->_mapping.find(key);
+			// Если соответствие ключу найдено
+			if(i != this->_mapping.end()){
+				// Выполняем поиск данных нашего ключа
+				auto j = this->_extensions.find(i->second);
+				// Если данные запрашиваемого ключа получены
+				if(j != this->_extensions.end()){
+					// Создаём объект параметров расширения
+					const ext_t * params = nullptr;
 					// Выполняем поиск параметров ключа
-					auto i = this->_extensionSEFv1.find(j->first);
+					auto i = this->_extensionSEFv0.find(j->first);
 					// Если параметры ключа найдены
 					if(i != this->_extensionSEFv0.end())
 						// Получаем параметры ключа
 						params = &i->second;
+					// Если параметры ключа не найдены и версия протокола №1
+					else if(this->_version > .0) {
+						// Выполняем поиск параметров ключа
+						auto i = this->_extensionSEFv1.find(j->first);
+						// Если параметры ключа найдены
+						if(i != this->_extensionSEFv0.end())
+							// Получаем параметры ключа
+							params = &i->second;
+					}
+					// Если параметры ключа получены
+					if(params != nullptr)
+						// Выводим тип записи
+						return params->type;
 				}
-				// Если параметры ключа получены
-				if(params != nullptr)
-					// Выводим тип записи
-					return params->type;
 			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим результат по умолчанию
@@ -1444,18 +1855,40 @@ anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
 std::unordered_map <string, string> anyks::Cef::events() const noexcept {
 	// Результат работы функции
 	std::unordered_map <string, string> result;
-	// Устанавливаем название события
-	result.emplace("name", this->_event.name);
-	// Устанавливаем поставщика данных
-	result.emplace("vendor", this->_event.devVendor);
-	// Устанавливаем версию поставщика данных
-	result.emplace("version", this->_event.devVersion);
-	// Устанавливаем тип устройства поставщика данных
-	result.emplace("product", this->_event.devProduct);
-	// Устанавливаем подпись события поставщика данных
-	result.emplace("signature", this->_event.signatureId);
-	// Устанавливаем числовое значение важности события
-	result.emplace("severity", std::to_string(this->_event.severity.level));
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Устанавливаем название события
+		result.emplace("name", this->_event.name);
+		// Устанавливаем поставщика данных
+		result.emplace("vendor", this->_event.devVendor);
+		// Устанавливаем версию поставщика данных
+		result.emplace("version", this->_event.devVersion);
+		// Устанавливаем тип устройства поставщика данных
+		result.emplace("product", this->_event.devProduct);
+		// Устанавливаем подпись события поставщика данных
+		result.emplace("signature", this->_event.signatureId);
+		// Устанавливаем числовое значение важности события
+		result.emplace("severity", std::to_string(this->_event.severity.level));
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
+	}
 	// Выводим результат
 	return result;
 }
@@ -1468,345 +1901,367 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 	std::unordered_map <string, string> result;
 	// Если список расширений запомнен
 	if(!this->_extensions.empty()){
-		// Создаём объект параметров расширения
-		const ext_t * params = nullptr;
-		// Переходим по всему списку расширений
-		for(auto & extension : this->_extensions){
-			// Если режим парсинга установлен
-			if(this->_mode != mode_t::NONE){
-				// Выполняем поиск параметров ключа
-				auto it = this->_extensionSEFv0.find(extension.first);
-				// Если параметры ключа найдены
-				if(it != this->_extensionSEFv0.end())
-					// Получаем параметры ключа
-					params = &it->second;
-				// Если параметры ключа не найдены и версия протокола №1
-				else if(this->_version > .0) {
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Создаём объект параметров расширения
+			const ext_t * params = nullptr;
+			// Переходим по всему списку расширений
+			for(auto & extension : this->_extensions){
+				// Если режим парсинга установлен
+				if(this->_mode != mode_t::NONE){
 					// Выполняем поиск параметров ключа
-					auto it = this->_extensionSEFv1.find(extension.first);
+					auto i = this->_extensionSEFv0.find(extension.first);
 					// Если параметры ключа найдены
-					if(it != this->_extensionSEFv0.end())
+					if(i != this->_extensionSEFv0.end())
 						// Получаем параметры ключа
-						params = &it->second;
-				}
-				// Если параметры ключа получены
-				if(params != nullptr){
-					// Определяем тип ключа
-					switch(static_cast <uint8_t> (params->type)){
-						// Если тип ключа является IP-адресом
-						case static_cast <uint8_t> (type_t::IP): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Если количество байт в буфере 4
-								if(extension.second.size() == 4){
+						params = &i->second;
+					// Если параметры ключа не найдены и версия протокола №1
+					else if(this->_version > .0) {
+						// Выполняем поиск параметров ключа
+						auto i = this->_extensionSEFv1.find(extension.first);
+						// Если параметры ключа найдены
+						if(i != this->_extensionSEFv0.end())
+							// Получаем параметры ключа
+							params = &i->second;
+					}
+					// Если параметры ключа получены
+					if(params != nullptr){
+						// Определяем тип ключа
+						switch(static_cast <uint8_t> (params->type)){
+							// Если тип ключа является IP-адресом
+							case static_cast <uint8_t> (type_t::IP): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Если количество байт в буфере 4
+									if(extension.second.size() == 4){
+										// Формируем число из бинарного буфера
+										uint32_t value = 0;
+										// Копируем в бинарный буфер данные IP адреса
+										::memcpy(&value, extension.second.data(), extension.second.size());
+										// Устанавливаем данные адреса в объект сети
+										net.v4(value);
+									// Если количество байт в буфере 16
+									} else if(extension.second.size() == 16){
+										// Формируем бинарный буфер данных
+										array <uint64_t, 2> buffer;
+										// Копируем в бинарный буфер данные IP адреса
+										::memcpy(buffer.data(), extension.second.data(), extension.second.size());
+										// Устанавливаем данные адреса в объект сети
+										net.v6(buffer);
+									}
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, net);
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} break;
+							// Если тип ключа является MAC-адресом
+							case static_cast <uint8_t> (type_t::MAC): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Формируем число из бинарного буфера
+									uint64_t value = 0;
+									// Копируем в бинарный буфер данные IP адреса
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем данные адреса в объект сети
+									net.mac(value);
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, net);
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} break;
+							// Если тип ключа является IPV4-адресом
+							case static_cast <uint8_t> (type_t::IPV4): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
 									// Формируем число из бинарного буфера
 									uint32_t value = 0;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(&value, extension.second.data(), extension.second.size());
 									// Устанавливаем данные адреса в объект сети
 									net.v4(value);
-								// Если количество байт в буфере 16
-								} else if(extension.second.size() == 16){
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, net);
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} break;
+							// Если тип ключа является IPV6-адресом
+							case static_cast <uint8_t> (type_t::IPV6): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
 									// Формируем бинарный буфер данных
 									array <uint64_t, 2> buffer;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(buffer.data(), extension.second.data(), extension.second.size());
 									// Устанавливаем данные адреса в объект сети
 									net.v6(buffer);
-								}
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
-						// Если тип ключа является MAC-адресом
-						case static_cast <uint8_t> (type_t::MAC): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем число из бинарного буфера
-								uint64_t value = 0;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.mac(value);
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
-						// Если тип ключа является IPV4-адресом
-						case static_cast <uint8_t> (type_t::IPV4): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем число из бинарного буфера
-								uint32_t value = 0;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.v4(value);
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
-						// Если тип ключа является IPV6-адресом
-						case static_cast <uint8_t> (type_t::IPV6): {
-							// Если включён строгий режим парсинга
-							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
-								// Формируем бинарный буфер данных
-								array <uint64_t, 2> buffer;
-								// Копируем в бинарный буфер данные IP адреса
-								::memcpy(buffer.data(), extension.second.data(), extension.second.size());
-								// Устанавливаем данные адреса в объект сети
-								net.v6(buffer);
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, net);
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
-						// Если тип ключа является LONG
-						case static_cast <uint8_t> (type_t::LONG): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								long value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, std::to_string(value));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Получаем значение числа
-								const string value(extension.second.begin(), extension.second.end());
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Если число положительное
-									if(value.front() != '-')
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, net);
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} break;
+							// Если тип ключа является LONG
+							case static_cast <uint8_t> (type_t::LONG): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									long value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, std::to_string(value));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Получаем значение числа
+									const string value(extension.second.begin(), extension.second.end());
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Если число положительное
+										if(value.front() != '-')
+											// Добавляем полученное значения расширения
+											result.emplace(extension.first, std::to_string(::stoul(value)));
 										// Добавляем полученное значения расширения
-										result.emplace(extension.first, std::to_string(::stoul(value)));
-									// Добавляем полученное значения расширения
-									else result.emplace(extension.first, std::to_string(::stol(value)));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное значения расширения
-									result.emplace(extension.first, value);
-								}
-							}
-						} break;
-						// Если тип ключа является INT32
-						case static_cast <uint8_t> (type_t::INT32): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								int32_t value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, std::to_string(value));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Получаем значение числа
-								const string value(extension.second.begin(), extension.second.end());
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Если число положительное
-									if(value.front() != '-')
+										else result.emplace(extension.first, std::to_string(::stol(value)));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
 										// Добавляем полученное значения расширения
-										result.emplace(extension.first, std::to_string(::stoul(value)));
-									// Добавляем полученное значения расширения
-									else result.emplace(extension.first, std::to_string(::stoi(value)));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное значения расширения
-									result.emplace(extension.first, value);
+										result.emplace(extension.first, value);
+									}
 								}
-							}
-						} break;
-						// Если тип ключа является INT64
-						case static_cast <uint8_t> (type_t::INT64): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								int64_t value = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, std::to_string(value));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								// Получаем значение числа
-								const string value(extension.second.begin(), extension.second.end());
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Если число положительное
-									if(value.front() != '-')
+							} break;
+							// Если тип ключа является INT32
+							case static_cast <uint8_t> (type_t::INT32): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									int32_t value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
+									// Устанавливаем значение ключа
+									result.emplace(extension.first, std::to_string(value));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Получаем значение числа
+									const string value(extension.second.begin(), extension.second.end());
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Если число положительное
+										if(value.front() != '-')
+											// Добавляем полученное значения расширения
+											result.emplace(extension.first, std::to_string(::stoul(value)));
 										// Добавляем полученное значения расширения
-										result.emplace(extension.first, std::to_string(::stoull(value)));
-									// Добавляем полученное значения расширения
-									else result.emplace(extension.first, std::to_string(::stoll(value)));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное значения расширения
-									result.emplace(extension.first, value);
+										else result.emplace(extension.first, std::to_string(::stoi(value)));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное значения расширения
+										result.emplace(extension.first, value);
+									}
 								}
-							}
-						} break;
-						// Если тип ключа является FLOAT
-						case static_cast <uint8_t> (type_t::FLOAT): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								float value = .0f;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, this->_fmk->noexp(value, true));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
+							} break;
+							// Если тип ключа является INT64
+							case static_cast <uint8_t> (type_t::INT64): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									int64_t value = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
 									// Устанавливаем значение ключа
-									result.emplace(extension.first, this->_fmk->noexp(::stof(string(extension.second.begin(), extension.second.end())), true));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Устанавливаем значение ключа
-									result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+									result.emplace(extension.first, std::to_string(value));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									// Получаем значение числа
+									const string value(extension.second.begin(), extension.second.end());
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Если число положительное
+										if(value.front() != '-')
+											// Добавляем полученное значения расширения
+											result.emplace(extension.first, std::to_string(::stoull(value)));
+										// Добавляем полученное значения расширения
+										else result.emplace(extension.first, std::to_string(::stoll(value)));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное значения расширения
+										result.emplace(extension.first, value);
+									}
 								}
-							}
-						} break;
-						// Если тип ключа является DOUBLE
-						case static_cast <uint8_t> (type_t::DOUBLE): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								double value = .0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&value, extension.second.data(), extension.second.size());
-								// Устанавливаем значение ключа
-								result.emplace(extension.first, this->_fmk->noexp(value, true));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else {
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
+							} break;
+							// Если тип ключа является FLOAT
+							case static_cast <uint8_t> (type_t::FLOAT): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									float value = .0f;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
 									// Устанавливаем значение ключа
-									result.emplace(extension.first, this->_fmk->noexp(::stold(string(extension.second.begin(), extension.second.end())), true));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Устанавливаем значение ключа
-									result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+									result.emplace(extension.first, this->_fmk->noexp(value, true));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Устанавливаем значение ключа
+										result.emplace(extension.first, this->_fmk->noexp(::stof(string(extension.second.begin(), extension.second.end())), true));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Устанавливаем значение ключа
+										result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+									}
 								}
-							}
-						} break;
-						// Если тип ключа является STRING
-						case static_cast <uint8_t> (type_t::STRING):
-							// Устанавливаем значение ключа
-							result.emplace(
-								extension.first,
-								string(extension.second.begin(), extension.second.end())
-							);
-						break;
-						// Если тип ключа является TIMESTAMP
-						case static_cast <uint8_t> (type_t::TIMESTAMP): {
-							// Если режим парсинга установлен
-							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-								// Формируем число из бинарного буфера
-								time_t date = 0;
-								// Извлекаем из буфера данные числа
-								::memcpy(&date, extension.second.data(), extension.second.size());
-								// Если формат даты установлен
-								if(!this->_format.empty()){
-									// Создаём объект потока
-									std::stringstream transTime;
-									// Создаем структуру времени
-									std::tm * tm = ::localtime(&date);
-									// Выполняем извлечение даты
-									transTime << std::put_time(tm, this->_format.c_str());
+							} break;
+							// Если тип ключа является DOUBLE
+							case static_cast <uint8_t> (type_t::DOUBLE): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									double value = .0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&value, extension.second.data(), extension.second.size());
 									// Устанавливаем значение ключа
-									result.emplace(extension.first, transTime.str());
+									result.emplace(extension.first, this->_fmk->noexp(value, true));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else {
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Устанавливаем значение ключа
+										result.emplace(extension.first, this->_fmk->noexp(::stold(string(extension.second.begin(), extension.second.end())), true));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Устанавливаем значение ключа
+										result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+									}
+								}
+							} break;
+							// Если тип ключа является STRING
+							case static_cast <uint8_t> (type_t::STRING):
 								// Устанавливаем значение ключа
-								} else result.emplace(extension.first, std::to_string(date));
-							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-							} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
-						} break;
+								result.emplace(
+									extension.first,
+									string(extension.second.begin(), extension.second.end())
+								);
+							break;
+							// Если тип ключа является TIMESTAMP
+							case static_cast <uint8_t> (type_t::TIMESTAMP): {
+								// Если режим парсинга установлен
+								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+									// Формируем число из бинарного буфера
+									time_t date = 0;
+									// Извлекаем из буфера данные числа
+									::memcpy(&date, extension.second.data(), extension.second.size());
+									// Если формат даты установлен
+									if(!this->_format.empty()){
+										// Создаём объект потока
+										std::stringstream transTime;
+										// Создаем структуру времени
+										std::tm * tm = ::localtime(&date);
+										// Выполняем извлечение даты
+										transTime << std::put_time(tm, this->_format.c_str());
+										// Устанавливаем значение ключа
+										result.emplace(extension.first, transTime.str());
+									// Устанавливаем значение ключа
+									} else result.emplace(extension.first, std::to_string(date));
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
+							} break;
+						}
 					}
-				}
-			// Если режим парсинга не установлен
-			} else {
-				// Получаем значение для вывода
-				string value(extension.second.begin(), extension.second.end());
-				// Если запись является числом
-				if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-					/**
-					 * Выполняем отлов ошибок
-					 */
-					try {
-						// Если число положительное
-						if(value.front() != '-')
+				// Если режим парсинга не установлен
+				} else {
+					// Получаем значение для вывода
+					string value(extension.second.begin(), extension.second.end());
+					// Если запись является числом
+					if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Если число положительное
+							if(value.front() != '-')
+								// Устанавливаем значение ключа как число без знака
+								result.emplace(extension.first, std::to_string(::stoull(value)));
+							// Устанавливаем значение ключа как число со знаком
+							else result.emplace(extension.first, std::to_string(::stoll(value)));
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
 							// Устанавливаем значение ключа как число без знака
-							result.emplace(extension.first, std::to_string(::stoull(value)));
-						// Устанавливаем значение ключа как число со знаком
-						else result.emplace(extension.first, std::to_string(::stoll(value)));
-					/**
-					 * Если возникает ошибка
-					 */
-					} catch(const std::exception &) {
-						// Устанавливаем значение ключа как число без знака
-						result.emplace(extension.first, value);
-					}
-				// Если запись является числом с плавающей точкой
-				} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
-					/**
-					 * Выполняем отлов ошибок
-					 */
-					try {
-						// Устанавливаем значение ключа как число с плавающей точкой
-						result.emplace(extension.first, this->_fmk->noexp(::stold(value), true));
-					/**
-					 * Если возникает ошибка
-					 */
-					} catch(const std::exception &) {
-						// Устанавливаем значение ключа как число без знака
-						result.emplace(extension.first, value);
-					}
-				// Если число является булевым истинным значением
-				} else if(this->_fmk->compare("true", value))
-					// Устанавливаем значение ключа как булевое положительное значение
-					result.emplace(extension.first, "true");
-				// Если число является булевым ложным значением
-				else if(this->_fmk->compare("false", value))
-					// Устанавливаем значение ключа как булевое отрицательное значение
-					result.emplace(extension.first, "false");
-				// Устанавливаем значение ключа как оно есть
-				else result.emplace(extension.first, std::move(value));
+							result.emplace(extension.first, value);
+						}
+					// Если запись является числом с плавающей точкой
+					} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Устанавливаем значение ключа как число с плавающей точкой
+							result.emplace(extension.first, this->_fmk->noexp(::stold(value), true));
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception &) {
+							// Устанавливаем значение ключа как число без знака
+							result.emplace(extension.first, value);
+						}
+					// Если число является булевым истинным значением
+					} else if(this->_fmk->compare("true", value))
+						// Устанавливаем значение ключа как булевое положительное значение
+						result.emplace(extension.first, "true");
+					// Если число является булевым ложным значением
+					else if(this->_fmk->compare("false", value))
+						// Устанавливаем значение ключа как булевое отрицательное значение
+						result.emplace(extension.first, "false");
+					// Устанавливаем значение ключа как оно есть
+					else result.emplace(extension.first, std::move(value));
+				}
 			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим результат
@@ -1823,11 +2278,11 @@ const vector <char> & anyks::Cef::extension(const string & key) const noexcept {
 	// Если ключ передан
 	if(!key.empty()){
 		// Выполняем поиск ключа среди расширений
-		auto it = this->_extensions.find(key);
+		auto i = this->_extensions.find(key);
 		// Если ключ расширения найден
-		if(it != this->_extensions.end())
+		if(i != this->_extensions.end())
 			// Выводим результат
-			return it->second;
+			return i->second;
 	}
 	// Выводим результат
 	return result;
@@ -1840,357 +2295,555 @@ const vector <char> & anyks::Cef::extension(const string & key) const noexcept {
 void anyks::Cef::extension(const string & key, const string & value) noexcept {
 	// Если ключ и значение переданы
 	if(!key.empty() && !value.empty()){
-		// Если режим парсинга установлен
-		if(this->_mode != mode_t::NONE){
-			// Создаём объект параметров расширения
-			const ext_t * params = nullptr;
-			// Выполняем поиск параметров ключа
-			auto it = this->_extensionSEFv0.find(key);
-			// Если параметры ключа найдены
-			if(it != this->_extensionSEFv0.end())
-				// Получаем параметры ключа
-				params = &it->second;
-			// Если параметры ключа не найдены и версия протокола №1
-			else if(this->_version > .0) {
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Если режим парсинга установлен
+			if(this->_mode != mode_t::NONE){
+				// Создаём объект параметров расширения
+				const ext_t * params = nullptr;
 				// Выполняем поиск параметров ключа
-				auto it = this->_extensionSEFv1.find(key);
+				auto i = this->_extensionSEFv0.find(key);
 				// Если параметры ключа найдены
-				if(it != this->_extensionSEFv0.end())
+				if(i != this->_extensionSEFv0.end())
 					// Получаем параметры ключа
-					params = &it->second;
-			}
-			// Если параметры ключа не получены но включён не строгий режим работы
-			if((params == nullptr) && (this->_mode != mode_t::STRONG)){
-				// Выполняем определение ключа, если вместо него пришло название
-				auto it = this->_mapping.find(key);
-				// Если параметры ключа получены
-				if(it != this->_mapping.end()){
-					// Выполняем очередную попытку получать данные расширения
-					this->extension(it->second, value);
+					params = &i->second;
+				// Если параметры ключа не найдены и версия протокола №1
+				else if(this->_version > .0) {
+					// Выполняем поиск параметров ключа
+					auto i = this->_extensionSEFv1.find(key);
+					// Если параметры ключа найдены
+					if(i != this->_extensionSEFv0.end())
+						// Получаем параметры ключа
+						params = &i->second;
+				}
+				// Если параметры ключа не получены но включён не строгий режим работы
+				if((params == nullptr) && (this->_mode != mode_t::STRONG)){
+					// Выполняем определение ключа, если вместо него пришло название
+					auto i = this->_mapping.find(key);
+					// Если параметры ключа получены
+					if(i != this->_mapping.end()){
+						// Выполняем очередную попытку получать данные расширения
+						this->extension(i->second, value);
+						// Выходим из функции
+						return;
+					}
+				// Если же параметры ключа не получены и включён строгий режим
+				} else if((params == nullptr) && (this->_mode == mode_t::STRONG)) {
+					// Создаём текст ошибки
+					string error = "The \"";
+					// Добавляем ключ который не найден
+					error.append(key);
+					// Добавляем оставшийся текст ошибки
+					error.append("\" key is not defined in the specification");
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
+					#endif
 					// Выходим из функции
 					return;
 				}
-			// Если же параметры ключа не получены и включён строгий режим
-			} else if((params == nullptr) && (this->_mode == mode_t::STRONG)) {
-				// Создаём текст ошибки
-				string error = "The \"";
-				// Добавляем ключ который не найден
-				error.append(key);
-				// Добавляем оставшийся текст ошибки
-				error.append("\" key is not defined in the specification");
-				// Выводим сообщение об ошибке и выходим
-				this->_log->print("CEF: %s", log_t::flag_t::WARNING, error.c_str());
-				// Выходим из функции
-				return;
-			}
-			// Если параметры ключа получены
-			if(params != nullptr){
-				// Определяем тип ключа
-				switch(static_cast <uint8_t> (params->type)){
-					// Если тип ключа является IP-адресом
-					case static_cast <uint8_t> (type_t::IP): {
-						// Если включён строгий режим парсинга
-						if(this->_mode == mode_t::STRONG){
-							// Создаём объект сети
-							net_t net(this->_log);
-							// Выполняем парсинг сетевого адреса
-							if(net.parse(value)){
-								// Выполняем определение типа IP адреса
-								switch(static_cast <uint8_t> (net.type())){
-									// Если IP адрес определён как IPv4
-									case static_cast <uint8_t> (net_t::type_t::IPV4): {
-										// Извлекаем данные IP адреса
-										const uint32_t data = net.v4();
+				// Если параметры ключа получены
+				if(params != nullptr){
+					// Определяем тип ключа
+					switch(static_cast <uint8_t> (params->type)){
+						// Если тип ключа является IP-адресом
+						case static_cast <uint8_t> (type_t::IP): {
+							// Если включён строгий режим парсинга
+							if(this->_mode == mode_t::STRONG){
+								// Создаём объект сети
+								net_t net(this->_log);
+								// Выполняем парсинг сетевого адреса
+								if(net.parse(value)){
+									// Выполняем определение типа IP адреса
+									switch(static_cast <uint8_t> (net.type())){
+										// Если IP адрес определён как IPv4
+										case static_cast <uint8_t> (net_t::type_t::IPV4): {
+											// Извлекаем данные IP адреса
+											const uint32_t data = net.v4();
+											// Добавляем полученное расширение в базу
+											this->extension(key, vector <char> (
+												reinterpret_cast <const char *> (&data),
+												reinterpret_cast <const char *> (&data) + sizeof(data)
+											));
+										} break;
+										// Если IP адрес определён как IPv6
+										case static_cast <uint8_t> (net_t::type_t::IPV6): {
+											// Извлекаем данные IP адреса
+											const auto & data = net.v6();
+											// Добавляем полученное расширение в базу
+											this->extension(key, vector <char> (data.begin(), data.end()));
+										} break;
+									}
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
+								}
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является MAC-адресом
+						case static_cast <uint8_t> (type_t::MAC): {
+							// Если включён строгий режим парсинга
+							if(this->_mode == mode_t::STRONG){
+								// Создаём объект сети
+								net_t net(this->_log);
+								// Выполняем парсинг аппаратного адреса
+								if(net.parse(value, net_t::type_t::MAC)){
+									// Извлекаем данные MAC адреса
+									const uint64_t data = net.mac();
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (
+										reinterpret_cast <const char *> (&data),
+										reinterpret_cast <const char *> (&data) + sizeof(data)
+									));
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
+								}
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является IPV4-адресом
+						case static_cast <uint8_t> (type_t::IPV4): {
+							// Если включён строгий режим парсинга
+							if(this->_mode == mode_t::STRONG){
+								// Создаём объект сети
+								net_t net(this->_log);
+								// Выполняем парсинг сетевого адреса
+								if(net.parse(value, net_t::type_t::IPV4)){
+									// Извлекаем данные IP адреса
+									const uint32_t data = net.v4();
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (
+										reinterpret_cast <const char *> (&data),
+										reinterpret_cast <const char *> (&data) + sizeof(data)
+									));
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
+								}
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является IPV6-адресом
+						case static_cast <uint8_t> (type_t::IPV6): {
+							// Если включён строгий режим парсинга
+							if(this->_mode == mode_t::STRONG){
+								// Создаём объект сети
+								net_t net(this->_log);
+								// Выполняем парсинг сетевого адреса
+								if(net.parse(value, net_t::type_t::IPV6)){
+									// Извлекаем данные IP адреса
+									const auto & data = net.v6();
+									// Добавляем полученное расширение в базу
+									this->extension(key, vector <char> (data.begin(), data.end()));
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
+								}
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является LONG
+						case static_cast <uint8_t> (type_t::LONG): {
+							// Если режим парсинга установлен
+							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+								// Выполняем проверку, является ли значение числом
+								if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Преобразуем строку в число
+										const long data = ::stol(value);
 										// Добавляем полученное расширение в базу
 										this->extension(key, vector <char> (
 											reinterpret_cast <const char *> (&data),
 											reinterpret_cast <const char *> (&data) + sizeof(data)
 										));
-									} break;
-									// Если IP адрес определён как IPv6
-									case static_cast <uint8_t> (net_t::type_t::IPV6): {
-										// Извлекаем данные IP адреса
-										const auto & data = net.v6();
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
 										// Добавляем полученное расширение в базу
-										this->extension(key, vector <char> (data.begin(), data.end()));
-									} break;
+										this->extension(key, vector <char> (value.begin(), value.end()));
+									}
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
 								}
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является MAC-адресом
-					case static_cast <uint8_t> (type_t::MAC): {
-						// Если включён строгий режим парсинга
-						if(this->_mode == mode_t::STRONG){
-							// Создаём объект сети
-							net_t net(this->_log);
-							// Выполняем парсинг аппаратного адреса
-							if(net.parse(value, net_t::type_t::MAC)){
-								// Извлекаем данные MAC адреса
-								const uint64_t data = net.mac();
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&data),
-									reinterpret_cast <const char *> (&data) + sizeof(data)
-								));
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является IPV4-адресом
-					case static_cast <uint8_t> (type_t::IPV4): {
-						// Если включён строгий режим парсинга
-						if(this->_mode == mode_t::STRONG){
-							// Создаём объект сети
-							net_t net(this->_log);
-							// Выполняем парсинг сетевого адреса
-							if(net.parse(value, net_t::type_t::IPV4)){
-								// Извлекаем данные IP адреса
-								const uint32_t data = net.v4();
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&data),
-									reinterpret_cast <const char *> (&data) + sizeof(data)
-								));
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является IPV6-адресом
-					case static_cast <uint8_t> (type_t::IPV6): {
-						// Если включён строгий режим парсинга
-						if(this->_mode == mode_t::STRONG){
-							// Создаём объект сети
-							net_t net(this->_log);
-							// Выполняем парсинг сетевого адреса
-							if(net.parse(value, net_t::type_t::IPV6)){
-								// Извлекаем данные IP адреса
-								const auto & data = net.v6();
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (data.begin(), data.end()));
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является LONG
-					case static_cast <uint8_t> (type_t::LONG): {
-						// Если режим парсинга установлен
-						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-							// Выполняем проверку, является ли значение числом
-							if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Преобразуем строку в число
-									const long data = ::stol(value);
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (
-										reinterpret_cast <const char *> (&data),
-										reinterpret_cast <const char *> (&data) + sizeof(data)
-									));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является INT32
+						case static_cast <uint8_t> (type_t::INT32): {
+							// Если режим парсинга установлен
+							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+								// Выполняем проверку, является ли значение числом
+								if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Преобразуем строку в число
+										const int32_t data = ::stoi(value);
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (
+											reinterpret_cast <const char *> (&data),
+											reinterpret_cast <const char *> (&data) + sizeof(data)
+										));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (value.begin(), value.end()));
+									}
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
+								}
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является INT64
+						case static_cast <uint8_t> (type_t::INT64): {
+							// Если режим парсинга установлен
+							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+								// Выполняем проверку, является ли значение числом
+								if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Преобразуем строку в число
+										const int64_t data = ::stoll(value);
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (
+											reinterpret_cast <const char *> (&data),
+											reinterpret_cast <const char *> (&data) + sizeof(data)
+										));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (value.begin(), value.end()));
+									}
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
+								}
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является FLOAT
+						case static_cast <uint8_t> (type_t::FLOAT): {
+							// Если режим парсинга установлен
+							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+								// Выполняем проверку, является ли значение числом
+								if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)){
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Преобразуем строку в число
+										const float data = ::stof(value);
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (
+											reinterpret_cast <const char *> (&data),
+											reinterpret_cast <const char *> (&data) + sizeof(data)
+										));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (value.begin(), value.end()));
+									}
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
+								}
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является DOUBLE
+						case static_cast <uint8_t> (type_t::DOUBLE): {
+							// Если режим парсинга установлен
+							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+								// Выполняем проверку, является ли значение числом
+								if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)){
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Преобразуем строку в число
+										const double data = ::stold(value);
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (
+											reinterpret_cast <const char *> (&data),
+											reinterpret_cast <const char *> (&data) + sizeof(data)
+										));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (value.begin(), value.end()));
+									}
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
+								}
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является STRING
+						case static_cast <uint8_t> (type_t::STRING): {
+							// Если режим парсинга установлен
+							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+								// Если размер соответствует или включён не строгий режим
+								if((params->size >= value.size()))
 									// Добавляем полученное расширение в базу
 									this->extension(key, vector <char> (value.begin(), value.end()));
+								// Выводим сообщение об ошибке
+								else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
 								}
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является INT32
-					case static_cast <uint8_t> (type_t::INT32): {
-						// Если режим парсинга установлен
-						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-							// Выполняем проверку, является ли значение числом
-							if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Преобразуем строку в число
-									const int32_t data = ::stoi(value);
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (
-										reinterpret_cast <const char *> (&data),
-										reinterpret_cast <const char *> (&data) + sizeof(data)
-									));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (value.begin(), value.end()));
-								}
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является INT64
-					case static_cast <uint8_t> (type_t::INT64): {
-						// Если режим парсинга установлен
-						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-							// Выполняем проверку, является ли значение числом
-							if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Преобразуем строку в число
-									const int64_t data = ::stoll(value);
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (
-										reinterpret_cast <const char *> (&data),
-										reinterpret_cast <const char *> (&data) + sizeof(data)
-									));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (value.begin(), value.end()));
-								}
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является FLOAT
-					case static_cast <uint8_t> (type_t::FLOAT): {
-						// Если режим парсинга установлен
-						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-							// Выполняем проверку, является ли значение числом
-							if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)){
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Преобразуем строку в число
-									const float data = ::stof(value);
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (
-										reinterpret_cast <const char *> (&data),
-										reinterpret_cast <const char *> (&data) + sizeof(data)
-									));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (value.begin(), value.end()));
-								}
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является DOUBLE
-					case static_cast <uint8_t> (type_t::DOUBLE): {
-						// Если режим парсинга установлен
-						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-							// Выполняем проверку, является ли значение числом
-							if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)){
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Преобразуем строку в число
-									const double data = ::stold(value);
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (
-										reinterpret_cast <const char *> (&data),
-										reinterpret_cast <const char *> (&data) + sizeof(data)
-									));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (value.begin(), value.end()));
-								}
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является STRING
-					case static_cast <uint8_t> (type_t::STRING): {
-						// Если режим парсинга установлен
-						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-							// Если размер соответствует или включён не строгий режим
-							if((params->size >= value.size()))
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (value.begin(), value.end()));
-							// Выводим сообщение об ошибке
-							else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
-					// Если тип ключа является TIMESTAMP
-					case static_cast <uint8_t> (type_t::TIMESTAMP): {
-						// Если режим парсинга установлен
-						if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
-							// Получаем флаг проверки на число
-							const bool number = this->_fmk->is(value, fmk_t::check_t::NUMBER);
-							// Получаем флаг проверки на число плавающей точкой
-							const bool decimal = (!number ? this->_fmk->is(value, fmk_t::check_t::DECIMAL) : false);
-							// Выполняем проверку, является ли значение числом
-							if(number || decimal){
-								/**
-								 * Выполняем отлов ошибок
-								 */
-								try {
-									// Преобразуем строку в число
-									const time_t date = static_cast <time_t> (number ? ::stoull(value) : ::stold(value));
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+						// Если тип ключа является TIMESTAMP
+						case static_cast <uint8_t> (type_t::TIMESTAMP): {
+							// Если режим парсинга установлен
+							if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+								// Получаем флаг проверки на число
+								const bool number = this->_fmk->is(value, fmk_t::check_t::NUMBER);
+								// Получаем флаг проверки на число плавающей точкой
+								const bool decimal = (!number ? this->_fmk->is(value, fmk_t::check_t::DECIMAL) : false);
+								// Выполняем проверку, является ли значение числом
+								if(number || decimal){
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Преобразуем строку в число
+										const time_t date = static_cast <time_t> (number ? ::stoull(value) : ::stold(value));
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (
+											reinterpret_cast <const char *> (&date),
+											reinterpret_cast <const char *> (&date) + sizeof(date)
+										));
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const std::exception &) {
+										// Добавляем полученное расширение в базу
+										this->extension(key, vector <char> (value.begin(), value.end()));
+									}
+								// Если режим работы не строгий
+								} else if(!this->_format.empty()) {
+									// Выполняем парсинг даты
+									const time_t date = this->_fmk->str2time(value.c_str(), this->_format.c_str());
 									// Добавляем полученное расширение в базу
 									this->extension(key, vector <char> (
 										reinterpret_cast <const char *> (&date),
 										reinterpret_cast <const char *> (&date) + sizeof(date)
 									));
-								/**
-								 * Если возникает ошибка
-								 */
-								} catch(const std::exception &) {
-									// Добавляем полученное расширение в базу
-									this->extension(key, vector <char> (value.begin(), value.end()));
+								// Выводим сообщение об ошибке
+								} else {
+									/**
+									 * Если включён режим отладки
+									 */
+									#if defined(DEBUG_MODE)
+										// Выводим сообщение об ошибке
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+									/**
+									* Если режим отладки не включён
+									*/
+									#else
+										// Выводим сообщение об ошибке
+										this->_log->print("%s", log_t::flag_t::WARNING, params->desc.c_str());
+									#endif
 								}
-							// Если режим работы не строгий
-							} else if(!this->_format.empty()) {
-								// Выполняем парсинг даты
-								const time_t date = this->_fmk->str2time(value.c_str(), this->_format.c_str());
-								// Добавляем полученное расширение в базу
-								this->extension(key, vector <char> (
-									reinterpret_cast <const char *> (&date),
-									reinterpret_cast <const char *> (&date) + sizeof(date)
-								));
-							// Выводим сообщение об ошибке
-							} else this->_log->print("CEF: %s", log_t::flag_t::WARNING, params->desc.c_str());
-						// Если строгий режим парсинга не активирован, устанавливаем значение ключа
-						} else this->extension(key, vector <char> (value.begin(), value.end()));
-					} break;
+							// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+							} else this->extension(key, vector <char> (value.begin(), value.end()));
+						} break;
+					}
+				// Если ключ не получен, выводим сообщение об ошибке
+				} else {
+					// Создаём текст ошибки
+					string error = "Extension \"";
+					// Добавляем ключ который не найден
+					error.append(key);
+					// Добавляем оставшийся текст ошибки
+					error.append("\" does not exist");
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
+					#endif
 				}
-			// Если ключ не получен, выводим сообщение об ошибке
-			} else {
-				// Создаём текст ошибки
-				string error = "Extension \"";
-				// Добавляем ключ который не найден
-				error.append(key);
-				// Добавляем оставшийся текст ошибки
-				error.append("\" does not exist");
-				// Выводим сообщение об ошибке и выходим
-				this->_log->print("CEF: %s", log_t::flag_t::WARNING, error.c_str());
-			}
-		// Если режим парсинга не установлен, добавляем расширение так-как оно было передано
-		} else this->extension(key, vector <char> (value.begin(), value.end()));
+			// Если режим парсинга не установлен, добавляем расширение так-как оно было передано
+			} else this->extension(key, vector <char> (value.begin(), value.end()));
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		}
 	}
 }
 /**
@@ -2226,20 +2879,42 @@ bool anyks::Cef::operator != (const cef_t & cef) const noexcept {
 	   (::memcmp(&this->_event, &cef._event, sizeof(this->_event)) == 0)))){
 		// Если количество расширений совпадает
 		if((result = (this->_extensions.size() == cef._extensions.size()))){
-			// Выполняем перебор всех расширений
-			for(auto & extension : this->_extensions){
-				// Выполняем поиск указанного расширения
-				auto it = cef._extensions.find(extension.first);
-				// Если ключ расширения найден
-				if((result = (it != cef._extensions.end()))){
-					// Выполняем сравнение бинарных данных расширения
-					result = (::memcmp(extension.second.data(), it->second.data(), it->second.size()) == 0);
-					// Если сравнение не выполнено
-					if(!result)
-						// Выходим из цикла
-						break;
-				// Иначе выходим из цикла
-				} else break;
+			/**
+			 * Выполняем отлов ошибок
+			 */
+			try {
+				// Выполняем перебор всех расширений
+				for(auto & extension : this->_extensions){
+					// Выполняем поиск указанного расширения
+					auto i = cef._extensions.find(extension.first);
+					// Если ключ расширения найден
+					if((result = (i != cef._extensions.end()))){
+						// Выполняем сравнение бинарных данных расширения
+						result = (::memcmp(extension.second.data(), i->second.data(), i->second.size()) == 0);
+						// Если сравнение не выполнено
+						if(!result)
+							// Выходим из цикла
+							break;
+					// Иначе выходим из цикла
+					} else break;
+				}
+			/**
+			 * Если возникает ошибка
+			 */
+			} catch(const std::exception & error) {
+				/**
+				 * Если включён режим отладки
+				 */
+				#if defined(DEBUG_MODE)
+					// Выводим сообщение об ошибке
+					this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+				/**
+				* Если режим отладки не включён
+				*/
+				#else
+					// Выводим сообщение об ошибке
+					this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+				#endif
 			}
 		}
 	}
@@ -2260,20 +2935,42 @@ bool anyks::Cef::operator == (const cef_t & cef) const noexcept {
 	   (::memcmp(&this->_event, &cef._event, sizeof(this->_event)) == 0)))){
 		// Если количество расширений совпадает
 		if((result = (this->_extensions.size() == cef._extensions.size()))){
-			// Выполняем перебор всех расширений
-			for(auto & extension : this->_extensions){
-				// Выполняем поиск указанного расширения
-				auto it = cef._extensions.find(extension.first);
-				// Если ключ расширения найден
-				if((result = (it != cef._extensions.end()))){
-					// Выполняем сравнение бинарных данных расширения
-					result = (::memcmp(extension.second.data(), it->second.data(), it->second.size()) == 0);
-					// Если сравнение не выполнено
-					if(!result)
-						// Выходим из цикла
-						break;
-				// Иначе выходим из цикла
-				} else break;
+			/**
+			 * Выполняем отлов ошибок
+			 */
+			try {
+				// Выполняем перебор всех расширений
+				for(auto & extension : this->_extensions){
+					// Выполняем поиск указанного расширения
+					auto i = cef._extensions.find(extension.first);
+					// Если ключ расширения найден
+					if((result = (i != cef._extensions.end()))){
+						// Выполняем сравнение бинарных данных расширения
+						result = (::memcmp(extension.second.data(), i->second.data(), i->second.size()) == 0);
+						// Если сравнение не выполнено
+						if(!result)
+							// Выходим из цикла
+							break;
+					// Иначе выходим из цикла
+					} else break;
+				}
+			/**
+			 * Если возникает ошибка
+			 */
+			} catch(const std::exception & error) {
+				/**
+				 * Если включён режим отладки
+				 */
+				#if defined(DEBUG_MODE)
+					// Выводим сообщение об ошибке
+					this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+				/**
+				* Если режим отладки не включён
+				*/
+				#else
+					// Выводим сообщение об ошибке
+					this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+				#endif
 			}
 		}
 	}
@@ -2286,16 +2983,38 @@ bool anyks::Cef::operator == (const cef_t & cef) const noexcept {
  * @return    текущий объект
  */
 anyks::Cef & anyks::Cef::operator = (const cef_t & cef) noexcept {
-	// Выполняем копирование режима парсинга
-	this->_mode = cef._mode;
-	// Выполняем копирование заголовка контейнера
-	this->_header = cef._header;
-	// Выполняем копирование версии контейнера
-	this->_version = cef._version;
-	// Выполняем получение список расширений
-	this->_extensions = cef._extensions;
-	// Копируем данные события
-	::memcpy(&this->_event, &cef._event, sizeof(cef._event));
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Выполняем копирование режима парсинга
+		this->_mode = cef._mode;
+		// Выполняем копирование заголовка контейнера
+		this->_header = cef._header;
+		// Выполняем копирование версии контейнера
+		this->_version = cef._version;
+		// Выполняем получение список расширений
+		this->_extensions = cef._extensions;
+		// Копируем данные события
+		::memcpy(&this->_event, &cef._event, sizeof(cef._event));
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
+	}
 	// Выводим текущий объект
 	return (* this);
 }
@@ -2415,7 +3134,7 @@ anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
 		{"externalId", {"externalId", "The ID used by an originating device. They are usually increasing numbers, associated with events.", type_t::STRING, 40}},
 		{"requestContext", {"requestContext", "Description of the content from which the request originated (for example, HTTP Referrer)", type_t::STRING, 2048}},
 		{"destinationZone URI", {"destinationZoneURI", "The URI for the Zone that the destination asset has been assigned to in ArcSight.", type_t::STRING, 2048}},
-		{"cnt", {"baseEventCount", "A count associated with this event. How many times was this same event observed? Count can be omitted if it is 1.", type_t::INT32}},
+		{"cnt", {"baseEventCount", "A count associated with this event. How many times was this same event observed? Count can be omitted if i is 1.", type_t::INT32}},
 		{"src", {"sourceAddress", "Identifies the source that an event refers to in an IP network. The format is an IPv4 address. Example: “192.168.10.1”.", type_t::IPV4}},
 		{"cfp1", {"deviceCustomFloatingPoint1", "One of our floating point fields available to map fields that do not apply to any other in this dictionary.", type_t::FLOAT}},
 		{"c6a1", {"deviceCustomIPv6Address1", "One of the four IPv6 address fields available to map fields that do not apply to any other in this dictionary.", type_t::IPV6}},
@@ -2423,7 +3142,7 @@ anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
 		{"c6a3", {"deviceCustomIPv6Address3", "One of the four IPv6 address fields available to map fields that do not apply to any other in this dictionary.", type_t::IPV6}},
 		{"c6a4", {"deviceCustomIPv6Address4", "One of the four IPv6 address fields available to map fields that do not apply to any other in this dictionary.", type_t::IPV6}},
 		{"type", {"type", "0 means base event, 1 means aggregated, 2 means correlation, and 3 means action. This field can be omitted for base events (type 0).", type_t::INT32}},
-		{"destination TranslatedPort", {"destinationTranslatedPort", "Port after it was translated; for example, a firewall. Valid port numbers are 0 to 65535.", type_t::INT32}},
+		{"destination TranslatedPort", {"destinationTranslatedPort", "Port after i was translated; for example, a firewall. Valid port numbers are 0 to 65535.", type_t::INT32}},
 		{"source TranslatedPort", {"sourceTranslatedPort", "A port number after being translated by, for example, a firewall. Valid port numbers are 0 to 65535.", type_t::INT32}},
 		{"duid", {"destinationUserId", "Identifies the destination user by ID. For example, in UNIX, the root user is generally associated with user ID 0.", type_t::STRING, 1023}},
 		{"cfp2", {"deviceCustomFloatingPoint2", "One of the four floating point fields available to map fields that do not apply to any other in this dictionary.", type_t::FLOAT}},

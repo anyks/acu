@@ -11,10 +11,10 @@ set(PROJECT_COPYRIGHT "Copyright (c) ${CURRENT_YEAR} ${PROJECT_VENDOR_LONG}")
 
 # Тип сборки
 # cmake -DCMAKE_BUILD_TYPE=YES ..
-if(NOT CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE)
     # Активируем режим отладки
     set(CMAKE_BUILD_TYPE Debug)
-endif(NOT CMAKE_BUILD_TYPE)
+endif (NOT CMAKE_BUILD_TYPE)
 
 # Выводим сообщение о типе сборки
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}\n")
@@ -27,18 +27,18 @@ message(STATUS "Architecture: ${ARCHITECTURE}")
 
 # Проверка версии OS
 string(REGEX MATCH "Linux" PROJECT_OS_LINUX ${CMAKE_SYSTEM_NAME})
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     message(STATUS "Detected OS: Linux")
     set(DEBUGGER "-ggdb3")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    if(NOT MACOS_VERSION)
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    if (NOT MACOS_VERSION)
         EXECUTE_PROCESS(COMMAND sw_vers -productVersion COMMAND tr -d '\n' OUTPUT_VARIABLE MACOS_VERSION)
     endif()
     message(STATUS "Detected OS: MacOS X v${MACOS_VERSION}")
     set(DEBUGGER "-glldb")    
     set(CMAKE_OSX_DEPLOYMENT_TARGET ${MACOS_VERSION})
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     message(STATUS "Detected OS: FreeBSD")
     set(DEBUGGER "-ggdb3")
 else()
@@ -61,19 +61,19 @@ string(TIMESTAMP CURRENT_TIME "%d.%m.%Y %H:%M:%S")
 # Опции компилятора
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     set(ACU_PARAMS "-municode -Wno-cpp -Wno-deprecated")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(ACU_PARAMS "-Wno-cpp -Wno-deprecated")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(ACU_PARAMS "-framework Carbon -Wno-cpp -Wno-deprecated -Wno-unused-command-line-argument")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     set(ACU_PARAMS "-lutil -Wno-cpp -Wno-deprecated -Wno-unused-command-line-argument")
 else()
     set(ACU_PARAMS "-Wno-unknown-attributes")
 endif()
 
-if(${ARCHITECTURE} MATCHES "aarch64" OR ${ARCHITECTURE} MATCHES "arm*")
+if (${ARCHITECTURE} MATCHES "aarch64" OR ${ARCHITECTURE} MATCHES "arm*")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -pipe -DNDEBUG")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fno-permissive -Wno-pedantic -Wno-narrowing -Wno-deprecated-declarations -Wno-exceptions -Wno-unused-result ${ACU_PARAMS}")
 else()
@@ -83,7 +83,7 @@ endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -DDEBUG_MODE ${DEBUGGER}")
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
+if (CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "C Flags: ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
     message(STATUS "C++ Flags: ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}\n")
 else()
@@ -92,8 +92,8 @@ else()
 endif()
 
 # Если нужно собрать и динамическую библиотеку
-if(CMAKE_SHARED_BUILD_LIB)
-    if(MSVC)
+if (CMAKE_SHARED_BUILD_LIB)
+    if (MSVC)
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif(MSVC)
 endif(CMAKE_SHARED_BUILD_LIB)
@@ -109,25 +109,33 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(AWH REQUIRED)
 find_package(XML REQUIRED)
 find_package(YAML REQUIRED)
+find_package(TcMalloc REQUIRED)
 
 # Провекра XML
 if (XML_FOUND)
     message(STATUS "XML lib found: " ${XML_LIBRARY})
     message(STATUS "XML include dir found: " ${XML_INCLUDE_DIR})
-else(XML_FOUND)
+else (XML_FOUND)
     message(FATAL_ERROR "XML not found")
-endif(XML_FOUND)
+endif (XML_FOUND)
 
 # Провекра YAML
 if (YAML_FOUND)
     message(STATUS "YAML lib found: " ${YAML_LIBRARY})
     message(STATUS "YAML include dir found: " ${YAML_INCLUDE_DIR})
-else(YAML_FOUND)
+else (YAML_FOUND)
     message(FATAL_ERROR "YAML not found")
-endif(YAML_FOUND)
+endif (YAML_FOUND)
+
+# Провекра TcMalloc
+if (TcMalloc_FOUND)
+    message(STATUS "TcMalloc lib found: " ${TCMALLOC_LIBRARY} " " ${TCMALLOC_COMMON_LIBRARY})
+else (TcMalloc_FOUND)
+    message(FATAL_ERROR "TcMalloc not found")
+endif (TcMalloc_FOUND)
 
 # Провекра AWH
-if(AWH_FOUND)
+if (AWH_FOUND)
     message(STATUS "AWH include dir found: " ${AWH_INCLUDE_DIR})
     message(STATUS "CITY include dir found: " ${CITY_INCLUDE_DIR})
     message(STATUS "JSON include dir found: " ${JSON_INCLUDE_DIR})
@@ -142,13 +150,13 @@ if(AWH_FOUND)
     message(STATUS "Brotli include dir found: " ${BROTLI_INCLUDE_ENCODE_DIR} " " ${BROTLI_INCLUDE_DECODE_DIR})
 
     # Сборка модуля AWH_IDN, если операционной системой не является Windows
-    if(CMAKE_BUILD_IDN AND (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows"))
+    if (CMAKE_BUILD_IDN AND (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows"))
         message(STATUS "IDN2 include dir found: " ${IDN2_INCLUDE_DIR})
         message(STATUS "ICONV include dir found: " ${ICONV_INCLUDE_DIR})
     endif()
-else(AWH_FOUND)
+else (AWH_FOUND)
     message(FATAL_ERROR "Dependence not found")
-endif(AWH_FOUND)
+endif (AWH_FOUND)
 
 # Выполняем подключение хидеров
 include_directories(SYSTEM ${XML_INCLUDE_DIR})
@@ -175,20 +183,20 @@ set(ACU_LIB_NAME ${PROJECT_NAME})
 set(ACU_APP_NAME ${PROJECT_NAME}_bin)
 
 # Если нужно собрать и динамическую библиотеку
-if(CMAKE_SHARED_BUILD_LIB)
+if (CMAKE_SHARED_BUILD_LIB)
     # Добавляем динамическую библиотеку
     add_library(${ACU_LIB_NAME} SHARED ${SOURCE_FILES})
     target_compile_definitions(${ACU_LIB_NAME} PRIVATE ACU_SHARED_LIBRARY_EXPORT)
 # Если нужно собрать и статическую библиотеку
-else(CMAKE_SHARED_BUILD_LIB)
+else (CMAKE_SHARED_BUILD_LIB)
     # Активируем сборку статической библиотеки
     add_compile_definitions(ACU_STATICLIB)
     # Добавляем статическу библиотеку
     add_library(${ACU_LIB_NAME} STATIC ${SOURCE_FILES})
-endif(CMAKE_SHARED_BUILD_LIB)
+endif (CMAKE_SHARED_BUILD_LIB)
 
 # Если операционной системой является Windows
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     # export MSYS="error_start:%WD%dumper.exe -d -c %1 %2"
     # Устанавливаем необходимые зависимости для MS Windows
     set(WINFLAGS -lws2_32 -lgdi32 -lcrypt32 -lIphlpapi -lbcrypt -flto=auto)
@@ -213,9 +221,9 @@ endif()
 set_property(TARGET ${PROJECT_NAME}_bin PROPERTY OUTPUT_NAME ${PROJECT_NAME})
 
 # Если нужно собрать и динамическую библиотеку
-if(CMAKE_SHARED_BUILD_LIB)
+if (CMAKE_SHARED_BUILD_LIB)
     # Если операционной системой является Windows
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
         # Выполняем сборку динамической библиотеки
         target_link_libraries(
@@ -224,6 +232,7 @@ if(CMAKE_SHARED_BUILD_LIB)
             ${XML_LIBRARY}
             ${YAML_LIBRARY}
             ${AWH_LIBRARIES}
+            ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
             ${AWH_IDN}
         )
@@ -232,6 +241,7 @@ if(CMAKE_SHARED_BUILD_LIB)
         target_link_libraries(
             ${ACU_APP_NAME}
             ${ACU_LIB_NAME}
+            ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
             ${AWH_IDN}
         )
@@ -240,6 +250,7 @@ if(CMAKE_SHARED_BUILD_LIB)
         target_link_libraries(
             ${SERVER_APP_NAME}
             ${ACU_LIB_NAME}
+            ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
             ${AWH_IDN}
         )
@@ -254,25 +265,28 @@ if(CMAKE_SHARED_BUILD_LIB)
             ${XML_LIBRARY}
             ${YAML_LIBRARY}
             ${AWH_LIBRARIES}
+            ${TCMALLOC_LIBRARIES}
         )
         
         # Выполняем сборку приложения утилиты
         target_link_libraries(
             ${ACU_APP_NAME}
             ${ACU_LIB_NAME}
+            ${TCMALLOC_LIBRARIES}
         )
 
         # Выполняем сборку приложения сервера
         target_link_libraries(
             ${SERVER_APP_NAME}
             ${ACU_LIB_NAME}
+            ${TCMALLOC_LIBRARIES}
         )
 
     endif()
 # Если нужно собрать и статическую библиотеку
-else(CMAKE_SHARED_BUILD_LIB)
+else (CMAKE_SHARED_BUILD_LIB)
     # Если операционной системой является Windows
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
         # Выполняем сборку приложения утилиты
         target_link_libraries(
@@ -281,6 +295,7 @@ else(CMAKE_SHARED_BUILD_LIB)
             ${XML_LIBRARY}
             ${YAML_LIBRARY}
             ${AWH_LIBRARIES}
+            ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
             ${AWH_IDN}
         )
@@ -292,6 +307,7 @@ else(CMAKE_SHARED_BUILD_LIB)
             ${XML_LIBRARY}
             ${YAML_LIBRARY}
             ${AWH_LIBRARIES}
+            ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
             ${AWH_IDN}
         )
@@ -306,6 +322,7 @@ else(CMAKE_SHARED_BUILD_LIB)
             ${XML_LIBRARY}
             ${YAML_LIBRARY}
             ${AWH_LIBRARIES}
+            ${TCMALLOC_LIBRARIES}
         )
 
         # Выполняем сборку приложения сервера
@@ -315,14 +332,15 @@ else(CMAKE_SHARED_BUILD_LIB)
             ${XML_LIBRARY}
             ${YAML_LIBRARY}
             ${AWH_LIBRARIES}
+            ${TCMALLOC_LIBRARIES}
         )
 
     endif()
-endif(CMAKE_SHARED_BUILD_LIB)
+endif (CMAKE_SHARED_BUILD_LIB)
 
 # Активация формирования дампа ядра в реже отладки под MacOS X
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         set(entitlements_file "${CMAKE_SOURCE_DIR}/segv.entitlements")
         
         add_custom_command(TARGET "${ACU_APP_NAME}" POST_BUILD
@@ -339,7 +357,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 
     endif()
     # Сборка модуля CMAKE_ENABLED_PVS
-    if(CMAKE_ENABLED_PVS)
+    if (CMAKE_ENABLED_PVS)
         include(FetchContent)
         FetchContent_Declare(
             PVS_CMakeModule
@@ -351,11 +369,11 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
         # Выполняем анализ собранных приложений
         pvs_studio_add_target(TARGET ${ACU_APP_NAME}.analyze ALL OUTPUT FORMAT json ANALYZE ${ACU_APP_NAME} MODE GA:1,2 LOG target.err ARGS -e ${CMAKE_CURRENT_BINARY_DIR})
         pvs_studio_add_target(TARGET ${SERVER_APP_NAME}.analyze ALL OUTPUT FORMAT json ANALYZE ${SERVER_APP_NAME} MODE GA:1,2 LOG target.err ARGS -e ${CMAKE_CURRENT_BINARY_DIR})
-    endif(CMAKE_ENABLED_PVS)
+    endif (CMAKE_ENABLED_PVS)
 endif()
 
 # Устанавливаем адрес установки, запрет установки в /usr/local
-if("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local" OR "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local/")
+if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local" OR "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local/")
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}")
 endif()
 
@@ -372,6 +390,8 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/contrib/include/" DESTINATION "${
 # Устанавливаем стороние библиотеки
 install(FILES ${XML_LIBRARY} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
 install(FILES ${YAML_LIBRARY} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+# Устанавливаем статическую библиотеку TcMalloc
+install(FILES ${TCMALLOC_LIBRARIES} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
 
 # Устанавливаем собранную библиотеку утилиты
 install(TARGETS ${ACU_LIB_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")

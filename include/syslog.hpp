@@ -33,7 +33,6 @@
 #include <sstream>
 #include <iostream>
 #include <unordered_map>
-#include <nlohmann/json.hpp>
 
 /**
  * Модули AWH
@@ -42,12 +41,19 @@
 #include <sys/log.hpp>
 #include <sys/reg.hpp>
 
+/**
+ * Подключаем заголовочные файлы JSON
+ */
+#include <rapidjson/document.h>
+
 // Объявляем пространство имен
 using namespace std;
 using namespace awh;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
 
 // Активируем пространство имён json
-using json = nlohmann::json;
+using json = Document;
 
 /**
  * anyks пространство имён

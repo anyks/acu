@@ -18,26 +18,41 @@
 /**
  * reset Метод сброса параметров объекта
  */
-void anyks::Grok::Variable::reset() noexcept {
-	// Выполняем блокировку потока
-	const lock_guard <std::mutex> lock(this->_mtx);
-	// Если список регулярных выражений шаблонов создан
-	if(!this->_patterns.empty()){
-		// Выполняем перебор всех шаблонов
-		for(auto & item : this->_patterns)
-			// Выполняем удаление скомпилированного регулярного выражения
-			pcre2_regfree(&item.second);
+void anyks::Grok::Variables::reset() noexcept {
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Выполняем блокировку потока
+		const lock_guard <std::mutex> lock(this->_mtx);
+		// Если список регулярных выражений шаблонов создан
+		if(!this->_patterns.empty()){
+			// Выполняем перебор всех шаблонов
+			for(auto & item : this->_patterns)
+				// Выполняем удаление скомпилированного регулярного выражения
+				::pcre2_regfree(&item.second);
+		}
+		// Выполняем удаление названий переменных
+		this->_names.clear();
+		// Выполняем очистку шаблонов переменных
+		this->_patterns.clear();
+		// Выполняем очистку названий переменных
+		vector <string> ().swap(this->_names);
+		// Выполняем освобождение памяти списка шаблонов переменных
+		std::unordered_multimap <string, regex_t> ().swap(this->_patterns);
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		// Выводим сообщение об ошибке
+		::fprintf(stderr, "\"Grok:Variables:reset\": %s\n", error.what());
 	}
-	// Выполняем удаление названий переменных
-	this->_names.clear();
-	// Выполняем очистку шаблонов переменных
-	this->_patterns.clear();
 }
 /**
  * count Метод получения количество добавленных переменных
  * @return количество добавленных переменных
  */
-uint8_t anyks::Grok::Variable::count() const noexcept {
+uint8_t anyks::Grok::Variables::count() const noexcept {
 	// Выводим количество переменных
 	return static_cast <uint8_t> (this->_names.size());
 }
@@ -47,7 +62,7 @@ uint8_t anyks::Grok::Variable::count() const noexcept {
  * @param index индекс запрашиваемой переменной
  * @return      название переменной, которой соответствует текст
  */
-string anyks::Grok::Variable::get(const string & text, const uint8_t index) noexcept {
+string anyks::Grok::Variables::get(const string & text, const uint8_t index) noexcept {
 	// Если текст для получения переменной передан
 	if(!text.empty() && (index < static_cast <uint8_t> (this->_names.size()))){
 		/**
@@ -63,9 +78,9 @@ string anyks::Grok::Variable::get(const string & text, const uint8_t index) noex
 				// Получаем строку текста для поиска
 				const char * str = text.c_str();
 				// Создаём объект матчинга
-				std::unique_ptr <regmatch_t []> match(new regmatch_t [i->second.re_nsub + 1]);
+				regmatch_t match[i->second.re_nsub + 1];
 				// Выполняем разбор регулярного выражения
-				if(pcre2_regexec(&i->second, str, i->second.re_nsub + 1, match.get(), REG_NOTEMPTY) == 0){
+				if(::pcre2_regexec(&i->second, str, i->second.re_nsub + 1, match, REG_NOTEMPTY) == 0){
 					// Название полученной переменной
 					string value = "";
 					// Выполняем перебор всех полученных вариантов
@@ -94,8 +109,8 @@ string anyks::Grok::Variable::get(const string & text, const uint8_t index) noex
 			message.append(text);
 			// Добавляем завершение строки
 			message.append(1, ']');
-			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
+			// Выводим сообщение об ошибке
+			::fprintf(stderr, "\"Grok:Variables:get\": %s\n", message.c_str());
 		}
 	// Выполняем сброс параметров объекта
 	} else this->reset();
@@ -107,64 +122,174 @@ string anyks::Grok::Variable::get(const string & text, const uint8_t index) noex
  * @param name    название переменной
  * @param pattern шаблон регулярного выражения переменной
  */
-void anyks::Grok::Variable::push(const string & name, const string & pattern) noexcept {
+void anyks::Grok::Variables::push(const string & name, const string & pattern) noexcept {
 	// Если название переменной и шаблон регулярного выражения переданы
 	if(!name.empty() && !pattern.empty()){
-		// Выполняем блокировку потока
-		const lock_guard <std::mutex> lock(this->_mtx);
-		// Добавляем название переменной
-		this->_names.push_back(name);
-		// Добавляем шаблон регулярного выражения
-		auto ret = this->_patterns.emplace(name, regex_t());
-		// Выполняем компиляцию регулярного выражения
-		const int error = pcre2_regcomp(&ret->second, pattern.c_str(), REG_UTF | REG_ICASE);
-		// Если возникла ошибка компиляции
-		if(error != 0){
-			// Создаём буфер данных для извлечения данных ошибки
-			char buffer[256];
-			// Выполняем заполнение нулями буфер данных
-			::memset(buffer, '\0', sizeof(buffer));
-			// Выполняем извлечение текста ошибки
-			const size_t size = pcre2_regerror(error, &ret->second, buffer, sizeof(buffer) - 1);
-			// Если текст ошибки получен
-			if(size > 0){
-				// Формируем полученную ошибку
-				string error(buffer, size);
-				// Добавляем описание
-				error.append(". Input pattern [");
-				// Добавляем переданный шаблон
-				error.append(pattern);
-				// Добавляем завершение строки
-				error.append(1, ']');
-				// Добавляем в список полученные ошибки
-				this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем блокировку потока
+			const lock_guard <std::mutex> lock(this->_mtx);
+			// Добавляем название переменной
+			this->_names.push_back(name);
+			// Добавляем шаблон регулярного выражения
+			auto ret = this->_patterns.emplace(name, regex_t());
+			// Выполняем компиляцию регулярного выражения
+			const int error = ::pcre2_regcomp(&ret->second, pattern.c_str(), REG_UTF | REG_ICASE);
+			// Если возникла ошибка компиляции
+			if(error != 0){
+				// Создаём буфер данных для извлечения данных ошибки
+				char buffer[256];
+				// Выполняем заполнение нулями буфер данных
+				::memset(buffer, '\0', sizeof(buffer));
+				// Выполняем извлечение текста ошибки
+				const size_t size = ::pcre2_regerror(error, &ret->second, buffer, sizeof(buffer) - 1);
+				// Если текст ошибки получен
+				if(size > 0){
+					// Формируем полученную ошибку
+					string error(buffer, size);
+					// Добавляем описание
+					error.append(". Input name [");
+					// Добавляем переданный название переменной
+					error.append(name);
+					// Добавляем завершение строки
+					error.append(1, ']');
+					// Добавляем разделитель
+					error.append(1, ' ');
+					// Добавляем название шаблона
+					error.append("pattern [");
+					// Добавляем переданный название шаблона
+					error.append(pattern);
+					// Добавляем завершение строки
+					error.append(1, ']');
+					// Выводим сообщение об ошибке
+					::fprintf(stderr, "\"Grok:Variables:push\": %s\n", error.c_str());
+				}
+				// Выполняем удаление скомпилированного регулярного выражения
+				::pcre2_regfree(&ret->second);
+				// Выполняем очистку шаблона
+				this->_patterns.erase(name);
 			}
-			// Выполняем очистку шаблона
-			this->_patterns.erase(name);
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			// Формируем полученную ошибку
+			string message = error.what();
+			// Добавляем описание
+			message.append(". Input name [");
+			// Добавляем переданный название переменной
+			message.append(name);
+			// Добавляем завершение строки
+			message.append(1, ']');
+			// Добавляем разделитель
+			message.append(1, ' ');
+			// Добавляем название шаблона
+			message.append("pattern [");
+			// Добавляем переданный название шаблона
+			message.append(pattern);
+			// Добавляем завершение строки
+			message.append(1, ']');
+			// Выводим сообщение об ошибке
+			::fprintf(stderr, "\"Grok:Variables:push\": %s\n", message.c_str());
 		}
+	}
+}
+/**
+ * ~Variables деструктор
+ */
+anyks::Grok::Variables::~Variables() noexcept {
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Если список регулярных выражений шаблонов создан
+		if(!this->_patterns.empty()){
+			// Выполняем перебор всех шаблонов
+			for(auto & item : this->_patterns)
+				// Выполняем удаление скомпилированного регулярного выражения
+				::pcre2_regfree(&item.second);
+		}
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		// Выводим сообщение об ошибке
+		::fprintf(stderr, "\"Grok:Variables:~\": %s\n", error.what());
 	}
 }
 /**
  * clear Метод очистки параметров модуля
  */
 void anyks::Grok::clear() noexcept {
-	// Выполняем сброс собранных данных
-	this->reset();
-	// Выполняем блокировку потока
-	const lock_guard <std::mutex> lock(this->_mtx.patterns);
-	// Очищаем список шаблонов
-	this->_patternsExternal.clear();
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Выполняем очистку внешних шаблонов
+		this->clearPatterns();
+		// Выполняем удаление кэша
+		this->_cache.clear();
+		// Выполняем полную очистку памяти кэша
+		std::map <uint64_t, std::unique_ptr <cache_t>> ().swap(this->_cache);
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
+	}
 }
 /**
  * reset Метод сброса собранных данных
+ * @param cid идентификатор записи в кэше
  */
-void anyks::Grok::reset() noexcept {
-	// Выполняем блокировку потока
-	const lock_guard <std::mutex> lock(this->_mtx.mapping);
-	// Очищаем схему соответствий ключей
-	this->_mapping.clear();
-	// Выполняем сброс параметров переменной
-	this->_variables.reset();
+void anyks::Grok::reset(const uint64_t cid) noexcept {
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Выполняем блокировку потока
+		const lock_guard <std::mutex> lock(this->_mtx.mapping);
+		// Выполняем поиск указанного идентификатора в кэше
+		auto i = this->_cache.find(cid);
+		// Если в кэше найден идентификатор
+		if(i != this->_cache.end()){
+			// Очищаем схему соответствий ключей
+			i->second->mapping.clear();
+			// Выполняем очистку памяти ключей соответствий
+			std::unordered_map <string, string> ().swap(i->second->mapping);
+		}
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cid), log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
+	}
 }
 /**
  * clearPatterns Метод очистки списка добавленных шаблонов
@@ -172,27 +297,77 @@ void anyks::Grok::reset() noexcept {
 void anyks::Grok::clearPatterns() noexcept {
 	// Если список ключей существует
 	if(!this->_patternsExternal.empty()){
-		// Выполняем блокировку потока
-		const lock_guard <std::mutex> lock(this->_mtx.patterns);
-		// Очищаем список шаблонов
-		this->_patternsExternal.clear();
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем блокировку потока
+			const lock_guard <std::mutex> lock(this->_mtx.patterns);
+			// Очищаем список именованных групп
+			this->_nameGroups.clear();
+			// Очищаем список внешних шаблонов
+			this->_patternsExternal.clear();
+			// Выполняем освобождение памяти именованных групп
+			std::map <uint64_t, string> ().swap(this->_nameGroups);
+			// Выполняем освобождение памяти списка внешних шаблонов
+			std::unordered_map <string, string> ().swap(this->_patternsExternal);
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		}
 	}
 }
 /**
- * clearPattern Метод очистки добавленного шаблона
+ * removePattern Метод удаления добавленного шаблона
  * @param name название шаблона для удаления
  */
-void anyks::Grok::clearPattern(const string & name) noexcept {
+void anyks::Grok::removePattern(const string & name) noexcept {
 	// Если список ключей существует
 	if(!name.empty() && !this->_patternsExternal.empty()){
-		// Выполняем блокировку потока
-		const lock_guard <std::mutex> lock(this->_mtx.patterns);
-		// Выполняем поиск указанного шаблона
-		auto i = this->_patternsExternal.find(name);
-		// Если шаблон найден
-		if(i != this->_patternsExternal.end())
-			// Выполняем удаление шаблона
-			this->_patternsExternal.erase(i);
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем блокировку потока
+			const lock_guard <std::mutex> lock(this->_mtx.patterns);
+			// Выполняем поиск указанного шаблона
+			auto i = this->_patternsExternal.find(name);
+			// Если шаблон найден
+			if(i != this->_patternsExternal.end())
+				// Выполняем удаление шаблона
+				this->_patternsExternal.erase(i);
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(name), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		}
 	}
 }
 /**
@@ -205,59 +380,81 @@ anyks::Grok::let_t anyks::Grok::variable(const string & text) const noexcept {
 	let_t result;
 	// Если текст для парсинга передан
 	if(!text.empty()){
-		// Статус разделителя
-		ss_t ss = ss_t::NONE;
-		// Позиция переменной в тексте
-		size_t begin = 0, end = 0;
-		// Перебираем полученный текст
-		for(size_t i = 0; i < text.length(); i++){
-			// Определяем текущий статус
-			switch(static_cast <uint8_t> (ss)){
-				// Статус разделителя не определён
-				case static_cast <uint8_t> (ss_t::NONE): {
-					// Если найден символ процента
-					if(text.at(i) == '%'){
-						// Запоминаем начальную позицию
-						begin = i;
-						// Меняем статус
-						ss = ss_t::FIRST;
-					}
-				} break;
-				// Статус разделителя определён как начальный
-				case static_cast <uint8_t> (ss_t::FIRST): {
-					// Если найдено начальное экранирование
-					if(text.at(i) == '{')
-						// Меняем статус
-						ss = ss_t::SECOND;
-					// Если получен какой-то другой символ, снимаем статус
-					else ss = ss_t::NONE;
-				} break;
-				// Статус разделителя определён как конечный
-				case static_cast <uint8_t> (ss_t::SECOND): {
-					// Определяем символ
-					switch(text.at(i)){
-						// Если найдено конечное экранирование
-						case '}': {
-							// Устанавливаем конечную позицию
-							end = (i + 1);
-							// Если конец строки установлен
-							if(end > begin){
-								// Устанавливаем позицию переменной
-								result.pos = (begin + 2);
-								// Устанавливаем размер переменной
-								result.size = ((end - 1) - (begin + 2));
-								// Выводим результат
-								return result;
-							}
-						} break;
-						// Если найден разделитель переменной
-						case ':':
-							// Устанавливаем позицию разделителя
-							result.delim = i;
-						break;
-					}
-				} break;
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Статус разделителя
+			ss_t ss = ss_t::NONE;
+			// Позиция переменной в тексте
+			size_t begin = 0, end = 0;
+			// Перебираем полученный текст
+			for(size_t i = 0; i < text.length(); i++){
+				// Определяем текущий статус
+				switch(static_cast <uint8_t> (ss)){
+					// Статус разделителя не определён
+					case static_cast <uint8_t> (ss_t::NONE): {
+						// Если найден символ процента
+						if(text.at(i) == '%'){
+							// Запоминаем начальную позицию
+							begin = i;
+							// Меняем статус
+							ss = ss_t::FIRST;
+						}
+					} break;
+					// Статус разделителя определён как начальный
+					case static_cast <uint8_t> (ss_t::FIRST): {
+						// Если найдено начальное экранирование
+						if(text.at(i) == '{')
+							// Меняем статус
+							ss = ss_t::SECOND;
+						// Если получен какой-то другой символ, снимаем статус
+						else ss = ss_t::NONE;
+					} break;
+					// Статус разделителя определён как конечный
+					case static_cast <uint8_t> (ss_t::SECOND): {
+						// Определяем символ
+						switch(text.at(i)){
+							// Если найдено конечное экранирование
+							case '}': {
+								// Устанавливаем конечную позицию
+								end = (i + 1);
+								// Если конец строки установлен
+								if(end > begin){
+									// Устанавливаем позицию переменной
+									result.pos = (begin + 2);
+									// Устанавливаем размер переменной
+									result.size = ((end - 1) - (begin + 2));
+									// Выводим результат
+									return result;
+								}
+							} break;
+							// Если найден разделитель переменной
+							case ':':
+								// Устанавливаем позицию разделителя
+								result.delim = i;
+							break;
+						}
+					} break;
+				}
 			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим результат
@@ -270,20 +467,42 @@ anyks::Grok::let_t anyks::Grok::variable(const string & text) const noexcept {
 void anyks::Grok::removeBrackets(string & text) const noexcept {
 	// Если текст для обработки передан
 	if(!text.empty()){
-		// Позиция скобки в тексте
-		ssize_t pos = -1;
-		// Флаг начала извлечения всего списка переменных
-		Process:
-		// Выполняем поиск скобки в тексте
-		pos = this->bracket(text, static_cast <size_t> (pos + 1));
-		// Если позиция скобки в тексте найдена
-		if(pos > -1){
-			// Выполняем замену в тексте скобки
-			text.replace(static_cast <size_t> (pos), 1, "(?:");
-			// Увеличиваем текущую позицию
-			pos += 2;
-			// Выполняем поиск скобок дальше
-			goto Process;
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Позиция скобки в тексте
+			ssize_t pos = -1;
+			// Флаг начала извлечения всего списка переменных
+			Process:
+			// Выполняем поиск скобки в тексте
+			pos = this->bracket(text, static_cast <size_t> (pos + 1));
+			// Если позиция скобки в тексте найдена
+			if(pos > -1){
+				// Выполняем замену в тексте скобки
+				text.replace(static_cast <size_t> (pos), 1, "(?:");
+				// Увеличиваем текущую позицию
+				pos += 2;
+				// Выполняем поиск скобок дальше
+				goto Process;
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 }
@@ -296,32 +515,54 @@ void anyks::Grok::removeBrackets(string & text) const noexcept {
 ssize_t anyks::Grok::bracket(const string & text, const size_t pos) const noexcept {
 	// Если текст для парсинга передан
 	if(!text.empty()){
-		// Количество подряд идущих экранирований
-		uint16_t shielding = 0;
-		// Перебираем полученный текст
-		for(size_t i = pos; i < text.length(); i++){
-			// Определяем текущий символ
-			switch(text.at(i)){
-				// Если символом является символ экранирования
-				case '\\':
-					// Увеличиваем количество найденных экранов
-					shielding++;
-				break;
-				// Если найденный символ открытая скобка
-				case '(': {
-					// Если экранирования у скобки нет
-					if((shielding % 2) == 0){
-						// Если следующий символ не последний
-						if(((i + 1) < text.length()) && (text.at(i + 1) != '?'))
-							// Выходим из функции
-							return static_cast <ssize_t> (i);
-					}
-					// Выполняем сброс количества экранирований
-					shielding = 0;
-				} break;
-				// Если найденный символ любой другой
-				default: shielding = 0;
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Количество подряд идущих экранирований
+			uint16_t shielding = 0;
+			// Перебираем полученный текст
+			for(size_t i = pos; i < text.length(); i++){
+				// Определяем текущий символ
+				switch(text.at(i)){
+					// Если символом является символ экранирования
+					case '\\':
+						// Увеличиваем количество найденных экранов
+						shielding++;
+					break;
+					// Если найденный символ открытая скобка
+					case '(': {
+						// Если экранирования у скобки нет
+						if((shielding % 2) == 0){
+							// Если следующий символ не последний
+							if(((i + 1) < text.length()) && (text.at(i + 1) != '?'))
+								// Выходим из функции
+								return static_cast <ssize_t> (i);
+						}
+						// Выполняем сброс количества экранирований
+						shielding = 0;
+					} break;
+					// Если найденный символ любой другой
+					default: shielding = 0;
+				}
 			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, pos), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим результат
@@ -333,51 +574,35 @@ ssize_t anyks::Grok::bracket(const string & text, const size_t pos) const noexce
  * @param lets разрешить обработку блочных переменных
  * @return     список извлечённых переменных
  */
-vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool lets) const noexcept {
+vector <std::pair <string, string>> anyks::Grok::prepare(string & text, const bool lets) const noexcept {
 	// Результат работы функции
-	vector <pair <string, string>> result;
+	vector <std::pair <string, string>> result;
 	// Если текст для обработки передан
 	if(!text.empty()){
-		// Флаг начала извлечения всего списка переменных
-		Process:
-		// Выполняем получение блоковой переменной из текста
-		let_t let = this->variable(text);
-		// Если разделитель не найден
-		if((lets || (let.delim == 0)) && (let.pos > 0) && (let.size > 0)){
-			// Ключ и значение переменной
-			string key = "", value = "";
-			// Если разделитель найден
-			if(let.delim > 0){
-				// Выполняем установку ключа
-				key = text.substr(let.pos, let.delim - let.pos);
-				// Выполняем установку значения переменной
-				value = text.substr(let.delim + 1, let.size - ((let.delim + 1) - let.pos));
-			// Иначе устанавливаем ключ переменной как он есть
-			} else key = text.substr(let.pos, let.size);
-			// Выполняем поиск переменной среди внутренних шаблонов
-			auto i = this->_patternsInternal.find(key);
-			// Если переменная среди внутренних шаблонов найдена
-			if(i != this->_patternsInternal.end()){
-				// Выполняем копирование полученного шаблона
-				string pattern = i->second;
-				// Выполняем обработку нашего шаблона
-				const auto & vars = this->prepare(pattern, lets);
-				// Выполняем замену
-				text.replace(let.pos - 2, let.size + 3, (lets ? "(" : "") + pattern + (lets ? ")" : ""));
-				// Выполняем добавления переменной в список результата
-				result.emplace_back(std::move(value), std::move(pattern));
-				// Если мы получили список переменных из обраотанного шаблона
-				if(!vars.empty())
-					// Выполняем добавления полученных шаблонов в результат
-					result.insert(result.end(), vars.begin(), vars.end());
-				// Выполняем поиск переменных дальше
-				goto Process;
-			// Если переменная среди внутренних шаблонов не найдена
-			} else {
-				// Выполняем поиск переменной среди внешних шаблонов
-				auto i = this->_patternsExternal.find(key);
-				// Если переменная среди внешних шаблонов найдена
-				if(i != this->_patternsExternal.end()){
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Флаг начала извлечения всего списка переменных
+			Process:
+			// Выполняем получение блоковой переменной из текста
+			let_t let = this->variable(text);
+			// Если разделитель не найден
+			if((lets || (let.delim == 0)) && (let.pos > 0) && (let.size > 0)){
+				// Ключ и значение переменной
+				string key = "", value = "";
+				// Если разделитель найден
+				if(let.delim > 0){
+					// Выполняем установку ключа
+					key = text.substr(let.pos, let.delim - let.pos);
+					// Выполняем установку значения переменной
+					value = text.substr(let.delim + 1, let.size - ((let.delim + 1) - let.pos));
+				// Иначе устанавливаем ключ переменной как он есть
+				} else key = text.substr(let.pos, let.size);
+				// Выполняем поиск переменной среди внутренних шаблонов
+				auto i = this->_patternsInternal.find(key);
+				// Если переменная среди внутренних шаблонов найдена
+				if(i != this->_patternsInternal.end()){
 					// Выполняем копирование полученного шаблона
 					string pattern = i->second;
 					// Выполняем обработку нашего шаблона
@@ -392,8 +617,46 @@ vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool le
 						result.insert(result.end(), vars.begin(), vars.end());
 					// Выполняем поиск переменных дальше
 					goto Process;
+				// Если переменная среди внутренних шаблонов не найдена
+				} else {
+					// Выполняем поиск переменной среди внешних шаблонов
+					auto i = this->_patternsExternal.find(key);
+					// Если переменная среди внешних шаблонов найдена
+					if(i != this->_patternsExternal.end()){
+						// Выполняем копирование полученного шаблона
+						string pattern = i->second;
+						// Выполняем обработку нашего шаблона
+						const auto & vars = this->prepare(pattern, lets);
+						// Выполняем замену
+						text.replace(let.pos - 2, let.size + 3, (lets ? "(" : "") + pattern + (lets ? ")" : ""));
+						// Выполняем добавления переменной в список результата
+						result.emplace_back(std::move(value), std::move(pattern));
+						// Если мы получили список переменных из обраотанного шаблона
+						if(!vars.empty())
+							// Выполняем добавления полученных шаблонов в результат
+							result.insert(result.end(), vars.begin(), vars.end());
+						// Выполняем поиск переменных дальше
+						goto Process;
+					}
 				}
 			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, lets), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим результат
@@ -405,117 +668,383 @@ vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool le
  */
 void anyks::Grok::patterns(const json & patterns) noexcept {
 	// Если шаблоны переданы
-	if(!patterns.empty() && patterns.is_object()){
-		// Объект блоковой переменной
-		let_t let;
-		// Список регулярных выражений в которых содержатся блоковые переменные
-		std::unordered_map <string, string> items;
-		// Выполняем перебор всего списка значений
-		for(auto & el : patterns.items()){
-			// Если значение является строкой
-			if(el.value().is_string()){
-				// Выполняем получение блоковой переменной из текста
-				let = this->variable(el.value().get <string> ());
-				// Если разделитель не найден
-				if((let.delim == 0) && (let.pos > 0) && (let.size > 0))
-					// Выполняем формирование списка регулярных выражений
-					items.emplace(el.key(), el.value().get <string> ());
-				// Выполняем добавление полученных шаблонов как они есть
-				else this->pattern(el.key(), el.value().get <string> (), event_t::EXTERNAL);
+	if(patterns.IsObject()){
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Объект блоковой переменной
+			let_t let;
+			// Список регулярных выражений в которых содержатся блоковые переменные
+			std::unordered_map <string, string> items;
+			// Выполняем перебор всего списка значений
+			for(auto & m : patterns.GetObject()){
+				// Если значение является строкой
+				if(m.value.IsString()){
+					// Выполняем получение блоковой переменной из текста
+					let = this->variable(m.value.GetString());
+					// Если разделитель не найден
+					if((let.delim == 0) && (let.pos > 0) && (let.size > 0))
+						// Выполняем формирование списка регулярных выражений
+						items.emplace(m.name.GetString(), m.value.GetString());
+					// Выполняем добавление полученных шаблонов как они есть
+					else this->pattern(m.name.GetString(), m.value.GetString(), event_t::EXTERNAL);
+				}
 			}
-		}
-		// Если список регулярных выражений в которых содержатся блоковые переменные собран
-		if(!items.empty()){
-			// Выполняем перебор всего списка регулярных выражений
-			for(auto & item : items)
-				// Выполняем добавление нашего шаблона
-				this->pattern(item.first, item.second, event_t::EXTERNAL);
+			// Если список регулярных выражений в которых содержатся блоковые переменные собран
+			if(!items.empty()){
+				// Выполняем перебор всего списка регулярных выражений
+				for(auto & item : items)
+					// Выполняем добавление нашего шаблона
+					this->pattern(item.first, item.second, event_t::EXTERNAL);
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 }
 /**
  * pattern Метод добавления шаблона
- * @param name    название шаблона
- * @param express регуляреное выражение соответствующее переменной
+ * @param key название переменной
+ * @param val регуляреное выражение соответствующее переменной
  */
-void anyks::Grok::pattern(const string & name, const string & express) noexcept {
+void anyks::Grok::pattern(const string & key, const string & val) noexcept {
 	// Если параметры шаблона переданы
-	if(!name.empty() && !express.empty())
+	if(!key.empty() && !val.empty())
 		// Выполняем добавление нашего шаблона
-		this->pattern(name, express, event_t::EXTERNAL);
+		this->pattern(key, val, event_t::EXTERNAL);
 }
 /**
  * pattern Метод добавления шаблона
- * @param name    название шаблона
- * @param express регуляреное выражение соответствующее переменной
- * @param event   тип выполняемого события
+ * @param key   название переменной
+ * @param val   регуляреное выражение соответствующее переменной
+ * @param event тип выполняемого события
  */
-void anyks::Grok::pattern(const string & name, const string & express, const event_t event) noexcept {
+void anyks::Grok::pattern(const string & key, const string & val, const event_t event) noexcept {
 	// Если параметры шаблона переданы
-	if(!name.empty() && !express.empty()){
-		// Выполняем блокировку потока
-		const lock_guard <std::mutex> lock(this->_mtx.patterns);
-		// Выполняем копирование текста регулярного выражения
-		string pattern = express;
-		// Выполняем удаление лишних скобок
-		this->removeBrackets(pattern);
-		// Выполняем обработку полученных шаблонов
-		this->prepare(pattern, false);
-		// Если текст регулярного выражения получен
-		if(!pattern.empty()){
-			// Определяем тип события
-			switch(static_cast <uint8_t> (event)){
-				// Если событие является внутренним
-				case static_cast <uint8_t> (event_t::INTERNAL):
-					// Выполняем добавление шаблона
-					this->_patternsInternal.emplace(name, pattern);
-				break;
-				// Если событие является внешним
-				case static_cast <uint8_t> (event_t::EXTERNAL):
-					// Выполняем добавление шаблона
-					this->_patternsExternal.emplace(name, pattern);
-				break;
+	if(!key.empty() && !val.empty()){
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем блокировку потока
+			const lock_guard <std::mutex> lock(this->_mtx.patterns);
+			// Выполняем копирование текста регулярного выражения
+			string text = val;
+			// Выполняем удаление лишних скобок
+			this->removeBrackets(text);
+			// Выполняем обработку полученных шаблонов
+			this->prepare(text, false);
+			// Если текст регулярного выражения получен
+			if(!text.empty()){
+				// Определяем тип события
+				switch(static_cast <uint8_t> (event)){
+					// Если событие является внутренним
+					case static_cast <uint8_t> (event_t::INTERNAL):
+						// Выполняем добавление шаблона
+						this->_patternsInternal.emplace(key, text);
+					break;
+					// Если событие является внешним
+					case static_cast <uint8_t> (event_t::EXTERNAL):
+						// Выполняем добавление шаблона
+						this->_patternsExternal.emplace(key, text);
+					break;
+				}
 			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, val, static_cast <uint16_t> (event)), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 }
 /**
  * generatePattern Метод генерации шаблона
- * @param name    название шаблона в виде <name>
- * @param express значение шиблок (Регулярное выражение или Grok-шаблон)
- * @return        сгенерированный шаблон
+ * @param key название шаблона в виде <name>
+ * @param val значение шиблок (Регулярное выражение или Grok-шаблон)
+ * @return    сгенерированный шаблон
  */
-string anyks::Grok::generatePattern(const string & name, const string & express) noexcept {
+string anyks::Grok::generatePattern(const string & key, const string & val) noexcept {
 	// Результат работы функции
 	string result = "";
 	// Если данные переданы верные
-	if(!name.empty() && !express.empty() && (name.front() == '<') && (name.back() == '>')){
-		// Название переменной
-		string variable = "";
-		// Получаем группу шаблона
-		string group = name;
-		// Удаляем экранирование блоков
-		group.erase(0, 1).pop_back();
-		// Переходим по всем символам группы
-		for(auto & item : group)
-			// Выполняем формирование названия переменной
-			variable.append(1, ::toupper(item));
-		// Добавляем разделитель
-		variable.append(1, '_');
-		// Добавлем текущее значение времени
-		variable.append(std::to_string(this->_fmk->timestamp(fmk_t::stamp_t::NANOSECONDS)));
-		// Выполняем добавление шаблона
-		this->pattern(variable, express, event_t::EXTERNAL);
-		// Формируем генерацию grok-шаблона
-		result.append("%{");
-		// Добавляем название сформированной переменной
-		result.append(variable);
-		// Добавляем разделитель
-		result.append(1, ':');
-		// Добавляем значение переменной
-		result.append(group);
-		// Закрываем сгенерированный шаблон
-		result.append(1, '}');
+	if(!key.empty() && !val.empty() && (key.front() == '<') && (key.back() == '>')){
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Создаём название переменной
+			string name = key;
+			// Добавляем разделитель
+			name.append(1, '_');
+			// Добавляем значение
+			name.append(val);
+			// Выполняем генерацию идентификатора кэша
+			const uint64_t id = CityHash64(name.c_str(), name.size());
+			// Выполняем поиск идентификатора в списке переменных
+			auto i = this->_nameGroups.find(id);
+			// Если менованная группа найдена
+			if(i != this->_nameGroups.end())
+				// Выводим полученный результат
+				return i->second;
+			// Если именованная группа не найдена
+			else {
+				// Название переменной
+				string var = "";
+				// Получаем группу шаблона
+				string group = key;
+				// Удаляем экранирование блоков
+				group.erase(0, 1).pop_back();
+				// Переходим по всем символам группы
+				for(auto & item : group)
+					// Выполняем формирование названия переменной
+					var.append(1, ::toupper(item));
+				// Добавляем разделитель
+				var.append(1, '_');
+				// Добавлем текущее значение времени
+				var.append(std::to_string(id));
+				// Выполняем добавление шаблона
+				this->pattern(var, val);
+				// Формируем генерацию grok-шаблона
+				result.append("%{");
+				// Добавляем название сформированной переменной
+				result.append(var);
+				// Добавляем разделитель
+				result.append(1, ':');
+				// Добавляем значение переменной
+				result.append(group);
+				// Закрываем сгенерированный шаблон
+				result.append(1, '}');
+				// Выполняем блокировку потока потока
+				const lock_guard <std::mutex> lock(this->_mtx.cache);
+				// Добавляем полученный результат в кэш
+				this->_nameGroups.emplace(id, result);
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, val), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		}
+	}
+	// Выводим результат
+	return result;
+}
+/**
+ * build Метод сборки регулярного выражения
+ * @param text текст регулярного выражения для сборки
+ * @return     идентификатор записи в кэше
+ */
+uint64_t anyks::Grok::build(string & text) const noexcept {
+	// Результат работы функции
+	uint64_t result = 0;
+	// Если текст передан
+	if(!text.empty()){
+		// Выполняем генерацию идентификатора кэша
+		result = CityHash64(text.c_str(), text.size());
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем поиск кэша для текущего регулярного выражения
+			auto i = this->_cache.find(result);
+			// Если кэш для регулярного выражения найден
+			if(i != this->_cache.end()){
+				// Выполняем установку регулярное выражение
+				text = i->second->express.expression;
+				// Выводим идентификатор записи в кэше
+				return result;
+			// Если в кэше регулярного выражения нет
+			} else {
+				// Выполняем удаление лишних скобок
+				this->removeBrackets(text);
+				// Выполняем блокировку потока
+				const_cast <grok_t *> (this)->_mtx.cache.lock();
+				// Выполняем создании записи кэша
+				auto ret = const_cast <grok_t *> (this)->_cache.emplace(result, std::unique_ptr <cache_t> (new cache_t(this->_log)));
+				// Выполняем разблокировку потока
+				const_cast <grok_t *> (this)->_mtx.cache.unlock();
+				// Выполняем поиск всех именованных групп
+				for(;;){
+					// Создаём объект матчинга
+					regmatch_t match[this->_reg.re_nsub + 1];
+					// Если возникла ошибка
+					if(::pcre2_regexec(&this->_reg, text.c_str(), this->_reg.re_nsub + 1, match, REG_NOTEMPTY) > 0)
+						// Выходим из цикла корректировки
+						break;
+					// Если ошибок не получено
+					else {
+						// Количество найденных скобок
+						uint8_t brackets = 0;
+						// Выполняем перебор всех полученных вариантов
+						for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg.re_nsub + 1); i++){
+							// Если результат получен
+							if(match[i].rm_eo > 0){
+								// Выполняем сброс количества скобок
+								brackets = 1;
+								// Выполняем перебор всей полученной группы сообщения
+								for(size_t j = static_cast <size_t> (match[i].rm_so); j < text.size(); j++){
+									// Если найдена открывающаяся скобка
+									if((text[j] == '(') && (text[j - 1] != '\\'))
+										// Увеличиваем количество найденных скобок
+										brackets++;
+									// Если найдена закрывающая скобка
+									else if((text[j] == ')') && (text[j - 1] != '\\'))
+										// Уменьшаем количество найденных скобок
+										brackets--;
+									// Если найден конец выходим
+									if(brackets == 0){
+										// Получаем полную извлечённую строку
+										const string & str = text.substr(match[i].rm_so, j - match[i].rm_so);
+										// Получаем название группы
+										string group = text.substr(match[i].rm_so, match[i].rm_eo - match[i].rm_so);
+										// Получаем шаблон регулярного выражения
+										string express = str.substr(group.length());
+										// Получаем значение переменной
+										const string & var = const_cast <grok_t *> (this)->generatePattern(group, express);
+										// Если переменная получена
+										if(!var.empty())
+											// Заменяем в тексте полученные данные на нашу переменную
+											text.replace(match[i].rm_so - 2, (j + 1) - (match[i].rm_so - 2), var);
+									}
+								}
+							}
+						}
+					}
+				}
+				// Если текст существует а не сломан
+				if(!text.empty()){
+					// Выполняем обработку полученных шаблонов
+					const auto & vars = this->prepare(text);
+					// Если список переменных получен
+					if(!vars.empty()){
+						// Выполняем перебор списка переменных
+						for(auto & var : vars)
+							// Выполняем добавление переменной
+							ret.first->second->vars.push(var.first, var.second);
+					}
+					// Выполняем установку регулярного выражения
+					ret.first->second->express.expression = text;
+					// Выполняем компиляцию регулярного выражения
+					const int error = ::pcre2_regcomp(&ret.first->second->express.reg, ret.first->second->express.expression.c_str(), REG_UTF | REG_ICASE);
+					// Если возникла ошибка компиляции
+					if(!(ret.first->second->express.mode = (error == 0))){
+						// Создаём буфер данных для извлечения данных ошибки
+						char buffer[256];
+						// Выполняем заполнение нулями буфер данных
+						::memset(buffer, '\0', sizeof(buffer));
+						// Выполняем извлечение текста ошибки
+						const size_t size = ::pcre2_regerror(error, &ret.first->second->express.reg, buffer, sizeof(buffer) - 1);
+						// Если текст ошибки получен
+						if(size > 0){
+							// Формируем полученную ошибку
+							string error(buffer, size);
+							/**
+							 * Если включён режим отладки
+							 */
+							#if defined(DEBUG_MODE)
+								// Выводим сообщение об ошибке
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.c_str());
+							/**
+							* Если режим отладки не включён
+							*/
+							#else
+								// Выводим сообщение об ошибке
+								this->_log->print("%s", log_t::flag_t::CRITICAL, error.c_str());
+							#endif
+						}
+						// Выполняем сброс собранных данных переменных
+						ret.first->second->vars.reset();
+						// Выполняем блокировку потока потока для удаления кэша
+						const lock_guard <std::mutex> lock(const_cast <grok_t *> (this)->_mtx.cache);
+						// Выполняем удаление скомпилированного регулярного выражения
+						::pcre2_regfree(&ret.first->second->express.reg);
+						// Выполняем удаление записи из кэша
+						const_cast <grok_t *> (this)->_cache.erase(result);
+						// Выполняем зануление идентификатора записи
+						result = 0;
+					}
+				// Формируем сообщение об ошибке
+				} else {
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(ret.first->second->express.expression), log_t::flag_t::CRITICAL, "Regular expression is broken");
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, "Regular expression is broken");
+					#endif
+					// Выполняем блокировку потока потока для удаления кэша
+					const lock_guard <std::mutex> lock(const_cast <grok_t *> (this)->_mtx.cache);
+					// Выполняем удаление записи из кэша
+					const_cast <grok_t *> (this)->_cache.erase(result);
+					// Выполняем зануление идентификатора записи
+					result = 0;
+				}
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		}
 	}
 	// Выводим результат
 	return result;
@@ -538,33 +1067,31 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
 			// Выполняем поиск идентификатора регулярного выражения в кэше
 			auto i = this->_cache.find(cid);
 			// Если идентификатор регулярного выражения в кэше найден
-			if(i != this->_cache.end()){
-				// Получаем строку текста для поиска
-				const char * str = text.c_str();
+			if((i != this->_cache.end()) && i->second->express.mode){
 				// Создаём объект матчинга
-				std::unique_ptr <regmatch_t []> match(new regmatch_t [i->second->reg.re_nsub + 1]);
+				regmatch_t match[i->second->express.reg.re_nsub + 1];
 				// Выполняем разбор регулярного выражения
-				const int error = pcre2_regexec(&i->second->reg, str, i->second->reg.re_nsub + 1, match.get(), REG_NOTEMPTY);
+				const int error = ::pcre2_regexec(&i->second->express.reg, text.c_str(), i->second->express.reg.re_nsub + 1, match, REG_NOTEMPTY);
 				// Если ошибок не получено
 				if((result = (error == 0))){
 					// Название полученной переменной
 					string value = "";
 					// Выполняем перебор всех полученных вариантов
-					for(uint8_t j = 1; j < static_cast <uint8_t> (i->second->reg.re_nsub + 1); j++){
+					for(uint8_t j = 1; j < static_cast <uint8_t> (i->second->express.reg.re_nsub + 1); j++){
 						// Если результат получен
 						if(match[j].rm_eo > match[j].rm_so){
 							// Добавляем полученный результат в список результатов
-							value.assign(str + match[j].rm_so, match[j].rm_eo - match[j].rm_so);
+							value.assign(text.c_str() + match[j].rm_so, match[j].rm_eo - match[j].rm_so);
 							// Если значение переменной получено
 							if(!value.empty()){
 								// Извлекаем переменную которой соответствует текст
-								const string & key = this->_variables.get(value, j - 1);
+								const string & key = i->second->vars.get(value, j - 1);
 								// Если название переменной получено
 								if(!key.empty()){
 									// Выполняем блокировку потока
 									const lock_guard <std::mutex> lock(this->_mtx.mapping);
 									// Выполняем добавления полученных данных в схему соответствий
-									this->_mapping.emplace(key, value);
+									i->second->mapping.emplace(key, value);
 								}
 							}
 						}
@@ -575,269 +1102,19 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
 		 * Если возникает ошибка
 		 */
 		} catch(const std::exception & error) {
-			// Формируем полученную ошибку
-			string message = error.what();
-			// Добавляем описание
-			message.append(". Input text [");
-			// Добавляем переданный текст
-			message.append(text);
-			// Добавляем завершение строки
-			message.append(1, ']');
-			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
-		}
-	}
-	// Выводим результат
-	return result;
-}
-/**
- * parse Метод выполнения парсинга текста
- * @param text текст для парсинга
- * @param rule правило парсинга текста
- * @return     результат выполнения регулярного выражения
- */
-bool anyks::Grok::parse(const string & text, const string & rule) noexcept {
-	// Результат работы функции
-	bool result = false;
-	// Если данные текста и правил переданы
-	if(!text.empty() && !rule.empty()){
-		/**
-		 * Выполняем обработку ошибки
-		 */
-		try {
-			// Объект контекста регулярного выражения
-			regex_t reg;
-			// Выполняем компиляцию регулярного выражения
-			const int error = pcre2_regcomp(&reg, rule.c_str(), REG_UTF | REG_ICASE);
-			// Если возникла ошибка компиляции
-			if(error != 0){
-				// Создаём буфер данных для извлечения данных ошибки
-				char buffer[256];
-				// Выполняем заполнение нулями буфер данных
-				::memset(buffer, '\0', sizeof(buffer));
-				// Выполняем извлечение текста ошибки
-				const size_t size = pcre2_regerror(error, &reg, buffer, sizeof(buffer) - 1);
-				// Если текст ошибки получен
-				if(size > 0){
-					// Формируем полученную ошибку
-					string error(buffer, size);
-					// Добавляем описание
-					error.append(". Input pattern [");
-					// Добавляем переданный шаблон
-					error.append(rule);
-					// Добавляем завершение строки
-					error.append(1, ']');
-					// Добавляем входящий текст
-					error.append(", Input text [");
-					// Добавляем переданный текст
-					error.append(text);
-					// Добавляем завершение строки
-					error.append(1, ']');
-					// Добавляем в список полученные ошибки
-					this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
-				}
-			// Если регулярное выражение удачно скомпилированно
-			} else {
-				// Получаем строку текста для поиска
-				const char * str = text.c_str();
-				// Создаём объект матчинга
-				std::unique_ptr <regmatch_t []> match(new regmatch_t [reg.re_nsub + 1]);
-				// Выполняем разбор регулярного выражения
-				const int error = pcre2_regexec(&reg, str, reg.re_nsub + 1, match.get(), REG_NOTEMPTY);
-				// Если ошибок не получено
-				if((result = (error == 0))){
-					// Название полученной переменной
-					string value = "";
-					// Выполняем перебор всех полученных вариантов
-					for(uint8_t i = 1; i < static_cast <uint8_t> (reg.re_nsub + 1); i++){
-						// Если результат получен
-						if(match[i].rm_eo > match[i].rm_so){
-							// Добавляем полученный результат в список результатов
-							value.assign(str + match[i].rm_so, match[i].rm_eo - match[i].rm_so);
-							// Если значение переменной получено
-							if(!value.empty()){
-								// Извлекаем переменную которой соответствует текст
-								const string & key = this->_variables.get(value, i - 1);
-								// Если название переменной получено
-								if(!key.empty()){
-									// Выполняем блокировку потока
-									const lock_guard <std::mutex> lock(this->_mtx.mapping);
-									// Выполняем добавления полученных данных в схему соответствий
-									this->_mapping.emplace(key, value);
-								}
-							}
-						}
-					}
-				}
-				// Выполняем удаление скомпилированного регулярного выражения
-				pcre2_regfree(&reg);
-			}
-		/**
-		 * Если возникает ошибка
-		 */
-		} catch(const std::exception & error) {
-			// Формируем полученную ошибку
-			string message = error.what();
-			// Добавляем описание
-			message.append(". Input text [");
-			// Добавляем переданный текст
-			message.append(text);
-			// Добавляем завершение строки
-			message.append(1, ']');
-			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
-		}
-	}
-	// Выводим результат
-	return result;
-}
-/**
- * build Метод сборки регулярного выражения
- * @param text текст регулярного выражения для сборки
- * @param pure флаг выполнения сборки чистого регулярного выражения
- * @return     идентификатор записи в кэше
- */
-uint64_t anyks::Grok::build(string & text, const bool pure) const noexcept {
-	// Результат работы функции
-	uint64_t result = 0;
-	// Если текст передан
-	if(!text.empty() && this->_mode){
-		/**
-		 * Выполняем отлов ошибок
-		 */
-		try {
-			// Выполняем генерацию идентификатора кэша
-			result = CityHash64(text.c_str(), text.size());
-			// Если нам не нужно собирать чистое регулярное выражение
-			if(!pure)
-				// Выполняем удаление лишних скобок
-				this->removeBrackets(text);
-			// Выполняем корректировку всего правила Grok
-			for(;;){
-				// Получаем строку текста для поиска
-				const char * str = text.c_str();
-				// Создаём объект матчинга
-				std::unique_ptr <regmatch_t []> match(new regmatch_t [this->_reg.re_nsub + 1]);
-				// Если возникла ошибка
-				if(pcre2_regexec(&this->_reg, str, this->_reg.re_nsub + 1, match.get(), REG_NOTEMPTY) > 0)
-					// Выходим из цикла корректировки
-					break;
-				// Если ошибок не получено
-				else {
-					// Количество найденных скобок
-					uint8_t brackets = 0;
-					// Выполняем перебор всех полученных вариантов
-					for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg.re_nsub + 1); i++){
-						// Если результат получен
-						if(match[i].rm_eo > 0){
-							// Выполняем сброс количества скобок
-							brackets = 1;
-							// Выполняем перебор всей полученной группы сообщения
-							for(size_t j = static_cast <size_t> (match[i].rm_so); j < text.size(); j++){
-								// Если найдена открывающаяся скобка
-								if((text[j] == '(') && (text[j - 1] != '\\'))
-									// Увеличиваем количество найденных скобок
-									brackets++;
-								// Если найдена закрывающая скобка
-								else if((text[j] == ')') && (text[j - 1] != '\\'))
-									// Уменьшаем количество найденных скобок
-									brackets--;
-								// Если найден конец выходим
-								if(brackets == 0){
-									// Получаем полную извлечённую строку
-									const string & str = text.substr(match[i].rm_so, j - match[i].rm_so);
-									// Получаем название группы
-									string group = text.substr(match[i].rm_so, match[i].rm_eo - match[i].rm_so);
-									// Получаем шаблон регулярного выражения
-									string express = str.substr(group.length());
-									// Получаем значение переменной
-									const string & variable = const_cast <grok_t *> (this)->generatePattern(group, express);
-									// Если переменная получена
-									if(!variable.empty())
-										// Заменяем в тексте полученные данные на нашу переменную
-										text.replace(match[i].rm_so - 2, (j + 1) - (match[i].rm_so - 2), variable);
-								}
-							}
-						}
-					}
-				}
-			}
-			// Выполняем обработку полученных шаблонов
-			const auto & vars = this->prepare(text);
-			// Если список переменных получен
-			if(!vars.empty()){
-				// Выполняем перебор списка переменных
-				for(auto & var : vars)
-					// Выполняем добавление переменной
-					this->_variables.push(var.first, var.second);
-			}
-			// Выполняем поиск запись в кэше
-			auto i = this->_cache.find(result);
-			// Если в кэше найдена запись
-			if(i != this->_cache.end()){
-				// Выполняем установку регулярное выражение
-				text = i->second->expression;
-				// Выводим идентификатор записи в кэше
-				return result;
-			// Если текст регулярного выражения сформирован верно
-			} else if(!pure && !text.empty()) {
-				// Выполняем блокировку потока
-				this->_mtx.cache.lock();
-				// Выполняем создании записи кэша
-				auto ret = const_cast <grok_t *> (this)->_cache.emplace(result, std::unique_ptr <cache_t> (new cache_t));
-				// Выполняем разблокировку потока
-				this->_mtx.cache.unlock();
-				// Выполняем установку регулярного выражения
-				ret.first->second->expression = text;
-				// Выполняем компиляцию регулярного выражения
-				const int error = pcre2_regcomp(&ret.first->second->reg, ret.first->second->expression.c_str(), REG_UTF | REG_ICASE);
-				// Если возникла ошибка компиляции
-				if(error != 0){
-					// Создаём буфер данных для извлечения данных ошибки
-					char buffer[256];
-					// Выполняем заполнение нулями буфер данных
-					::memset(buffer, '\0', sizeof(buffer));
-					// Выполняем извлечение текста ошибки
-					const size_t size = pcre2_regerror(error, &ret.first->second->reg, buffer, sizeof(buffer) - 1);
-					// Если текст ошибки получен
-					if(size > 0){
-						// Формируем полученную ошибку
-						string error(buffer, size);
-						// Добавляем описание
-						error.append(". Input pattern [");
-						// Добавляем переданный шаблон
-						error.append(ret.first->second->expression);
-						// Добавляем завершение строки
-						error.append(1, ']');
-						// Добавляем в список полученные ошибки
-						this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
-					}
-					// Выполняем сброс собранных данных переменных
-					this->_variables.reset();
-					// Выполняем блокировку потока
-					this->_mtx.cache.lock();
-					// Выполняем удаление записи из кэша
-					const_cast <grok_t *> (this)->_cache.erase(result);
-					// Выполняем разблокировку потока
-					this->_mtx.cache.unlock();
-					// Выполняем зануление идентификатора записи
-					result = 0;
-				}
-			}
-		/**
-		 * Если возникает ошибка
-		 */
-		} catch(const std::exception & error) {
-			// Формируем полученную ошибку
-			string message = error.what();
-			// Добавляем описание
-			message.append(". Input text [");
-			// Добавляем переданный текст
-			message.append(text);
-			// Добавляем завершение строки
-			message.append(1, ']');
-			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, cid), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 	// Выводим результат
@@ -845,100 +1122,130 @@ uint64_t anyks::Grok::build(string & text, const bool pure) const noexcept {
 }
 /**
  * dump Метод извлечения данных в виде JSON
- * @return json объект дампа данных
+ * @param cid идентификатор записи в кэше
+ * @return    json объект дампа данных
  */
-json anyks::Grok::dump() const noexcept {
+json anyks::Grok::dump(const uint64_t cid) const noexcept {
 	// Результат работы функции
-	json result = json::object();
-	// Если схема соответствия ключей сформированна
-	if(!this->_mapping.empty()){
-		// Выполняем сборку объекта результатов
-		for(auto & item : this->_mapping){
-			// Если результат получен в виде обычного числа
-			if(this->_fmk->is(item.second, fmk_t::check_t::NUMBER)){
-				/**
-				 * Выполняем отлов ошибок
-				 */
-				try {
-					// Если число положительное
-					if(item.second.front() != '-')
-						// Выполняем конвертацию в число
-						result.emplace(item.first, ::stoull(item.second));
-					// Выполняем конвертацию в число
-					else result.emplace(item.first, ::stoll(item.second));
-				/**
-				 * Если возникает ошибка
-				 */
-				} catch(const std::exception & error) {
-					// Формируем полученную ошибку
-					string message = error.what();
-					// Добавляем описание
-					message.append(". Input text [");
-					// Добавляем переданный текст
-					message.append(item.second);
-					// Добавляем завершение строки
-					message.append(1, ']');
-					// Добавляем в список полученные ошибки
-					this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
-					// Выполняем конвертацию в число
-					result.emplace(item.first, item.second);
+	json result;
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Устанавливаем тип JSON как объект
+		result.SetObject();
+		// Выполняем поиск идентификатора регулярного выражения в кэше
+		auto i = this->_cache.find(cid);
+		// Если идентификатор регулярного выражения в кэше найден
+		if(i != this->_cache.end()){
+			// Если схема соответствия ключей сформированна
+			if(!i->second->mapping.empty()){
+				// Выполняем сборку объекта результатов
+				for(auto & item : i->second->mapping){
+					// Если результат получен в виде обычного числа
+					if(this->_fmk->is(item.second, fmk_t::check_t::NUMBER)){
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Если число положительное
+							if(item.second.front() != '-')
+								// Выполняем конвертацию в число
+								result.AddMember(Value(item.first.c_str(), item.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(item.second))).Move(), result.GetAllocator());
+							// Выполняем конвертацию в число
+							else result.AddMember(Value(item.first.c_str(), item.first.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(item.second))).Move(), result.GetAllocator());
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception & error) {
+							// Выполняем конвертацию в число
+							result.AddMember(Value(item.first.c_str(), item.first.length(), result.GetAllocator()).Move(), Value(item.second.c_str(), item.second.length(), result.GetAllocator()).Move(), result.GetAllocator());
+						}
+					// Если результат получен в виде числа с плавающей точкой
+					} else if(this->_fmk->is(item.second, fmk_t::check_t::DECIMAL)) {
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Выполняем конвертацию в число с плавающей точкой
+							result.AddMember(Value(item.first.c_str(), item.first.length(), result.GetAllocator()).Move(), Value(::stod(item.second)).Move(), result.GetAllocator());
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const std::exception & error) {
+							// Выполняем конвертацию в число
+							result.AddMember(Value(item.first.c_str(), item.first.length(), result.GetAllocator()).Move(), Value(item.second.c_str(), item.second.length(), result.GetAllocator()).Move(), result.GetAllocator());
+						}
+					// Формируем результат в формате JSON
+					} else result.AddMember(Value(item.first.c_str(), item.first.length(), result.GetAllocator()).Move(), Value(item.second.c_str(), item.second.length(), result.GetAllocator()).Move(), result.GetAllocator());
 				}
-			// Если результат получен в виде числа с плавающей точкой
-			} else if(this->_fmk->is(item.second, fmk_t::check_t::DECIMAL)) {
-				/**
-				 * Выполняем отлов ошибок
-				 */
-				try {
-					// Выполняем конвертацию в число с плавающей точкой
-					result.emplace(item.first, ::stold(item.second));
-				/**
-				 * Если возникает ошибка
-				 */
-				} catch(const std::exception & error) {
-					// Формируем полученную ошибку
-					string message = error.what();
-					// Добавляем описание
-					message.append(". Input text [");
-					// Добавляем переданный текст
-					message.append(item.second);
-					// Добавляем завершение строки
-					message.append(1, ']');
-					// Добавляем в список полученные ошибки
-					this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, message.c_str());
-					// Выполняем конвертацию в число
-					result.emplace(item.first, item.second);
-				}
-			// Формируем результат в формате JSON
-			} else result.emplace(item.first, item.second);
+			}
 		}
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
 	}
 	// Выводим результат
 	return result;
 }
 /**
- * mapping Метод извлечения карты полученных значений
- * @return карта полученных значений 
- */
-const std::unordered_map <string, string> & anyks::Grok::mapping() const noexcept {
-	// Выводим список полученных значений
-	return this->_mapping;
-}
-/**
  * get Метод извлечения записи по ключу
  * @param key ключ записи для извлечения
+ * @param cid идентификатор записи в кэше
  * @return    значение записи ключа
  */
-string anyks::Grok::get(const string & key) const noexcept {
+string anyks::Grok::get(const string & key, const uint64_t cid) const noexcept {
 	// Результат работы функции
 	string result = "";
-	// Если ключ записи передан
-	if(!key.empty()){
-		// Выполняем поиск ключа в схеме соответствий
-		auto i = this->_mapping.find(key);
-		// Если ключ в схеме соответствий найден
-		if(i != this->_mapping.end())
-			// Выводим результат
-			return i->second;
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Выполняем поиск идентификатора регулярного выражения в кэше
+		auto i = this->_cache.find(cid);
+		// Если идентификатор регулярного выражения в кэше найден
+		if(i != this->_cache.end()){
+			// Если ключ записи передан
+			if(!key.empty()){
+				// Выполняем поиск ключа в схеме соответствий
+				auto j = i->second->mapping.find(key);
+				// Если ключ в схеме соответствий найден
+				if(j != i->second->mapping.end())
+					// Выводим результат
+					return j->second;
+			}
+		}
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, cid), log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
 	}
 	// Выводим результат
 	return result;
@@ -948,25 +1255,36 @@ string anyks::Grok::get(const string & key) const noexcept {
  * @param fmk объект фреймворка
  * @param log объект для работы с логами
  */
-anyks::Grok::Grok(const fmk_t * fmk, const log_t * log) noexcept : _mode(false), _variables(log), _fmk(fmk), _log(log) {
+anyks::Grok::Grok(const fmk_t * fmk, const log_t * log) noexcept : _fmk(fmk), _log(log) {
 	/**
 	 * Выполняем сборку регулярного выражения для формирования групп
 	 */
-	const int error = pcre2_regcomp(&this->_reg, "(?:\\(\\?\\s*(\\<\\w+\\>))", REG_UTF | REG_ICASE);
+	const int32_t error = ::pcre2_regcomp(&this->_reg, "(?:\\(\\?\\s*(\\<\\w+\\>))", REG_UTF | REG_ICASE);
 	// Если возникла ошибка компиляции
-	if(!(this->_mode = (error == 0))){
+	if(error > 0){
 		// Создаём буфер данных для извлечения данных ошибки
 		char buffer[256];
 		// Выполняем заполнение нулями буфер данных
 		::memset(buffer, '\0', sizeof(buffer));
 		// Выполняем извлечение текста ошибки
-		const size_t size = pcre2_regerror(error, &this->_reg, buffer, sizeof(buffer) - 1);
+		const size_t size = ::pcre2_regerror(error, &this->_reg, buffer, sizeof(buffer) - 1);
 		// Если текст ошибки получен
 		if(size > 0){
 			// Формируем полученную ошибку
 			string error(buffer, size);
-			// Добавляем в список полученные ошибки
-			this->_log->print("GROK: %s", log_t::flag_t::CRITICAL, error.c_str());
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.c_str());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.c_str());
+			#endif
 		}
 		// Выходим из приложения
 		::exit(EXIT_FAILURE);
@@ -1288,34 +1606,6 @@ anyks::Grok::Grok(const fmk_t * fmk, const log_t * log) noexcept : _mode(false),
  * ~Grok Деструктор
  */
 anyks::Grok::~Grok() noexcept {
-	// Выполняем сброс собранных данных переменных
-	this->_variables.reset();
-	// Если кэш заполнен
-	if(!this->_cache.empty()){
-		// Выполняем перебор всего списка кэша
-		for(auto & i : this->_cache)
-			// Выполняем удаление скомпилированного регулярного выражения
-			pcre2_regfree(&i.second->reg);
-	}
 	// Выполняем очистку памяти выделенную под регулярное выражение для формирования групп
-	pcre2_regfree(&this->_reg);
-}
-/**
- * Оператор вывода данные контейнера в качестве строки
- * @return данные контейнера в качестве строки
- */
-anyks::Grok::operator std::string() const noexcept {
-	// Выводим дамп собранных данных
-	return this->dump().dump(4);
-}
-/**
- * Оператор [<<] вывода в поток Grok контейнера
- * @param os   поток куда нужно вывести данные
- * @param grok контенер для присвоения
- */
-ostream & anyks::operator << (ostream & os, const grok_t & grok) noexcept {
-	// Записываем в поток распарсенные данные с помощью Grok
-	os << grok.dump().dump(4);
-	// Выводим результат
-	return os;
+	::pcre2_regfree(&this->_reg);
 }

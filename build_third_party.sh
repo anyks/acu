@@ -129,7 +129,7 @@ if [ ! -f "$src/.stamp_done" ]; then
 	cd "$src" || exit 1
 
 	# Версия AWH
-	VER="4.2.7"
+	VER="4.2.9"
 
 	# Переключаемся на main
 	git checkout main
@@ -262,7 +262,7 @@ if [ ! -f "$src/.stamp_done" ]; then
  	cd "$src" || exit 1
 
 	# Версия LibXML2
-	VER="2.13.3"
+	VER="2.13.5"
 
 	# Выполняем удаление предыдущей закаченной версии
 	git tag -d v${VER}

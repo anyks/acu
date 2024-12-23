@@ -18,26 +18,48 @@
  * clear Метод очистки данных
  */
 void anyks::SysLog::clear() noexcept {
-	// Выполняем блокировку потока
-	const lock_guard <std::recursive_mutex> lock(this->_mtx);
-	// Устанавливаем версию сообщения
-	this->_ver = 0;
-	// Устанавливаем приоритет сообщения
-	this->_pri = 0;
-	// Устанавливаем идентификатор процесса
-	this->_pid = 0;
-	// Устанавливаем штамп времени
-	this->_timestamp = 0;
-	// Устанавливаем название приложения
-	this->_app = "-";
-	// Устанавливаем идентификатор сообщения
-	this->_mid = "-";
-	// Устанавливаем хост сообщения
-	this->_host = "-";
-	// Устанавливаем формат даты сообщения
-	this->_format = FORMAT;
-	// Выполняем очистку сообщения
-	this->_message.clear();
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Выполняем блокировку потока
+		const lock_guard <std::recursive_mutex> lock(this->_mtx);
+		// Устанавливаем версию сообщения
+		this->_ver = 0;
+		// Устанавливаем приоритет сообщения
+		this->_pri = 0;
+		// Устанавливаем идентификатор процесса
+		this->_pid = 0;
+		// Устанавливаем штамп времени
+		this->_timestamp = 0;
+		// Устанавливаем название приложения
+		this->_app = "-";
+		// Устанавливаем идентификатор сообщения
+		this->_mid = "-";
+		// Устанавливаем хост сообщения
+		this->_host = "-";
+		// Устанавливаем формат даты сообщения
+		this->_format = FORMAT;
+		// Выполняем очистку сообщения
+		this->_message.clear();
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
+	}
 }
 /**
  * parse Метод парсинга строки в формате SysLog
@@ -161,7 +183,21 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 												status++;
 											}
 										// Выводим сообщение, что стандарты перепутаны
-										} else this->_log->print("SysLog standards are mixed up", log_t::flag_t::CRITICAL);
+										} else {
+											/**
+											 * Если включён режим отладки
+											 */
+											#if defined(DEBUG_MODE)
+												// Выводим сообщение об ошибке
+												this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "SysLog standards are mixed up");
+											/**
+											* Если режим отладки не включён
+											*/
+											#else
+												// Выводим сообщение об ошибке
+												this->_log->print("%s", log_t::flag_t::CRITICAL, "SysLog standards are mixed up");
+											#endif
+										}
 									} break;
 								}
 							// Если статус поиска производится другой
@@ -468,9 +504,21 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 					// Если результат получен, значит сообщение соответствует стандарту RFC3164
 					if(!result.empty() && (result.size() > 1)){
 						// Если стандарт установлен как 3164
-						if(std == std_t::RFC5424)
-							// Выводим сообщение об ошибке
-							this->_log->print("SysLog parse: %s", log_t::flag_t::WARNING, "text does not comply with RFC5424 SysLog standard");
+						if(std == std_t::RFC5424){
+							/**
+							 * Если включён режим отладки
+							 */
+							#if defined(DEBUG_MODE)
+								// Выводим сообщение об ошибке
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with RFC5424 SysLog standard");
+							/**
+							* Если режим отладки не включён
+							*/
+							#else
+								// Выводим сообщение об ошибке
+								this->_log->print("%s", log_t::flag_t::CRITICAL, "Text does not comply with RFC5424 SysLog standard");
+							#endif
+						}
 						// Устанавливаем стандарт
 						this->_std = std_t::RFC3164;
 						// Выполняем перебор всего всех полученных параметров
@@ -631,9 +679,21 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 					// Если результат не получен
 					} else {
 						// Если стандарт установлен как 3164
-						if(std == std_t::RFC3164)
-							// Выводим сообщение об ошибке
-							this->_log->print("SysLog parse: %s", log_t::flag_t::WARNING, "text does not comply with RFC3164 SysLog standard");
+						if(std == std_t::RFC3164){
+							/**
+							 * Если включён режим отладки
+							 */
+							#if defined(DEBUG_MODE)
+								// Выводим сообщение об ошибке
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with RFC3164 SysLog standard");
+							/**
+							* Если режим отладки не включён
+							*/
+							#else
+								// Выводим сообщение об ошибке
+								this->_log->print("%s", log_t::flag_t::CRITICAL, "Text does not comply with RFC3164 SysLog standard");
+							#endif
+						}
 						// Выполняем парсинг полученного сообщения
 						result = this->_reg.exec(syslog, this->_exp.rfc5424);
 						// Если результат получен, значит сообщение соответствует стандарту RFC5424
@@ -885,7 +945,21 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 								}
 							}
 						// Выводим сообщение, что текст не соответствует стандартам SysLog
-						} else this->_log->print("SysLog parse: %s", log_t::flag_t::CRITICAL, "text does not comply with SysLog standards RFC3164 and RFC5424");
+						} else {
+							/**
+							 * Если включён режим отладки
+							 */
+							#if defined(DEBUG_MODE)
+								// Выводим сообщение об ошибке
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with SysLog standards RFC3164 and RFC5424");
+							/**
+							* Если режим отладки не включён
+							*/
+							#else
+								// Выводим сообщение об ошибке
+								this->_log->print("%s", log_t::flag_t::CRITICAL, "Text does not comply with SysLog standards RFC3164 and RFC5424");
+							#endif
+						}
 					}
 				} break;
 			}
@@ -893,8 +967,19 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 		 * Если возникает ошибка
 		 */
 		} catch(const std::exception & error) {
-			// Выводим сообщение об ошибке
-			this->_log->print("SysLog parse: %s", log_t::flag_t::CRITICAL, error.what());
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 }
@@ -988,23 +1073,45 @@ const std::unordered_map <string, string> & anyks::SysLog::sd(const string & id)
 void anyks::SysLog::sd(const string & id, const std::unordered_map <string, string> & sd) noexcept {
 	// Если идентификатор и список структурированных данных переданы
 	if(!id.empty() && !sd.empty()){
-		// Выполняем блокировку потока
-		const lock_guard <std::recursive_mutex> lock(this->_mtx);
-		// Выполняем извлечение данных запрашиваемого идентификатора структурированных данных
-		auto i = this->_sd.find(id);
-		// Если структурированные данные существуют
-		if(i != this->_sd.end()){
-			// Выполняем переход по всему списку переданных ключей
-			for(auto & item : sd){
-				// Если данный ключ уже существует
-				if(i->second.find(item.first) != i->second.end())
-					// Заменяем данные переданного ключа
-					i->second[item.first] = item.second;
-				// Иначе добавляем новые данные ключа и значения
-				else i->second.emplace(item.first, item.second);
-			}
-		// Добавляем структурированные данные как они есть
-		} else this->_sd.emplace(std::forward <const string> (id), std::forward <const std::unordered_map <string, string>> (sd));
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем блокировку потока
+			const lock_guard <std::recursive_mutex> lock(this->_mtx);
+			// Выполняем извлечение данных запрашиваемого идентификатора структурированных данных
+			auto i = this->_sd.find(id);
+			// Если структурированные данные существуют
+			if(i != this->_sd.end()){
+				// Выполняем переход по всему списку переданных ключей
+				for(auto & item : sd){
+					// Если данный ключ уже существует
+					if(i->second.find(item.first) != i->second.end())
+						// Заменяем данные переданного ключа
+						i->second[item.first] = item.second;
+					// Иначе добавляем новые данные ключа и значения
+					else i->second.emplace(item.first, item.second);
+				}
+			// Добавляем структурированные данные как они есть
+			} else this->_sd.emplace(std::forward <const string> (id), std::forward <const std::unordered_map <string, string>> (sd));
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const std::exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(id, sd.size()), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		}
 	}
 }
 /**
@@ -1188,20 +1295,44 @@ void anyks::SysLog::format(const string & format) noexcept {
  * @return       дата сообщения в указанном формате
  */
 string anyks::SysLog::date(const string & format) const noexcept {
-	// Создаём объект потока
-	std::stringstream transTime;
-	// Создаем структуру времени
-	std::tm * tm = ::localtime(&this->_timestamp);
-	// Если формат даты сообщения установлен
-	if(!format.empty()){
-		// Выполняем извлечение даты
-		transTime << std::put_time(tm, format.c_str());
-		// Устанавливаем формат даты сообщения
-		const_cast <SysLog *> (this)->_format = std::forward <const string> (format);
-	// Выполняем парсинг даты
-	} else transTime << std::put_time(tm, this->_format.c_str());
-	// Выводим результат сформированной даты
-	return transTime.str();
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Создаём объект потока
+		std::stringstream transTime;
+		// Создаем структуру времени
+		std::tm * tm = ::localtime(&this->_timestamp);
+		// Если формат даты сообщения установлен
+		if(!format.empty()){
+			// Выполняем извлечение даты
+			transTime << std::put_time(tm, format.c_str());
+			// Устанавливаем формат даты сообщения
+			const_cast <SysLog *> (this)->_format = std::forward <const string> (format);
+		// Выполняем парсинг даты
+		} else transTime << std::put_time(tm, this->_format.c_str());
+		// Выводим результат сформированной даты
+		return transTime.str();
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(format), log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
+	}
+	// Выводим пустое значение
+	return "";
 }
 /**
  * date Метод установки даты сообщения
@@ -1402,8 +1533,19 @@ string anyks::SysLog::syslog() const noexcept {
 	 * Если возникает ошибка
 	 */
 	} catch(const std::exception & error) {
-		// Выводим сообщение об ошибке
-		this->_log->print("SysLog: %s", log_t::flag_t::CRITICAL, error.what());
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
 	}
 	// Выводим результат
 	return "";
@@ -1413,128 +1555,142 @@ string anyks::SysLog::syslog() const noexcept {
  * @return json объект дампа данных
  */
 json anyks::SysLog::dump() const noexcept {
+	// Результат работы функции
+	json result;
 	/**
 	 * Выполняем отлов ошибок
 	 */
 	try {
-		// Результат работы функции
-		json result = json::object();
+		// Устанавливаем тип JSON как объект
+		result.SetObject();
 		// Определяем стандарт SysLog
 		switch(static_cast <uint8_t> (this->_std)){
 			// Если установлен стандарт RFC3164
 			case static_cast <uint8_t> (std_t::RFC3164):
 				// Устанавливаем стандарт сообщения
-				result.emplace("RFC", 3164);
+				result.AddMember(Value("RFC", result.GetAllocator()).Move(), Value(3164).Move(), result.GetAllocator());
 			break;
 			// Если установлен стандарт RFC5424
 			case static_cast <uint8_t> (std_t::RFC5424):
 				// Устанавливаем стандарт сообщения
-				result.emplace("RFC", 5424);
+				result.AddMember(Value("RFC", result.GetAllocator()).Move(), Value(5424).Move(), result.GetAllocator());
 			break;
 		}
 		// Если штамп времени установлен
-		if(this->_timestamp > 0)
+		if(this->_timestamp > 0){
+			// Получаем значение даты
+			const string & date = this->date();
 			// Устанавливаем дату сообщения
-			result.emplace("date", this->date());
+			result.AddMember(Value("date", result.GetAllocator()).Move(), Value(date.c_str(), date.length(), result.GetAllocator()).Move(), result.GetAllocator());
+		}
 		// Если приоритет установлен
 		if(this->_pri > 0){
 			// Устанавливаем категорию сообщения
-			result.emplace("category", this->category());
+			result.AddMember(Value("category", result.GetAllocator()).Move(), Value(static_cast <uint32_t> (this->category())).Move(), result.GetAllocator());
 			// Устанавливаем важность сообщения
-			result.emplace("importance", this->importance());
+			result.AddMember(Value("importance", result.GetAllocator()).Move(), Value(static_cast <uint32_t> (this->importance())).Move(), result.GetAllocator());
 		}
 		// Если версия сообщения получена
 		if(this->_ver > 0)
 			// Выполняем установку версии сообщения
-			result.emplace("version", this->_ver);
+			result.AddMember(Value("version", result.GetAllocator()).Move(), Value(static_cast <uint32_t> (this->_ver)).Move(), result.GetAllocator());
 		// Если хост установлен
 		if(!this->_host.empty() && (this->_host.compare("-") != 0))
 			// Устанавливаем хост сообщения
-			result.emplace("host", this->_host);
+			result.AddMember(Value("host", result.GetAllocator()).Move(), Value(this->_host.c_str(), this->_host.length(), result.GetAllocator()).Move(), result.GetAllocator());
 		// Если название приложения установлено
 		if(!this->_app.empty() && (this->_app.compare("-") != 0))
 			// Устанавливаем название сообщения
-			result.emplace("application", this->_app);
+			result.AddMember(Value("application", result.GetAllocator()).Move(), Value(this->_app.c_str(), this->_app.length(), result.GetAllocator()).Move(), result.GetAllocator());
 		// Если идентификатор процесса передан
 		if(this->_pid > 0)
 			// Устанавливаем идентификатор процесса
-			result.emplace("pid", this->_pid);
+			result.AddMember(Value("pid", result.GetAllocator()).Move(), Value(static_cast <uint64_t> (this->_pid)).Move(), result.GetAllocator());
 		// Если идентификатор сообщения установлен
 		if(!this->_mid.empty() && (this->_mid.compare("-") != 0))
 			// Устанавливаем идентификатор сообщения
-			result.emplace("mid", this->_mid);
+			result.AddMember(Value("mid", result.GetAllocator()).Move(), Value(this->_mid.c_str(), this->_mid.length(), result.GetAllocator()).Move(), result.GetAllocator());
 		// Если сообщение установлено
 		if(!this->_message.empty() && (this->_message.compare("-") != 0))
 			// Устанавливаем полученное сообщение
-			result.emplace("message", this->_message);
+			result.AddMember(Value("message", result.GetAllocator()).Move(), Value(this->_message.c_str(), this->_message.length(), result.GetAllocator()).Move(), result.GetAllocator());
 		// Если список структурированных данных установлен
 		if(!this->_sd.empty()){
 			// Добавляем объект структурированных данных
-			result.emplace("sd", json::object());
+			result.AddMember(Value("sd", result.GetAllocator()).Move(), Value(kObjectType).Move(), result.GetAllocator());
 			// Выполняем перебор структурированных данных
-			for(auto & item1 : this->_sd){
+			for(auto & sd : this->_sd){
 				// Устанавливаем идентификатор структурированных данных
-				result.at("sd").emplace(item1.first, json::object());
+				result["sd"].AddMember(Value(sd.first.c_str(), sd.first.length(), result.GetAllocator()).Move(), Value(kObjectType).Move(), result.GetAllocator());
 				// Выполняем перебор оставшихся структур данных
-				for(auto & item2 : item1.second){
+				for(auto & param : sd.second){
 					// Если запись является числом
-					if(this->_fmk->is(item2.second, fmk_t::check_t::NUMBER)){
+					if(this->_fmk->is(param.second, fmk_t::check_t::NUMBER)){
 						/**
 						 * Выполняем отлов ошибок
 						 */
 						try {
 							// Если число положительное
-							if(item2.second.front() != '-')
+							if(param.second.front() != '-')
 								// Добавляем полученные парасетры структурированных данных
-								result.at("sd").at(item1.first).emplace(item2.first, ::stoull(item2.second));
+								result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(param.second))).Move(), result.GetAllocator());
 							// Добавляем полученные парасетры структурированных данных
-							else result.at("sd").at(item1.first).emplace(item2.first, ::stoll(item2.second));
+							else result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(param.second))).Move(), result.GetAllocator());
 						/**
 						 * Если возникает ошибка
 						 */
 						} catch(const std::exception &) {
 							// Добавляем полученные парасетры структурированных данных
-							result.at("sd").at(item1.first).emplace(item2.first, item2.second);
+							result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(param.second.c_str(), param.second.length(), result.GetAllocator()).Move(), result.GetAllocator());
 						}
 					// Если запись является числом с плавающей точкой
-					} else if(this->_fmk->is(item2.second, fmk_t::check_t::DECIMAL)) {
+					} else if(this->_fmk->is(param.second, fmk_t::check_t::DECIMAL)) {
 						/**
 						 * Выполняем отлов ошибок
 						 */
 						try {
 							// Добавляем полученные парасетры структурированных данных
-							result.at("sd").at(item1.first).emplace(item2.first, ::stold(item2.second));
+							result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(::stod(param.second)).Move(), result.GetAllocator());
 						/**
 						 * Если возникает ошибка
 						 */
 						} catch(const std::exception &) {
 							// Добавляем полученные парасетры структурированных данных
-							result.at("sd").at(item1.first).emplace(item2.first, item2.second);
+							result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(param.second.c_str(), param.second.length(), result.GetAllocator()).Move(), result.GetAllocator());
 						}
 					// Если число является булевым истинным значением
-					} else if(this->_fmk->compare("true", item2.second))
+					} else if(this->_fmk->compare("true", param.second))
 						// Добавляем полученные парасетры структурированных данных
-						result.at("sd").at(item1.first).emplace(item2.first, true);
+						result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(true).Move(), result.GetAllocator());
 					// Если число является булевым ложным значением
-					else if(this->_fmk->compare("false", item2.second))
+					else if(this->_fmk->compare("false", param.second))
 						// Добавляем полученные парасетры структурированных данных
-						result.at("sd").at(item1.first).emplace(item2.first, false);
+						result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(false).Move(), result.GetAllocator());
 					// Добавляем полученные парасетры структурированных данных
-					else result.at("sd").at(item1.first).emplace(item2.first, item2.second);
+					else result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(param.second.c_str(), param.second.length(), result.GetAllocator()).Move(), result.GetAllocator());
 				}
 			}
 		}
-		// Выводим результат
-		return result;
 	/**
 	 * Если возникает ошибка
 	 */
 	} catch(const std::exception & error) {
-		// Выводим сообщение об ошибке
-		this->_log->print("SysLog dump: %s", log_t::flag_t::CRITICAL, error.what());
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
 	}
 	// Выводим результат
-	return json::object();
+	return result;
 }
 /**
  * dump Метод установки данных в формате JSON
@@ -1542,7 +1698,7 @@ json anyks::SysLog::dump() const noexcept {
  */
 void anyks::SysLog::dump(const json & dump) noexcept {
 	// Если данные получены
-	if(!dump.empty() && dump.is_object()){
+	if(dump.IsObject()){
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -1552,9 +1708,9 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 			// Категория и важность сообщения
 			uint8_t category = 0, importance = 0;
 			// Если стандарт сообщения передан
-			if(dump.contains("RFC") && dump.at("RFC").is_number()){
+			if(dump.HasMember("RFC") && dump["RFC"].IsNumber()){
 				// Определяем тип переданного стандарта
-				switch(dump.at("RFC").get <uint16_t> ()){
+				switch(dump["RFC"].GetUint()){
 					// Если передан стандарт RFC3164
 					case 3164:
 						// Устанавливаем стандарт RFC3164
@@ -1568,106 +1724,99 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 				}
 			}
 			// Если версия сообщения передана
-			if(dump.contains("version") && dump.at("version").is_number())
+			if(dump.HasMember("version") && dump["version"].IsUint())
 				// Устанавливаем версию сообщения
-				this->_ver = dump.at("version").get <uint8_t> ();
+				this->_ver = static_cast <uint8_t> (dump["version"].GetUint());
 			// Если дата передана
-			if(dump.contains("date") && dump.at("date").is_string())
+			if(dump.HasMember("date") && dump["date"].IsString())
 				// Устанавливаем дату сообщения
-				this->date(dump.at("date").get <string> (), this->_format);
+				this->date(dump["date"].GetString(), this->_format);
 			// Если идентификатор процесса передан
-			if(dump.contains("pid") && dump.at("pid").is_number())
+			if(dump.HasMember("pid") && dump["pid"].IsUint64())
 				// Устанавливаем идентификатор процесса
-				this->_pid = dump.at("pid").get <pid_t> ();
+				this->_pid = dump["pid"].GetUint64();
 			// Если идентификатор сообщения передан
-			if(dump.contains("mid") && dump.at("mid").is_string())
+			if(dump.HasMember("mid") && dump["mid"].IsString())
 				// Устанавливаем идентификатор сообщения
-				this->_mid = dump.at("mid").get <string> ();
+				this->_mid = dump["mid"].GetString();
 			// Если сообщение передано
-			if(dump.contains("message") && dump.at("message").is_string())
+			if(dump.HasMember("message") && dump["message"].IsString())
 				// Устанавливаем сообщение
-				this->_message = dump.at("message").get <string> ();
+				this->_message = dump["message"].GetString();
 			// Если хост сообщения передан
-			if(dump.contains("host") && dump.at("host").is_string())
+			if(dump.HasMember("host") && dump["host"].IsString())
 				// Устанавливаем хост сообщения
-				this->_host = dump.at("host").get <string> ();
+				this->_host = dump["host"].GetString();
 			// Если название приложения передано
-			if(dump.contains("application") && dump.at("application").is_string())
+			if(dump.HasMember("application") && dump["application"].IsString())
 				// Устанавливаем название приложения
-				this->_app = dump.at("application").get <string> ();
+				this->_app = dump["application"].GetString();
 			// Если категория сообщения передана
-			if(dump.contains("category") && dump.at("category").is_number())
+			if(dump.HasMember("category") && dump["category"].IsUint())
 				// Устанавливаем категорию сообщения
-				category = dump.at("category").get <uint8_t> ();
+				category = static_cast <uint8_t> (dump["category"].GetUint());
 			// Если важность сообщения передана
-			if(dump.contains("importance") && dump.at("importance").is_number())
+			if(dump.HasMember("importance") && dump["importance"].IsUint())
 				// Устанавливаем важность сообщения
-				importance = dump.at("importance").get <uint8_t> ();
+				importance = static_cast <uint8_t> (dump["importance"].GetUint());
 			// Выполняем установку приоритета
 			this->pri(category, importance);
 			// Если список структурированных данных передан
-			if(dump.contains("sd") && dump.at("sd").is_object()){
+			if(dump.HasMember("sd") && dump["sd"].IsObject()){
 				// Выполняем очистку списка структурированных данных
 				this->_sd.clear();
 				// Выполняем перебор списка параметров
-				for(auto & el : dump.at("sd").items()){
+				for(auto & m : dump["sd"].GetObject()){
 					// Если объект структурированных данных передан
-					if(!el.value().empty() && el.value().is_object()){
+					if(m.value.IsObject()){
 						// Выполняем перебор всех параметров
-						for(auto & item : el.value().items()){
-							// Если параметр является числом
-							if(!item.value().empty() && item.value().is_number()){
-								// Временное значение переменной
-								double intpart = 0;
-								// Выполняем извлечение числа
-								const double number = item.value().get <double> ();
-								// Выполняем поиск объекта структурированных данных
-								auto i = this->_sd.find(el.key());
-								// Если объект структурированных данных уже создан
-								if(i != this->_sd.end()){
-									// Выполняем проверку есть ли дробная часть у числа
-									if(::modf(number, &intpart) == 0){
-										// Если число является положительным
-										if(number > 0.)
-											// Устанавливаем новые структурированные данные
-											i->second.emplace(item.key(), std::to_string(item.value().get <uint64_t> ()));
-										// Если число является отрицательным
-										else i->second.emplace(item.key(), std::to_string(item.value().get <int64_t> ()));
-									// Если у числа имеется дробная часть
-									} else i->second.emplace(item.key(), this->_fmk->noexp(number, true));
-								// Если объект структурированных данных ещё не создан
-								} else {
-									// Выполняем проверку есть ли дробная часть у числа
-									if(::modf(number, &intpart) == 0){
-										// Если число является положительным
-										if(number > 0.)
-											// Добавляем новое значение записи
-											this->_sd.emplace(el.key(), std::unordered_map <string, string> {{item.key(), std::to_string(item.value().get <uint64_t> ())}});
-										// Если число является отрицательным
-										else this->_sd.emplace(el.key(), std::unordered_map <string, string> {{item.key(), std::to_string(item.value().get <int64_t> ())}});
-									// Если у числа имеется дробная часть
-									} else this->_sd.emplace(el.key(), std::unordered_map <string, string> {{item.key(), this->_fmk->noexp(number, true)}});
-								}
-							// Если параметр является булевым значением
-							} else if(!item.value().empty() && item.value().is_boolean()) {
-								// Выполняем поиск объекта структурированных данных
-								auto i = this->_sd.find(el.key());
-								// Если объект структурированных данных уже создан
-								if(i != this->_sd.end())
-									// Устанавливаем новые структурированные данные
-									i->second.emplace(item.key(), item.value().get <bool> () ? "true" : "false");
-								// Добавляем новое значение записи
-								else this->_sd.emplace(el.key(), std::unordered_map <string, string> {{item.key(), item.value().get <bool> () ? "true" : "false"}});
-							// Если параметр является строкой
-							} else if(!item.value().empty() && item.value().is_string()) {
-								// Выполняем поиск объекта структурированных данных
-								auto i = this->_sd.find(el.key());
-								// Если объект структурированных данных уже создан
-								if(i != this->_sd.end())
-									// Устанавливаем новые структурированные данные
-									i->second.emplace(item.key(), item.value().get <string> ());
-								// Добавляем новое значение записи
-								else this->_sd.emplace(el.key(), std::unordered_map <string, string> {{item.key(), item.value().get <string> ()}});
+						for(auto & item : m.value.GetObject()){
+							// Выполняем поиск объекта структурированных данных
+							auto i = this->_sd.find(m.name.GetString());
+							// Если объект структурированных данных уже создан
+							if(i != this->_sd.end()){
+								// Если параметр является числом с плавающей точкой
+								if(item.value.IsDouble())
+									// Выполняем установку полученного числа
+									i->second.emplace(item.name.GetString(), this->_fmk->noexp(item.value.GetDouble(), true));
+								// Если параметр является числом с отрицательным значением
+								else if(item.value.IsInt64())
+									// Выполняем установку полученного числа
+									i->second.emplace(item.name.GetString(), std::to_string(item.value.GetInt64()));
+								// Если параметр является числом с положительным значением
+								else if(item.value.IsUint64())
+									// Выполняем установку полученного числа
+									i->second.emplace(item.name.GetString(), std::to_string(item.value.GetUint64()));
+								// Если параметр является булевым значением
+								else if(item.value.IsBool())
+									// Выполняем установку булевого значения
+									i->second.emplace(item.name.GetString(), item.value.GetBool() ? "true" : "false");
+								// Если параметр является строковым значением
+								else if(item.value.IsString())
+									// Выполняем установку булевого значения
+									i->second.emplace(item.name.GetString(), item.value.GetString());
+							// Если объект структурированных данных ещё не создан
+							} else {
+								// Если параметр является числом с плавающей точкой
+								if(item.value.IsDouble())
+									// Выполняем установку полученного числа
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), this->_fmk->noexp(item.value.GetDouble(), true)}});
+								// Если параметр является числом с отрицательным значением
+								else if(item.value.IsInt64())
+									// Выполняем установку полученного числа
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), std::to_string(item.value.GetInt64())}});
+								// Если параметр является числом с положительным значением
+								else if(item.value.IsUint64())
+									// Выполняем установку полученного числа
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), std::to_string(item.value.GetUint64())}});
+								// Если параметр является булевым значением
+								else if(item.value.IsBool())
+									// Выполняем установку булевого значения
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), item.value.GetBool() ? "true" : "false"}});
+								// Если параметр является строковым значением
+								else if(item.value.IsString())
+									// Выполняем установку булевого значения
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), item.value.GetString()}});
 							}
 						}
 					}
@@ -1677,8 +1826,19 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 		 * Если возникает ошибка
 		 */
 		} catch(const std::exception & error) {
-			// Выводим сообщение об ошибке
-			this->_log->print("SysLog dump: %s", log_t::flag_t::CRITICAL, error.what());
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
 		}
 	}
 }
@@ -1732,30 +1892,52 @@ bool anyks::SysLog::operator == (const syslog_t & syslog) const noexcept {
  * @return       текущий объект
  */
 anyks::SysLog & anyks::SysLog::operator = (const syslog_t & syslog) noexcept {
-	// Выполняем блокировку потока
-	const lock_guard <std::recursive_mutex> lock(this->_mtx);
-	// Устанавливаем список структурированных данных
-	this->_sd = syslog._sd;
-	// Устанавливаем стандарт сообщения SysLog
-	this->_std = syslog._std;
-	// Устанавливаем версию сообщения
-	this->_ver = syslog._ver;
-	// Устанавливаем приоритет сообщения
-	this->_pri = syslog._pri;
-	// Устанавливаем идентификатор процесса
-	this->_pid = syslog._pid;
-	// Устанавливаем название приложения
-	this->_app = syslog._app;
-	// Устанавливаем идентификатор сообщения
-	this->_mid = syslog._mid;
-	// Устанавливаем хост сообщения
-	this->_host = syslog._host;
-	// Устанавливаем формат даты сообщения
-	this->_format = syslog._format;
-	// Выполняем очистку сообщения
-	this->_message = syslog._message;
-	// Устанавливаем штамп времени
-	this->_timestamp = syslog._timestamp;
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Выполняем блокировку потока
+		const lock_guard <std::recursive_mutex> lock(this->_mtx);
+		// Устанавливаем список структурированных данных
+		this->_sd = syslog._sd;
+		// Устанавливаем стандарт сообщения SysLog
+		this->_std = syslog._std;
+		// Устанавливаем версию сообщения
+		this->_ver = syslog._ver;
+		// Устанавливаем приоритет сообщения
+		this->_pri = syslog._pri;
+		// Устанавливаем идентификатор процесса
+		this->_pid = syslog._pid;
+		// Устанавливаем название приложения
+		this->_app = syslog._app;
+		// Устанавливаем идентификатор сообщения
+		this->_mid = syslog._mid;
+		// Устанавливаем хост сообщения
+		this->_host = syslog._host;
+		// Устанавливаем формат даты сообщения
+		this->_format = syslog._format;
+		// Выполняем очистку сообщения
+		this->_message = syslog._message;
+		// Устанавливаем штамп времени
+		this->_timestamp = syslog._timestamp;
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const std::exception & error) {
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
+	}
 	// Выводим текущий объект
 	return (* this);
 }

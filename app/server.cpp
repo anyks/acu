@@ -167,14 +167,13 @@ static void pidWrite(const fmk_t * fmk, const env_t * env, const fs_t * fs) noex
 }
 /**
  * version Функция вывода версии приложения
- * @param fmk     объект фреймворка
  * @param log     объект для работы с логами
  * @param fs      объект работы с файловой системой
  * @param address адрес приложения
  */
-static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const string & address) noexcept {
+static void version(const log_t * log, const fs_t * fs, const string & address) noexcept {
 	// Если входящие данные переданы
-	if((fmk != nullptr) && (log != nullptr) && (fs != nullptr) && !address.empty()){
+	if((log != nullptr) && (fs != nullptr) && !address.empty()){
 		// Название операционной системы
 		const char * os = nullptr;
 		// Определяем название операционной системы
@@ -368,13 +367,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			 */
 			#if defined(_WIN32) || defined(_WIN64)
 				// Выводим версию приложения
-				version(&fmk, &log, &fs, fmk.convert(wstring(params[0])));
+				version(&log, &fs, fmk.convert(wstring(params[0])));
 			/**
 			 * Выполняем работу для Unix
 			 */
 			#else
 				// Выводим версию приложения
-				version(&fmk, &log, &fs, params[0]);
+				version(&log, &fs, params[0]);
 			#endif
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);

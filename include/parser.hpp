@@ -52,6 +52,14 @@
 #include <libxml/xmlmemory.h>
 
 /**
+ * Подключаем заголовочные файлы JSON
+ */
+#include <rapidjson/writer.h>
+#include <rapidjson/error/en.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+
+/**
  * Наши модули
  */
 #include <cef.hpp>
@@ -94,7 +102,7 @@ namespace anyks {
 			 * patterns Метод добавления списка поддерживаемых шаблонов
 			 * @param patterns список поддерживаемых шаблонов
 			 */
-			void patterns(const nlohmann::json & patterns) noexcept;
+			void patterns(const Document & patterns) noexcept;
 			/**
 			 * pattern Метод добавления шаблона GROK
 			 * @param key название переменной
@@ -107,39 +115,39 @@ namespace anyks {
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			nlohmann::json yaml(const string & text) noexcept;
+			Document yaml(const string & text) noexcept;
 			/**
 			 * yaml Метод конвертации объекта JSON в текст в формате YAML
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
-			string yaml(const nlohmann::json & data) noexcept;
+			string yaml(const Document & data) noexcept;
 		public:
 			/**
 			 * ini Метод конвертации текста в формате INI в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			nlohmann::json ini(const string & text) noexcept;
+			Document ini(const string & text) noexcept;
 			/**
 			 * ini Метод конвертации объекта JSON в текст в формате INI
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
-			string ini(const nlohmann::json & data) noexcept;
+			string ini(const Document & data) noexcept;
 		public:
 			/**
 			 * syslog Метод конвертации текста в формате SysLog в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			nlohmann::json syslog(const string & text) noexcept;
+			Document syslog(const string & text) noexcept;
 			/**
 			 * syslog Метод конвертации объекта JSON в текст в формате SysLog
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
-			string syslog(const nlohmann::json & data) noexcept;
+			string syslog(const Document & data) noexcept;
 		public:
 			/**
 			 * grok Метод конвертации текста в формате GROK в объект JSON
@@ -147,7 +155,7 @@ namespace anyks {
 			 * @param pattern регулярное выражение в формате GROK
 			 * @return        объект в формате JSON
 			 */
-			nlohmann::json grok(const string & text, const string & pattern) noexcept;
+			Document grok(const string & text, const string & pattern) noexcept;
 		public:
 			/**
 			 * csv Метод конвертации текста в формате CSV в объект JSON
@@ -155,7 +163,7 @@ namespace anyks {
 			 * @param header флаг формирования заголовков
 			 * @return       объект в формате JSON
 			 */
-			nlohmann::json csv(const string & text, const bool header = true) noexcept;
+			Document csv(const string & text, const bool header = true) noexcept;
 			/**
 			 * csv Метод конвертации объекта JSON в текст в формате CSV
 			 * @param data   данные в объекте JSON
@@ -163,35 +171,35 @@ namespace anyks {
 			 * @param delim  используемый разделитель
 			 * @return       текст после конвертации
 			 */
-			string csv(const nlohmann::json & data, const bool header = true, const char delim = ';') noexcept;
+			string csv(const Document & data, const bool header = true, const char delim = ';') noexcept;
 		public:
 			/**
 			 * xml Метод конвертации текста в формате XML в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			nlohmann::json xml(const string & text) noexcept;
+			Document xml(const string & text) noexcept;
 			/**
 			 * xml Метод конвертации объекта JSON в текст в формате XML
-			 * @param data   данные в объекте JSON
-			 * @param pretty флаг генерации читаемого формата
-			 * @return       текст после конвертации
+			 * @param data     данные в объекте JSON
+			 * @param prettify флаг генерации читаемого формата
+			 * @return         текст после конвертации
 			 */
-			string xml(const nlohmann::json & data, const bool pretty = false) noexcept;
+			string xml(const Document & data, const bool prettify = false) noexcept;
 		public:
 			/**
 			 * json Метод конвертации текста в формате JSON в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			nlohmann::json json(const string & text) noexcept;
+			Document json(const string & text) noexcept;
 			/**
 			 * json Метод конвертации объекта JSON в текст в формате JSON
-			 * @param data   данные в объекте JSON
-			 * @param pretty флаг генерации читаемого формата
-			 * @return       текст после конвертации
+			 * @param data     данные в объекте JSON
+			 * @param prettify флаг генерации читаемого формата
+			 * @return         текст после конвертации
 			 */
-			string json(const nlohmann::json & data, const bool pretty = false) noexcept;
+			string json(const Document & data, const bool prettify = false) noexcept;
 		public:
 			/**
 			 * cef Метод конвертации текста в формате CEF в объект JSON
@@ -199,14 +207,14 @@ namespace anyks {
 			 * @param mode режим парсинга
 			 * @return     объект в формате JSON
 			 */
-			nlohmann::json cef(const string & text, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
+			Document cef(const string & text, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
 			/**
 			 * cef Метод конвертации объекта JSON в текст в формате CEF
 			 * @param data данные в объекте JSON
 			 * @param mode режим парсинга
 			 * @return     текст после конвертации
 			 */
-			string cef(const nlohmann::json & data, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
+			string cef(const Document & data, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
 		public:
 			/**
 			 * Parser Конструктор
