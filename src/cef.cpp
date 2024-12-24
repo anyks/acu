@@ -1636,7 +1636,7 @@ void anyks::Cef::dump(const json & dump) noexcept {
 				// Создаём объект параметров расширения
 				const ext_t * params = nullptr;
 				// Выполняем перебор всех расширений
-				for(auto & m : dump["extensions"].GetObject()){
+				for(auto & m : dump["extensions"].GetObj()){
 					// Если значение является строкой
 					if(m.value.IsString())
 						// Выполняем добавление расширение

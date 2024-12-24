@@ -466,7 +466,7 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 					// Создаём объект дочерней ноды
 					YAML::Node child;
 					// Выполняем перебор всего списка
-					for(auto & m : value.GetObject())
+					for(auto & m : value.GetObj())
 						// Выполняем добавление в объект полученных значений
 						parseFn(child, m.name, m.value);
 					// Если название ячейки является числом
@@ -490,7 +490,7 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 			// Если значение является объектом
 			} else if(data.IsObject()) {
 				// Выполняем перебор всего списка
-				for(auto & m : data.GetObject())
+				for(auto & m : data.GetObj())
 					// Выполняем добавление в объект полученных значений
 					parseFn(node, m.name, m.value);
 			}
@@ -651,7 +651,7 @@ string anyks::Parser::ini(const Document & data) noexcept {
 			// Выполняем загрузку INI-конфига
 			ini::File file = ini::load("");
 			// Выполняем перебор всего списка
-			for(auto & m : data.GetObject()){
+			for(auto & m : data.GetObj()){
 				// Если ключ является строкой
 				if(m.name.IsString()){
 					// Выполняем создание секции
@@ -659,7 +659,7 @@ string anyks::Parser::ini(const Document & data) noexcept {
 					// Если значения существуют верные
 					if(m.value.IsObject()){
 						// Выполняем переход по всем параметрам секции
-						for(auto & i : m.value.GetObject()){
+						for(auto & i : m.value.GetObj()){
 							// Если значение является отрицательным 32-х битным числом
 							if(i.value.IsInt())
 								// Устанавливаем значение в виде числа
@@ -2509,7 +2509,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 					// Флаг формирования сложного тега
 					bool difficult = false;
 					// Выполняем поиск вложенных объектов и массивов
-					for(auto & m : value.GetObject()){
+					for(auto & m : value.GetObj()){
 						// Если найден массив или объект
 						if((difficult = (m.value.IsObject() || m.value.IsArray())))
 							// Выходим из цикла
@@ -2522,7 +2522,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 						// Позиция ключа поиска
 						size_t pos = string::npos, count = 0;
 						// Выполняем перебор всех значений объекта
-						for(auto & m : value.GetObject()){
+						for(auto & m : value.GetObj()){
 							// Получаем ключ записи
 							const string & key = (this->_fmk->is(m.name.GetString(), fmk_t::check_t::NUMBER) ? this->_fmk->format("Item%s", m.name.GetString()) : m.name.GetString());
 							// Если ключом является устанавливаемое значение							
@@ -3045,7 +3045,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 				// Если нода является объектом
 				if(node.IsObject()){
 					// Переходим по всему объекту
-					for(auto & m : node.GetObject()){
+					for(auto & m : node.GetObj()){
 						// Получаем ключ записи
 						const string & key = m.name.GetString();
 						// Выполняем обработку полученного результата

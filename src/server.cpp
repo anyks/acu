@@ -1230,7 +1230,7 @@ void anyks::Server::config(const json & config) noexcept {
 						if(config["net"]["authentication"].HasMember("users") &&
 						   config["net"]["authentication"]["users"].IsObject()){
 							// Выполняем перебор всего списка пользователей
-							for(auto & m : config["net"]["authentication"]["users"].GetObject()){
+							for(auto & m : config["net"]["authentication"]["users"].GetObj()){
 								// Если значение является строкой
 								if(m.value.IsString())
 									// Устанавливаем пользователя для авторизации на сервере

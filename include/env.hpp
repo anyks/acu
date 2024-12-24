@@ -398,7 +398,7 @@ namespace anyks {
 								// Если это объект
 								else if(item.IsObject() && !item.ObjectEmpty()) {
 									// Переходим по всем ключам
-									for(auto & i : item.GetObject())
+									for(auto & i : item.GetObj())
 										// Подсчитываем весь список ключей
 										result++;
 								// Запоминаем, что элемент всего один
@@ -416,7 +416,7 @@ namespace anyks {
 							// Если это объект
 							else if(this->_data.IsObject() && !this->_data.ObjectEmpty()) {
 								// Переходим по всем ключам
-								for(auto & i : this->_data.GetObject())
+								for(auto & i : this->_data.GetObj())
 									// Подсчитываем весь список ключей
 									result++;
 							}
@@ -429,7 +429,7 @@ namespace anyks {
 							// Если это объект
 							else if(this->_data["work"].IsObject() && !this->_data["work"].ObjectEmpty()) {
 								// Переходим по всем ключам
-								for(auto & i : this->_data["work"].GetObject())
+								for(auto & i : this->_data["work"].GetObj())
 									// Подсчитываем весь список ключей
 									result++;
 							}
@@ -1403,7 +1403,7 @@ namespace anyks {
 									// Создаём объект данных
 									T data;
 									// Переходим по всему объекту
-									for(auto & m : item.GetObject()){
+									for(auto & m : item.GetObj()){
 										// Выполняем извлечение данных записи
 										this->get(m.value, data);
 										// Формируем список полученных значений
@@ -1419,7 +1419,7 @@ namespace anyks {
 							// Создаём объект данных
 							T data;
 							// Переходим по всему объекту
-							for(auto & m : this->_data.GetObject()){
+							for(auto & m : this->_data.GetObj()){
 								// Выполняем извлечение данных записи
 								this->get(m.value, data);
 								// Формируем список полученных значений
@@ -1430,7 +1430,7 @@ namespace anyks {
 							// Создаём объект данных
 							T data;
 							// Переходим по всему объекту
-							for(auto & m : this->_data["work"].GetObject()){
+							for(auto & m : this->_data["work"].GetObj()){
 								// Выполняем извлечение данных записи
 								this->get(m.value, data);
 								// Формируем список полученных значений
@@ -1542,7 +1542,7 @@ namespace anyks {
 									// Создаём объект данных
 									T data;
 									// Переходим по всему объекту
-									for(auto & m : item.GetObject()){
+									for(auto & m : item.GetObj()){
 										// Выполняем извлечение данных записи
 										this->get(m.value, data);
 										// Формируем список полученных значений
@@ -1558,7 +1558,7 @@ namespace anyks {
 							// Создаём объект данных
 							T data;
 							// Переходим по всему объекту
-							for(auto & m : this->_data.GetObject()){
+							for(auto & m : this->_data.GetObj()){
 								// Выполняем извлечение данных записи
 								this->get(m.value, data);
 								// Формируем список полученных значений
@@ -1569,7 +1569,7 @@ namespace anyks {
 							// Создаём объект данных
 							T data;
 							// Переходим по всему объекту
-							for(auto & m : this->_data["work"].GetObject()){
+							for(auto & m : this->_data["work"].GetObj()){
 								// Выполняем извлечение данных записи
 								this->get(m.value, data);
 								// Формируем список полученных значений
@@ -1619,7 +1619,7 @@ namespace anyks {
 					 */
 					try {
 						// Переходим по всем ключам и добавляем всё в базу данных
-						for(auto & m : config.GetObject()){
+						for(auto & m : config.GetObj()){
 							// Если мы нашли рабочий раздел, пропускаем его
 							if(this->_fmk->compare(m.name.GetString(), "work"))
 								// Пропускаем итерацию перебора
@@ -1636,7 +1636,7 @@ namespace anyks {
 								// Выполняем добавление ключа work
 								this->_data.AddMember(Value("work", this->_data.GetAllocator()).Move(), Value(kObjectType).Move(), this->_data.GetAllocator());
 							// Переходим по всем ключам и добавляем всё в базу данных
-							for(auto & m : config["work"].GetObject()){
+							for(auto & m : config["work"].GetObj()){
 								// Если такой ключ не существует
 								if(!this->_data["work"].HasMember(m.name.GetString()))
 									// Устанавливаем данные конфига

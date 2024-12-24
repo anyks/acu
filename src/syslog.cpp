@@ -1764,11 +1764,11 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 				// Выполняем очистку списка структурированных данных
 				this->_sd.clear();
 				// Выполняем перебор списка параметров
-				for(auto & m : dump["sd"].GetObject()){
+				for(auto & m : dump["sd"].GetObj()){
 					// Если объект структурированных данных передан
 					if(m.value.IsObject() && !m.value.ObjectEmpty()){
 						// Выполняем перебор всех параметров
-						for(auto & item : m.value.GetObject()){
+						for(auto & item : m.value.GetObj()){
 							// Выполняем поиск объекта структурированных данных
 							auto i = this->_sd.find(m.name.GetString());
 							// Если объект структурированных данных уже создан

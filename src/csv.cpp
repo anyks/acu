@@ -884,7 +884,7 @@ void anyks::CSV::dump(const json & dump) noexcept {
 			// Выполняем добавляем новый список ключей
 			this->_mapping.push_back(vector <string> ());
 			// Выполняем перебор переданного дампа данных
-			for(auto & m : dump.GetObject()){
+			for(auto & m : dump.GetObj()){
 				// Если данные получены верные
 				if(m.value.IsArray()){
 					// Добавляем заголовочные записи

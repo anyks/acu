@@ -676,7 +676,7 @@ void anyks::Grok::patterns(const json & patterns) noexcept {
 			// Список регулярных выражений в которых содержатся блоковые переменные
 			std::unordered_map <string, string> items;
 			// Выполняем перебор всего списка значений
-			for(auto & m : patterns.GetObject()){
+			for(auto & m : patterns.GetObj()){
 				// Если значение является строкой
 				if(m.value.IsString()){
 					// Выполняем получение блоковой переменной из текста
