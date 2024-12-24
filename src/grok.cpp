@@ -166,8 +166,6 @@ void anyks::Grok::Variables::push(const string & name, const string & pattern) n
 					// Выводим сообщение об ошибке
 					::fprintf(stderr, "\"Grok:Variables:push\": %s\n", error.c_str());
 				}
-				// Выполняем удаление скомпилированного регулярного выражения
-				::pcre2_regfree(&ret->second);
 				// Выполняем очистку шаблона
 				this->_patterns.erase(name);
 			}
@@ -227,10 +225,10 @@ void anyks::Grok::clear() noexcept {
 	 * Выполняем отлов ошибок
 	 */
 	try {
-		// Выполняем очистку внешних шаблонов
-		this->clearPatterns();
 		// Выполняем удаление кэша
 		this->_cache.clear();
+		// Выполняем очистку внешних шаблонов
+		this->clearPatterns();
 		// Выполняем полную очистку памяти кэша
 		std::map <uint64_t, std::unique_ptr <cache_t>> ().swap(this->_cache);
 	/**
@@ -668,7 +666,7 @@ vector <std::pair <string, string>> anyks::Grok::prepare(string & text, const bo
  */
 void anyks::Grok::patterns(const json & patterns) noexcept {
 	// Если шаблоны переданы
-	if(patterns.IsObject()){
+	if(patterns.IsObject() && !patterns.ObjectEmpty()){
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -909,7 +907,7 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 					// Создаём объект матчинга
 					regmatch_t match[this->_reg.re_nsub + 1];
 					// Если возникла ошибка
-					if(::pcre2_regexec(&this->_reg, text.c_str(), this->_reg.re_nsub + 1, match, REG_NOTEMPTY) > 0)
+					if(::pcre2_regexec(&this->_reg, text.c_str(), this->_reg.re_nsub + 1, match, REG_NOTEMPTY) != 0)
 						// Выходим из цикла корректировки
 						break;
 					// Если ошибок не получено
@@ -997,8 +995,6 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 						ret.first->second->vars.reset();
 						// Выполняем блокировку потока потока для удаления кэша
 						const lock_guard <std::mutex> lock(const_cast <grok_t *> (this)->_mtx.cache);
-						// Выполняем удаление скомпилированного регулярного выражения
-						::pcre2_regfree(&ret.first->second->express.reg);
 						// Выполняем удаление записи из кэша
 						const_cast <grok_t *> (this)->_cache.erase(result);
 						// Выполняем зануление идентификатора записи
@@ -1127,13 +1123,11 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
  */
 json anyks::Grok::dump(const uint64_t cid) const noexcept {
 	// Результат работы функции
-	json result;
+	json result(kObjectType);
 	/**
 	 * Выполняем отлов ошибок
 	 */
 	try {
-		// Устанавливаем тип JSON как объект
-		result.SetObject();
 		// Выполняем поиск идентификатора регулярного выражения в кэше
 		auto i = this->_cache.find(cid);
 		// Если идентификатор регулярного выражения в кэше найден
@@ -1261,7 +1255,7 @@ anyks::Grok::Grok(const fmk_t * fmk, const log_t * log) noexcept : _fmk(fmk), _l
 	 */
 	const int32_t error = ::pcre2_regcomp(&this->_reg, "(?:\\(\\?\\s*(\\<\\w+\\>))", REG_UTF | REG_ICASE);
 	// Если возникла ошибка компиляции
-	if(error > 0){
+	if(error != 0){
 		// Создаём буфер данных для извлечения данных ошибки
 		char buffer[256];
 		// Выполняем заполнение нулями буфер данных

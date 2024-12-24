@@ -1044,9 +1044,7 @@ string anyks::Cef::cef() const noexcept {
  */
 json anyks::Cef::dump() const noexcept {
 	// Результат работы функции
-	json result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	json result(kObjectType);
 	// Если данные заполнены
 	if(!this->_extensions.empty()){
 		/**
@@ -1488,7 +1486,7 @@ json anyks::Cef::dump() const noexcept {
  */
 void anyks::Cef::dump(const json & dump) noexcept {
 	// Если данные в формате JSON получены
-	if(dump.IsObject()){
+	if(dump.IsObject() && !dump.ObjectEmpty()){
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -1527,7 +1525,7 @@ void anyks::Cef::dump(const json & dump) noexcept {
 				// Устанавливаем версию события
 				this->_version = static_cast <double> (dump["version"].GetUint());
 			// Если данные события переданы
-			if(dump.HasMember("event") && dump["event"].IsObject()){
+			if(dump.HasMember("event") && dump["event"].IsObject() && !dump["event"].ObjectEmpty()){
 				// Если название события передано
 				if(dump["event"].HasMember("name") && dump["event"]["name"].IsString()){
 					// Получаем название события
@@ -1574,7 +1572,7 @@ void anyks::Cef::dump(const json & dump) noexcept {
 					::memcpy(this->_event.signatureId, signature.data(), sizeof(this->_event.signatureId));
 				}
 				// Если важность события передана
-				if(dump["event"].HasMember("severity") && dump["event"]["severity"].IsObject()){
+				if(dump["event"].HasMember("severity") && dump["event"]["severity"].IsObject() && !dump["event"]["severity"].ObjectEmpty()){
 					// Если важность события в текстовом виде передана
 					if(dump["event"]["severity"].HasMember("text") && dump["event"]["severity"]["text"].IsString()){
 						// Получаем важность события в текстовом виде
@@ -1634,7 +1632,7 @@ void anyks::Cef::dump(const json & dump) noexcept {
 				}
 			}
 			// Если список доступных расширений передан
-			if(dump.HasMember("extensions") && dump["extensions"].IsObject()){
+			if(dump.HasMember("extensions") && dump["extensions"].IsObject() && !dump["extensions"].ObjectEmpty()){
 				// Создаём объект параметров расширения
 				const ext_t * params = nullptr;
 				// Выполняем перебор всех расширений
@@ -2299,6 +2297,8 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 		 * Выполняем отлов ошибок
 		 */
 		try {
+			// Выполняем удаление лишних записей значения
+			this->_fmk->transform(value, fmk_t::transform_t::TRIM);
 			// Если режим парсинга установлен
 			if(this->_mode != mode_t::NONE){
 				// Создаём объект параметров расширения

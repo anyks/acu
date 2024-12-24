@@ -878,7 +878,7 @@ void anyks::CSV::dump(const json & dump) noexcept {
 	 */
 	try {
 		// Если дамп данных передан и является объектом
-		if((this->_header = (dump.IsObject()))){
+		if((this->_header = (dump.IsObject() && !dump.ObjectEmpty()))){
 			// Выполняем очистку схему соответствий ключей расширения
 			this->_mapping.clear();
 			// Выполняем добавляем новый список ключей

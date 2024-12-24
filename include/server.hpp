@@ -28,7 +28,6 @@
  */
 #include <client/awh.hpp>
 #include <server/awh.hpp>
-#include <nlohmann/json.hpp>
 
 /**
  * Наши модули
@@ -40,9 +39,6 @@
 using namespace std;
 // Подписываемся на пространство имён awh
 using namespace awh;
-
-// Активируем json в качестве объекта пространства имён
-using json = nlohmann::json;
 
 /**
  * anyks пространство имён

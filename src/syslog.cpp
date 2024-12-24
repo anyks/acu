@@ -1556,13 +1556,11 @@ string anyks::SysLog::syslog() const noexcept {
  */
 json anyks::SysLog::dump() const noexcept {
 	// Результат работы функции
-	json result;
+	json result(kObjectType);
 	/**
 	 * Выполняем отлов ошибок
 	 */
 	try {
-		// Устанавливаем тип JSON как объект
-		result.SetObject();
 		// Определяем стандарт SysLog
 		switch(static_cast <uint8_t> (this->_std)){
 			// Если установлен стандарт RFC3164
@@ -1698,7 +1696,7 @@ json anyks::SysLog::dump() const noexcept {
  */
 void anyks::SysLog::dump(const json & dump) noexcept {
 	// Если данные получены
-	if(dump.IsObject()){
+	if(dump.IsObject() && !dump.ObjectEmpty()){
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -1762,13 +1760,13 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 			// Выполняем установку приоритета
 			this->pri(category, importance);
 			// Если список структурированных данных передан
-			if(dump.HasMember("sd") && dump["sd"].IsObject()){
+			if(dump.HasMember("sd") && dump["sd"].IsObject() && !dump["sd"].ObjectEmpty()){
 				// Выполняем очистку списка структурированных данных
 				this->_sd.clear();
 				// Выполняем перебор списка параметров
 				for(auto & m : dump["sd"].GetObject()){
 					// Если объект структурированных данных передан
-					if(m.value.IsObject()){
+					if(m.value.IsObject() && !m.value.ObjectEmpty()){
 						// Выполняем перебор всех параметров
 						for(auto & item : m.value.GetObject()){
 							// Выполняем поиск объекта структурированных данных

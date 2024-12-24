@@ -80,11 +80,17 @@ void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t 
 	// Если ошибка передана и текст сообщения тоже
 	} else if((code == 400) && !mess.empty()) {
 		// Выполняем формирование результата ответа
-		json answer = json::object();
+		json answer(kObjectType);
 		// Выполняем формирование результата
-		answer.emplace("error", mess);
+		answer.AddMember(Value("error", answer.GetAllocator()).Move(), Value(mess.c_str(), mess.length(), answer.GetAllocator()).Move(), answer.GetAllocator());
+		// Создаём результьрующий буфер
+		rapidjson::StringBuffer result;
+		// Выполняем создание объекта писателя
+		Writer <StringBuffer> writer(result);
+		// Передаем данные объекта JSON писателю
+		answer.Accept(writer);
 		// Выполняем получение буфера данных для отправки
-		const string buffer = answer.dump();
+		const string & buffer = result.GetString();
 		// Отправляем сообщение клиенту
 		this->_awh.send(sid, bid, code, mess, vector <char> (buffer.begin(), buffer.end()), {
 			{"Accept-Ranges", "bytes"},
@@ -512,13 +518,29 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 				} else this->_counts.emplace(ip, make_pair(1, this->_fmk->timestamp(fmk_t::stamp_t::MILLISECONDS)));
 				// Если производится вызов метода /exec
 				if(this->_fmk->compare("/exec", addr)){
-					// Выполняем получение запроса
-					json request = json::parse(entity.begin(), entity.end());
+					// Объект запроса
+					json request;
+					// Выполняем парсинг полученных текстовых данных
+					if(request.Parse(entity.data(), entity.size()).HasParseError()){
+						/**
+						 * Если включён режим отладки
+						 */
+						#if defined(DEBUG_MODE)
+							// Выводим сообщение об ошибке
+							this->_log->debug("Request JSON: (offset %d): %s", __PRETTY_FUNCTION__, std::make_tuple(sid, bid, static_cast <uint16_t> (method), url, entity.size(), headers.size()), log_t::flag_t::CRITICAL, request.GetErrorOffset(), GetParseError_En(request.GetParseError()));
+						/**
+						* Если режим отладки не включён
+						*/
+						#else
+							// Выводим сообщение об ошибке
+							this->_log->print("Request JSON: (offset %d): %s", log_t::flag_t::CRITICAL, request.GetErrorOffset(), GetParseError_En(request.GetParseError()));
+						#endif
+					}
 					// Если результат получен
-					if(request.is_object() && !request.empty()){
+					if(request.IsObject() && !request.ObjectEmpty()){
 						// Если поля указаны правильно
-						if(request.contains("text") && request.contains("from") && request.contains("to") &&
-						   request.at("text").is_string() && request.at("from").is_string() && request.at("to").is_string()){
+						if(request.HasMember("text") && request.HasMember("from") && request.HasMember("to") &&
+						   request["text"].IsString() && request["from"].IsString() && request["to"].IsString()){
 							// Регулярное выражение в формате GROK
 							string express = "";
 							// Выполняем инициализацию объекта парсера
@@ -526,45 +548,50 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							// Тип конвертируемого формата данных и тип формата для конвертации
 							type_t from = type_t::TEXT, to = type_t::TEXT;
 							// Если формат входящих данных указан как Text
-							if(this->_fmk->compare("text", request.at("from").get <string> ()))
+							if(this->_fmk->compare("text", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::TEXT;
 							// Если формат входящих данных указан как XML
-							else if(this->_fmk->compare("xml", request.at("from").get <string> ()))
+							else if(this->_fmk->compare("xml", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::XML;
 							// Если формат входящих данных указан как JSON
-							else if(this->_fmk->compare("json", request.at("from").get <string> ()))
+							else if(this->_fmk->compare("json", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::JSON;
 							// Если формат входящих данных указан как INI
-							else if(this->_fmk->compare("ini", request.at("from").get <string> ()))
+							else if(this->_fmk->compare("ini", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::INI;
 							// Если формат входящих данных указан как YAML
-							else if(this->_fmk->compare("yaml", request.at("from").get <string> ()))
+							else if(this->_fmk->compare("yaml", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::YAML;
 							// Если формат входящих данных указан как CEF
-							else if(this->_fmk->compare("cef", request.at("from").get <string> ()))
+							else if(this->_fmk->compare("cef", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::CEF;
 							// Если формат входящих данных указан как CSV
-							else if(this->_fmk->compare("csv", request.at("from").get <string> ()))
+							else if(this->_fmk->compare("csv", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::CSV;
 							// Если формат входящих данных указан как GROK
-							else if(this->_fmk->compare("grok", request.at("from").get <string> ())) {
+							else if(this->_fmk->compare("grok", request["from"].GetString())) {
 								// Определяем формат данных
 								from = type_t::GROK;
 								// Если файл шаблона указан
-								if(request.contains("patterns") && request.at("patterns").is_object())
+								if(request.HasMember("patterns") && request["patterns"].IsObject()){
+									// Создаём объект JSON шаблонов
+									json patterns;
+									// Выполняем копирование полученных данных
+									patterns.CopyFrom(request["patterns"], patterns.GetAllocator());
 									// Выполняем добавление поддерживаемых шаблонов
-									parser.patterns(request.at("patterns"));
+									parser.patterns(std::move(patterns));
+								}
 								// Если регулярное выражение передано
-								if(request.contains("express") && request.at("express").is_string())
+								if(request.HasMember("express") && request["express"].IsString())
 									// Устанавливаем полученное регулярное выражение
-									express = request.at("express").get <string> ();
+									express = request["express"].GetString();
 								// Выводим сообщение об ошибке
 								else {
 									// Выпоолняем генерацию ошибки запроса
@@ -573,11 +600,11 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									return;
 								}
 							// Если формат входящих данных указан как SysLog
-							} else if(this->_fmk->compare("syslog", request.at("from").get <string> ()))
+							} else if(this->_fmk->compare("syslog", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::SYSLOG;
 							// Если формат входящих данных указан как Base64
-							else if(this->_fmk->compare("base64", request.at("from").get <string> ()))
+							else if(this->_fmk->compare("base64", request["from"].GetString()))
 								// Определяем формат данных
 								from = type_t::BASE64;
 							// Если формат не определён
@@ -588,63 +615,63 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								return;
 							}
 							// Если формат исходящих данных указан как Text
-							if(this->_fmk->compare("text", request.at("to").get <string> ()))
+							if(this->_fmk->compare("text", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::TEXT;
 							// Если формат исходящих данных указан как XML
-							else if(this->_fmk->compare("xml", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("xml", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::XML;
 							// Если формат исходящих данных указан как JSON
-							else if(this->_fmk->compare("json", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("json", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::JSON;
 							// Если формат исходящих данных указан как INI
-							else if(this->_fmk->compare("ini", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("ini", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::INI;
 							// Если формат исходящих данных указан как YAML
-							else if(this->_fmk->compare("yaml", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("yaml", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::YAML;
 							// Если формат исходящих данных указан как CEF
-							else if(this->_fmk->compare("cef", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("cef", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::CEF;
 							// Если формат исходящих данных указан как CSV
-							else if(this->_fmk->compare("csv", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("csv", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::CSV;
 							// Если формат исходящих данных указан как SysLog
-							else if(this->_fmk->compare("syslog", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("syslog", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::SYSLOG;
 							// Если формат исходящих данных указан как Base64
-							else if(this->_fmk->compare("base64", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("base64", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::BASE64;
 							// Если формат исходящих данных указан как MD5
-							else if(this->_fmk->compare("md5", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("md5", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::MD5;
 							// Если формат исходящих данных указан как SHA1
-							else if(this->_fmk->compare("sha1", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("sha1", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::SHA1;
 							// Если формат исходящих данных указан как SHA224
-							else if(this->_fmk->compare("sha224", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("sha224", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::SHA224;
 							// Если формат исходящих данных указан как SHA256
-							else if(this->_fmk->compare("sha256", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("sha256", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::SHA256;
 							// Если формат исходящих данных указан как SHA384
-							else if(this->_fmk->compare("sha384", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("sha384", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::SHA384;
 							// Если формат исходящих данных указан как SHA512
-							else if(this->_fmk->compare("sha512", request.at("to").get <string> ()))
+							else if(this->_fmk->compare("sha512", request["to"].GetString()))
 								// Определяем формат данных
 								to = type_t::SHA512;
 							// Если формат не определён
@@ -657,9 +684,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							// Получаем ключ HMAC
 							string hmac = "";
 							// Если ключ проверки подлинности передан
-							if(request.contains("hmac") && request.at("hmac").is_string()){
+							if(request.HasMember("hmac") && request["hmac"].IsString()){
 								// Получаем ключ подтверждения подлинности
-								hmac = request.at("hmac").get <string> ();
+								hmac = request["hmac"].GetString();
 								// Если ключ подтверждения подлинности получен
 								if(!hmac.empty()){
 									// Проверяем формат данных для конвертации
@@ -698,69 +725,71 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								}
 							}
 							// Объект ответа парсера в формате JSON
-							json answer = json::object();
+							json answer(kObjectType);
 							// Определяем формат данных
 							switch(static_cast <uint8_t> (from)){
 								// Если формат входящих данных указан как Text
 								case static_cast <uint8_t> (type_t::TEXT):
 									// Выполняем передачу данных как она есть
-									answer = request.at("text").get <string> ();
+									answer.SetString(request["text"].GetString(), answer.GetAllocator());
 								break;
 								// Если формат входящих данных указан как XML
 								case static_cast <uint8_t> (type_t::XML):
 									// Выполняем конвертацию данных
-									answer = parser.xml(request.at("text").get <string> ());
+									answer = parser.xml(request["text"].GetString());
 								break;
 								// Если формат входящих данных указан как JSON
 								case static_cast <uint8_t> (type_t::JSON):
 									// Выполняем конвертацию данных
-									answer = parser.json(request.at("text").get <string> ());
+									answer = parser.json(request["text"].GetString());
 								break;
 								// Если формат входящих данных указан как INI
 								case static_cast <uint8_t> (type_t::INI):
 									// Выполняем конвертацию данных
-									answer = parser.ini(request.at("text").get <string> ());
+									answer = parser.ini(request["text"].GetString());
 								break;
 								// Если формат входящих данных указан как YAML
 								case static_cast <uint8_t> (type_t::YAML):
 									// Выполняем конвертацию данных
-									answer = parser.yaml(request.at("text").get <string> ());
+									answer = parser.yaml(request["text"].GetString());
 								break;
 								// Если формат входящих данных указан как CEF
 								case static_cast <uint8_t> (type_t::CEF):
 									// Выполняем конвертацию данных
-									answer = parser.cef(request.at("text").get <string> (), cef_t::mode_t::NONE);
+									answer = parser.cef(request["text"].GetString(), cef_t::mode_t::NONE);
 								break;
 								// Если формат входящих данных указан как CSV
 								case static_cast <uint8_t> (type_t::CSV):
 									// Выполняем конвертацию данных
 									answer = parser.csv(
-										request.at("text").get <string> (),
-										request.contains("header") &&
-										request.at("header").is_boolean() &&
-										request.at("header").get <bool> ()
+										request["text"].GetString(),
+										request.HasMember("header") &&
+										request["header"].IsBool() &&
+										request["header"].GetBool()
 									);
 								break;
 								// Если формат входящих данных указан как GROK
 								case static_cast <uint8_t> (type_t::GROK):
 									// Выполняем конвертацию данных
-									answer = parser.grok(request.at("text").get <string> (), express);
+									answer = parser.grok(request["text"].GetString(), express);
 								break;
 								// Если формат входящих данных указан как SysLog
 								case static_cast <uint8_t> (type_t::SYSLOG):
 									// Выполняем конвертацию данных
-									answer = parser.syslog(request.at("text").get <string> ());
+									answer = parser.syslog(request["text"].GetString());
 								break;
 								// Если формат входящих данных указан как BASE64
 								case static_cast <uint8_t> (type_t::BASE64): {
 									// Получаем текстове значение буфера
-									const string & text = request.at("text").get <string> ();
+									const string & text = request["text"].GetString();
+									// Выполняем декодирование полученных данных
+									const string & hash = this->_hash.decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
 									// Выполняем декодирование хэша BASE64
-									answer = this->_hash.decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
+									answer.SetString(hash.c_str(), hash.length(), answer.GetAllocator());
 								} break;
 							}
 							// Если ответ парсера получен
-							if(!answer.empty()){
+							if(!answer.IsNull()){
 								// Текст сформированного ответа
 								string text = "";
 								// Определяем формат данных
@@ -768,16 +797,16 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Если формат входящих данных указан как Text
 									case static_cast <uint8_t> (type_t::TEXT):
 										// Выполняем вывод текст как он есть
-										text = answer;
+										text = answer.GetString();
 									break;
 									// Если формат входящих данных указан как XML
 									case static_cast <uint8_t> (type_t::XML):
 										// Выполняем конвертирование в формат XML
 										text = parser.xml(
 											answer,
-											request.contains("prettify") &&
-											request.at("prettify").is_boolean() &&
-											request.at("prettify").get <bool> ()
+											request.HasMember("prettify") &&
+											request["prettify"].IsBool() &&
+											request["prettify"].GetBool()
 										);
 									break;
 									// Если формат входящих данных указан как JSON
@@ -785,9 +814,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										// Выполняем конвертирование в формат JSON
 										text = parser.json(
 											answer,
-											request.contains("prettify") &&
-											request.at("prettify").is_boolean() &&
-											request.at("prettify").get <bool> ()
+											request.HasMember("prettify") &&
+											request["prettify"].IsBool() &&
+											request["prettify"].GetBool()
 										);
 									break;
 									// Если формат входящих данных указан как INI
@@ -810,9 +839,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										// Выполняем конвертирование в формат CSV
 										text = parser.csv(
 											answer,
-											request.contains("header") &&
-											request.at("header").is_boolean() &&
-											request.at("header").get <bool> ()
+											request.HasMember("header") &&
+											request["header"].IsBool() &&
+											request["header"].GetBool()
 										);
 									} break;
 									// Если формат входящих данных указан как SysLog
@@ -823,79 +852,85 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Если формат входящих данных указан как BASE64
 									case static_cast <uint8_t> (type_t::BASE64): {
 										// Выполняем получение текста для шифрования
-										const string data = answer.get <string> ();
+										const string data = answer.GetString();
 										// Выполняем конвертирование в формат BASE64
 										this->_hash.encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, text);
 									} break;
 									// Если формат входящих данных указан как MD5
 									case static_cast <uint8_t> (type_t::MD5):
 										// Выполняем конвертирование в формат MD5
-										this->_hash.hashing(answer.get <string> (), hash_t::type_t::MD5, text);
+										this->_hash.hashing(answer.GetString(), hash_t::type_t::MD5, text);
 									break;
 									// Если формат входящих данных указан как SHA1
 									case static_cast <uint8_t> (type_t::SHA1):
 										// Выполняем конвертирование в формат SHA1
-										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA1, text);
+										this->_hash.hashing(answer.GetString(), hash_t::type_t::SHA1, text);
 									break;
 									// Если формат входящих данных указан как SHA224
 									case static_cast <uint8_t> (type_t::SHA224):
 										// Выполняем конвертирование в формат SHA224
-										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA224, text);
+										this->_hash.hashing(answer.GetString(), hash_t::type_t::SHA224, text);
 									break;
 									// Если формат входящих данных указан как SHA256
 									case static_cast <uint8_t> (type_t::SHA256):
 										// Выполняем конвертирование в формат SHA256
-										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA256, text);
+										this->_hash.hashing(answer.GetString(), hash_t::type_t::SHA256, text);
 									break;
 									// Если формат входящих данных указан как SHA384
 									case static_cast <uint8_t> (type_t::SHA384):
 										// Выполняем конвертирование в формат SHA384
-										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA384, text);
+										this->_hash.hashing(answer.GetString(), hash_t::type_t::SHA384, text);
 									break;
 									// Если формат входящих данных указан как SHA512
 									case static_cast <uint8_t> (type_t::SHA512):
 										// Выполняем конвертирование в формат SHA512
-										this->_hash.hashing(answer.get <string> (), hash_t::type_t::SHA512, text);
+										this->_hash.hashing(answer.GetString(), hash_t::type_t::SHA512, text);
 									break;
 									// Если формат входящих данных указан как HMAC MD5
 									case static_cast <uint8_t> (type_t::HMAC_MD5):
 										// Выполняем конвертирование в формат HMAC MD5
-										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::MD5, text);
+										this->_hash.hmac(hmac, answer.GetString(), hash_t::type_t::MD5, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA1
 									case static_cast <uint8_t> (type_t::HMAC_SHA1):
 										// Выполняем конвертирование в формат HMAC SHA1
-										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA1, text);
+										this->_hash.hmac(hmac, answer.GetString(), hash_t::type_t::SHA1, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA224
 									case static_cast <uint8_t> (type_t::HMAC_SHA224):
 										// Выполняем конвертирование в формат HMAC SHA224
-										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA224, text);
+										this->_hash.hmac(hmac, answer.GetString(), hash_t::type_t::SHA224, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA256
 									case static_cast <uint8_t> (type_t::HMAC_SHA256):
 										// Выполняем конвертирование в формат HMAC SHA256
-										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA256, text);
+										this->_hash.hmac(hmac, answer.GetString(), hash_t::type_t::SHA256, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA384
 									case static_cast <uint8_t> (type_t::HMAC_SHA384):
 										// Выполняем конвертирование в формат HMAC SHA384
-										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA384, text);
+										this->_hash.hmac(hmac, answer.GetString(), hash_t::type_t::SHA384, text);
 									break;
 									// Если формат входящих данных указан как HMAC SHA512
 									case static_cast <uint8_t> (type_t::HMAC_SHA512):
 										// Выполняем конвертирование в формат HMAC SHA512
-										this->_hash.hmac(hmac, answer.get <string> (), hash_t::type_t::SHA512, text);
+										this->_hash.hmac(hmac, answer.GetString(), hash_t::type_t::SHA512, text);
 									break;
 								}
 								// Если текст ответа получен
 								if((result = !text.empty())){
 									// Выполняем формирование результата ответа
-									json answer = json::object();
+									json answer(kObjectType);
 									// Выполняем формирование результата
-									answer.emplace("result", text);
+									answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text.c_str(), text.length(), answer.GetAllocator()).Move(), answer.GetAllocator());
+									// Создаём результьрующий буфер
+									rapidjson::StringBuffer result;
+									// Выполняем создание объекта писателя
+									Writer <StringBuffer> writer(result);
+									// Передаем данные объекта JSON писателю
+									answer.Accept(writer);
 									// Выполняем получение буфера данных для отправки
-									const string buffer = answer.dump();
+									const string & buffer = result.GetString();
 									// Отправляем сообщение клиенту
 									this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
 										{"Accept-Ranges", "bytes"},
@@ -950,34 +985,34 @@ void anyks::Server::config(const json & config) noexcept {
 	 */
 	try {
 		// Если объект конфигурационных параметров передан
-		if(!config.empty() && config.is_object()){
+		if(config.IsObject() && !config.ObjectEmpty()){
 			// Если адрес иконки сайта favicon.ico установлен
-			if(config.contains("favicon") && config.at("favicon").is_string())
+			if(config.HasMember("favicon") && config["favicon"].IsString())
 				// Выполняем установку адреса favicon.ico
-				this->_favicon = this->_fs.realPath(config.at("favicon").get <string> ());
+				this->_favicon = this->_fs.realPath(config["favicon"].GetString());
 			// Если адрес установлен ресурс с которого разрешено выполнять доступ к API-сервера
-			if(config.contains("origin") && config.at("origin").is_string()){
+			if(config.HasMember("origin") && config["origin"].IsString()){
 				// Выполняем установку ресурса с которого разрешено выполнять доступ к API-сервера
-				this->_origin = config.at("origin").get <string> ();
+				this->_origin = config["origin"].GetString();
 				// Выполняем установку Origin сервера
 				this->_awh.addOrigin(this->_origin);
 			}
 			// Если установлен адрес расположения файлов сайта
-			if(config.contains("root") && config.at("root").is_string())
+			if(config.HasMember("root") && config["root"].IsString())
 				// Выполняем установку корневого адреса
-				this->_root = config.at("root").get <string> ();
+				this->_root = config["root"].GetString();
 			// Если файл по умолчанию который должен выводиться по запросу корня
-			if(config.contains("index") && config.at("index").is_string())
+			if(config.HasMember("index") && config["index"].IsString())
 				// Выполняем установку название файла по умолчанию
-				this->_index = config.at("index").get <string> ();
+				this->_index = config["index"].GetString();
 			// Если максимальное количество запросов на одного пользователя в сутки установлено
-			if(config.contains("maxRequests") && config.at("maxRequests").is_number())
+			if(config.HasMember("maxRequests") && config["maxRequests"].IsUint())
 				// Выполняем установку максимального количества запросов на одного пользователя в сутки
-				this->_maxRequests = config.at("maxRequests").get <uint16_t> ();
+				this->_maxRequests = static_cast <uint16_t> (config["maxRequests"].GetUint());
 			// Если количество воркеров получено
-			if(config.contains("workers") && config.at("workers").is_number()){
+			if(config.HasMember("workers") && config["workers"].IsUint()){
 				// Получаем количество доступных потоков
-				const int16_t count = config.at("workers").get <uint16_t> ();
+				const int16_t count = static_cast <uint16_t> (config["workers"].GetUint());
 				// Если количество воркеров установлено
 				if(count >= 0){
 					// Получаем количество доступных потоков
@@ -992,79 +1027,81 @@ void anyks::Server::config(const json & config) noexcept {
 				}
 			}
 			// Если сетевые параметры работы с сервером присутствуют в конфиге
-			if(config.contains("net") && config.at("net").is_object()){
+			if(config.HasMember("net") && config["net"].IsObject()){
 				// Если максимальное количество подключений указано в конфиге
-				if(config.at("net").contains("total") &&
-					config.at("net").at("total").is_number() &&
-					(config.at("net").at("total").get <u_short> () > 0))
+				if(config["net"].HasMember("total") &&
+				   config["net"]["total"].IsUint() &&
+				  (config["net"]["total"].GetUint() > 0))
 					// Устанавливаем максимальное количество подключений к серверу
-					this->_awh.total(config.at("net").at("total").get <u_short> ());
+					this->_awh.total(static_cast <uint16_t> (config["net"]["total"].GetUint()));
 				// Устанавливаем флаг использования только сети IPv6
 				this->_core.ipV6only(
-					config.at("net").contains("ipv6") &&
-					config.at("net").at("ipv6").is_boolean() &&
-					config.at("net").at("ipv6").get <bool> ()
+					config["net"].HasMember("ipv6") &&
+					config["net"]["ipv6"].IsBool() &&
+					config["net"]["ipv6"].GetBool()
 				);
 				// Если параметры ширины канала есть в конфиге
-				if(config.at("net").contains("bandwidth") && config.at("net").at("bandwidth").is_object()){
+				if(config["net"].HasMember("bandwidth") && config["net"]["bandwidth"].IsObject()){
 					// Получаем ширину канала на чтение
 					this->_bandwidth.read = (
-						config.at("net").at("bandwidth").contains("read") &&
-						config.at("net").at("bandwidth").at("read").is_string() ?
-						config.at("net").at("bandwidth").at("read").get <string> () : ""
+						config["net"]["bandwidth"].HasMember("read") &&
+						config["net"]["bandwidth"]["read"].IsString() ?
+						config["net"]["bandwidth"]["read"].GetString() : ""
 					);
 					// Получаем ширину канала на запись
 					this->_bandwidth.write = (
-						config.at("net").at("bandwidth").contains("write") &&
-						config.at("net").at("bandwidth").at("write").is_string() ?
-						config.at("net").at("bandwidth").at("write").get <string> () : ""
+						config["net"]["bandwidth"].HasMember("write") &&
+						config["net"]["bandwidth"]["write"].IsString() ?
+						config["net"]["bandwidth"]["write"].GetString() : ""
 					);
 				}
 				// Список поддерживаемых компрессоров
 				vector <awh::http_t::compressor_t> compressors;
 				// Если список компрессоров передан
-				if(config.at("net").contains("compress") && config.at("net").at("compress").is_array()){
+				if(config["net"].HasMember("compress") && config["net"]["compress"].IsArray()){
 					// Выполняем перебор всех компрессоров
-					for(auto & item : config.at("net").at("compress")){
+					for(auto & v : config["net"]["compress"].GetArray()){
 						// Если компрессор является строкой
-						if(item.is_string()){
+						if(v.IsString()){
 							// Если компрессор соответствует LZ4
-							if(this->_fmk->compare("LZ4", item.get <string> ()))
+							if(this->_fmk->compare("LZ4", v.GetString()))
 								// Выполняем добавление нового поддерживаемого компрессора
 								compressors.push_back(awh::http_t::compressor_t::LZ4);
 							// Если компрессор соответствует LZMA
-							else if(this->_fmk->compare("LZMA", item.get <string> ()))
+							else if(this->_fmk->compare("LZMA", v.GetString()))
 								// Выполняем добавление нового поддерживаемого компрессора
 								compressors.push_back(awh::http_t::compressor_t::LZMA);
 							// Если компрессор соответствует ZSTD
-							else if(this->_fmk->compare("ZSTD", item.get <string> ()))
+							else if(this->_fmk->compare("ZSTD", v.GetString()))
 								// Выполняем добавление нового поддерживаемого компрессора
 								compressors.push_back(awh::http_t::compressor_t::ZSTD);
 							// Если компрессор соответствует GZIP
-							else if(this->_fmk->compare("GZIP", item.get <string> ()))
+							else if(this->_fmk->compare("GZIP", v.GetString()))
 								// Выполняем добавление нового поддерживаемого компрессора
 								compressors.push_back(awh::http_t::compressor_t::GZIP);
 							// Если компрессор соответствует BZIP2
-							else if(this->_fmk->compare("BZIP2", item.get <string> ()))
+							else if(this->_fmk->compare("BZIP2", v.GetString()))
 								// Выполняем добавление нового поддерживаемого компрессора
 								compressors.push_back(awh::http_t::compressor_t::BZIP2);
 							// Если компрессор соответствует BROTLI
-							else if(this->_fmk->compare("BROTLI", item.get <string> ()))
+							else if(this->_fmk->compare("BROTLI", v.GetString()))
 								// Выполняем добавление нового поддерживаемого компрессора
 								compressors.push_back(awh::http_t::compressor_t::BROTLI);
 							// Если компрессор соответствует DEFLATE
-							else if(this->_fmk->compare("DEFLATE", item.get <string> ()))
+							else if(this->_fmk->compare("DEFLATE", v.GetString()))
 								// Выполняем добавление нового поддерживаемого компрессора
 								compressors.push_back(awh::http_t::compressor_t::DEFLATE);
 						}
 					}
 				}
 				// Если установлен unix-сокет для подклчюения
-				if(config.at("net").contains("unixSocket") && config.at("net").at("unixSocket").is_string() && !config.at("net").at("unixSocket").get <string> ().empty()){
+				if(config["net"].HasMember("unixSocket") &&
+				   config["net"]["unixSocket"].IsString() &&
+				  (strlen(config["net"]["unixSocket"].GetString()) > 0)){
 					// Устанавливаем тип сокета unix-сокет
 					this->_core.family(awh::scheme_t::family_t::NIX);
 					// Выполняем инициализацию сервера для unix-сокета
-					this->_awh.init(config.at("net").at("unixSocket").get <string> (), std::move(compressors));
+					this->_awh.init(config["net"]["unixSocket"].GetString(), std::move(compressors));
 				// Если подключение к серверу производится по хосту и порту
 				} else {
 					// Хост сервера
@@ -1072,7 +1109,7 @@ void anyks::Server::config(const json & config) noexcept {
 					// Порт сервера
 					uint32_t port = SERVER_PORT;
 					// Определяем версию IP протокола
-					switch(config.at("net").contains("ipv") && config.at("net").at("ipv").is_number() ? config.at("net").at("ipv").get <uint8_t> () : 4){
+					switch(config["net"].HasMember("ipv") && config["net"]["ipv"].IsUint() ? config["net"]["ipv"].GetUint() : 4){
 						// Если версия IPv4
 						case 4: this->_core.family(awh::scheme_t::family_t::IPV4); break;
 						// Если версия IPv6
@@ -1081,9 +1118,9 @@ void anyks::Server::config(const json & config) noexcept {
 					// Тип протокола интернета по умолчанию
 					awh::scheme_t::sonet_t sonet = awh::scheme_t::sonet_t::TCP;
 					// Если передан тип сокета подключения
-					if(config.at("net").contains("sonet") && config.at("net").at("sonet").is_string()){
+					if(config["net"].HasMember("sonet") && config["net"]["sonet"].IsString()){
 						// Получаем тип сокета подключения
-						const string & name = config.at("net").at("sonet").get <string> ();
+						const string & name = config["net"]["sonet"].GetString();
 						// Если тип сокета подключения соответствует TCP
 						if(this->_fmk->compare("TCP", name))
 							// Выполняем установку тип сокета подключения
@@ -1110,9 +1147,9 @@ void anyks::Server::config(const json & config) noexcept {
 					// Устанавливаем активный протокол подключения
 					this->_core.proto(awh::engine_t::proto_t::HTTP1_1);
 					// Если хост сервера указан в конфиге
-					if(config.at("net").contains("host") && config.at("net").at("host").is_string()){
+					if(config["net"].HasMember("host") && config["net"]["host"].IsString()){
 						// Устанавливаем хост сервера
-						host = config.at("net").at("host").get <string> ();
+						host = config["net"]["host"].GetString();
 						// Получаем тип передаваемого адреса
 						awh::net_t::type_t type = net_t(this->_log).host(host);
 						// Если тип переданного адреса не соответствует, выводим сообщение об ошибке
@@ -1124,9 +1161,9 @@ void anyks::Server::config(const json & config) noexcept {
 						}
 					}
 					// Если порт сервера указан в конфиге
-					if(config.at("net").contains("port") && config.at("net").at("port").is_number()){
+					if(config["net"].HasMember("port") && config["net"]["port"].IsUint()){
 						// Устанавливаем порт сервера
-						port = config.at("net").at("port").get <uint32_t> ();
+						port = config["net"]["port"].GetUint();
 						// Если порт сервера указан неправильно
 						if((port < 80) || (port > 49151)){
 							// Выполняем сброс порта сервера
@@ -1136,27 +1173,27 @@ void anyks::Server::config(const json & config) noexcept {
 						}
 					}
 					// Если параметр работы с SSL сертификатами передан
-					if(config.contains("ssl") && config.at("ssl").is_object()){
+					if(config.HasMember("ssl") && config["ssl"].IsObject()){
 						// Создаём объект параметров SSL-шифрования
 						node_t::ssl_t ssl;
 						// Получаем флаг выполнения проверки SSL сертификата
 						ssl.verify = (
-							config.at("ssl").contains("verify") ? (
-							config.at("ssl").at("verify").is_boolean() &&
-							config.at("ssl").at("verify").get <bool> ()
+							config["ssl"].HasMember("verify") ? (
+							config["ssl"]["verify"].IsBool() &&
+							config["ssl"]["verify"].GetBool()
 						) : true);
 						// Если ключ SSL-сертификата сервера установлен
-						if(config.at("ssl").contains("key") && config.at("ssl").at("key").is_string())
+						if(config["ssl"].HasMember("key") && config["ssl"]["key"].IsString())
 							// Устанавливаем ключ SSL-сертификата сервера
-							ssl.key = config.at("ssl").at("key").get <string> ();
+							ssl.key = config["ssl"]["key"].GetString();
 						// Если SSL-сертификат сервера установлен
-						if(config.at("ssl").contains("cert") && config.at("ssl").at("cert").is_string())
+						if(config["ssl"].HasMember("cert") && config["ssl"]["cert"].IsString())
 							// Устанавливаем SSL-сертификат сервера
-							ssl.cert = config.at("ssl").at("cert").get <string> ();
+							ssl.cert = config["ssl"]["cert"].GetString();
 						// Если сертификат получен
 						if(!ssl.key.empty() && !ssl.cert.empty()){
 							// Если версия HTTP протокола установлена как HTTP/2
-							if(config.at("net").contains("proto") && config.at("net").at("proto").is_string() && (config.at("net").at("proto").get <string> ().compare("http2") == 0))
+							if(config["net"].HasMember("proto") && config["net"]["proto"].IsString() && this->_fmk->compare(config["net"]["proto"].GetString(), "http2"))
 								// Выполняем установку поддержку протокола HTTP/2
 								this->_core.proto(awh::engine_t::proto_t::HTTP2);
 							// Определяем тип установленного сокета
@@ -1180,31 +1217,31 @@ void anyks::Server::config(const json & config) noexcept {
 					this->_awh.init(port, std::move(host), std::move(compressors));
 				}
 				// Если ваш сервер требует аутентификации
-				if(config.at("net").contains("authentication") && config.at("net").at("authentication").is_object()){
+				if(config["net"].HasMember("authentication") && config["net"]["authentication"].IsObject()){
 					// Если авторизация присутствует на сервере
-					if(config.at("net").at("authentication").contains("enabled") &&
-					   config.at("net").at("authentication").at("enabled").is_boolean() &&
-					   config.at("net").at("authentication").at("enabled").get <bool> ()){
+					if(config["net"]["authentication"].HasMember("enabled") &&
+					   config["net"]["authentication"]["enabled"].IsBool() &&
+					   config["net"]["authentication"]["enabled"].GetBool()){
 						// Тип хэша Digest авторизации на вашем сервере
 						awh::auth_t::hash_t hash = awh::auth_t::hash_t::MD5;
 						// Тип авторизации на вашем сервере
 						awh::auth_t::type_t type = awh::auth_t::type_t::BASIC;
 						// Если логин и пароль авторизации на сервере установлены
-						if(config.at("net").at("authentication").contains("users") &&
-						   config.at("net").at("authentication").at("users").is_object()){
+						if(config["net"]["authentication"].HasMember("users") &&
+						   config["net"]["authentication"]["users"].IsObject()){
 							// Выполняем перебор всего списка пользователей
-							for(auto & user : config.at("net").at("authentication").at("users").items()){
+							for(auto & m : config["net"]["authentication"]["users"].GetObject()){
 								// Если значение является строкой
-								if(user.value().is_string())
+								if(m.value.IsString())
 									// Устанавливаем пользователя для авторизации на сервере
-									this->_users.emplace(user.key(), user.value().get <string> ());
+									this->_users.emplace(m.name.GetString(), m.value.GetString());
 							}
 						// Если логин или пароль не переданы, устанавливаем параметры по умолчанию
 						} else this->_users.emplace(ACU_SERVER_USERNAME, ACU_SERVER_PASSWORD);
 						// Если авторизация у сервера указана
-						if(config.at("net").at("authentication").contains("auth") && config.at("net").at("authentication").at("auth").is_string()){
+						if(config["net"]["authentication"].HasMember("auth") && config["net"]["authentication"]["auth"].IsString()){
 							// Получаем параметры авторизации
-							const string & auth = config.at("net").at("authentication").at("auth").get <string> ();
+							const string & auth = config["net"]["authentication"]["auth"].GetString();
 							// Если авторизация Basic требуется для сервера
 							if(this->_fmk->compare(auth, "basic"))
 								// Устанавливаем тип авторизации Basic сервера
@@ -1215,9 +1252,9 @@ void anyks::Server::config(const json & config) noexcept {
 								type = awh::auth_t::type_t::DIGEST;
 						}
 						// Если тип Digest авторизации у сервера указан
-						if(config.at("net").at("authentication").contains("digest") && config.at("net").at("authentication").at("digest").is_string()){
+						if(config["net"]["authentication"].HasMember("digest") && config["net"]["authentication"]["digest"].IsString()){
 							// Получаем тип Digest авторизации
-							const string & digest = config.at("net").at("authentication").at("digest").get <string> ();
+							const string & digest = config["net"]["authentication"]["digest"].GetString();
 							// Если тип авторизация MD5 требуется для сервера
 							if(this->_fmk->compare(digest, "md5"))
 								// Устанавливаем тип авторизации Digest MD5 сервера
@@ -1244,11 +1281,11 @@ void anyks::Server::config(const json & config) noexcept {
 					}
 				}
 				// Если время ожидания получения сообщения передано
-				if(config.at("net").contains("wait") && config.at("net").at("wait").is_number())
+				if(config["net"].HasMember("wait") && config["net"]["wait"].IsUint64())
 					// Выполняем установку времени ожидания получения сообщения
-					this->_awh.waitMessage(config.at("net").at("wait").get <time_t> ());
+					this->_awh.waitMessage(static_cast <time_t> (config["net"]["wait"].GetUint64()));
 				// Если фильтры доступа к серверу переданы
-				if(config.at("net").contains("filter") && config.at("net").at("filter").is_object()){
+				if(config["net"].HasMember("filter") && config["net"]["filter"].IsObject()){
 					// Создаём объект для работы с IP-адресами
 					net_t net(this->_log);
 					/**
@@ -1263,9 +1300,9 @@ void anyks::Server::config(const json & config) noexcept {
 					// Тип передаваемого адреса
 					awh::net_t::type_t type = awh::net_t::type_t::NONE;
 					// Определяем тип фильтра, если он передан
-					if(config.at("net").at("filter").contains("type") && config.at("net").at("filter").at("type").is_string()){
+					if(config["net"]["filter"].HasMember("type") && config["net"]["filter"]["type"].IsString()){
 						// Получаем тип фильтра доступа к серверу
-						const string & type = config.at("net").at("filter").at("type").get <string> ();
+						const string & type = config["net"]["filter"]["type"].GetString();
 						// Если фильтр установлен как MAC-адрес
 						if(this->_fmk->compare(type, "mac"))
 							// Устанавливаем фильтрацию по MAC-адресу
@@ -1276,64 +1313,70 @@ void anyks::Server::config(const json & config) noexcept {
 							filter = filtred_t::IP;
 					}
 					// Если передан чёрный список адресов
-					if(config.at("net").at("filter").contains("black") &&
-					   config.at("net").at("filter").at("black").is_array() &&
-					   !config.at("net").at("filter").at("black").empty()){
+					if(config["net"]["filter"].HasMember("black") &&
+					   config["net"]["filter"]["black"].IsArray() &&
+					   !config["net"]["filter"]["black"].Empty()){
 						// Переходим по всему массиву адресов
-						for(auto & addr : config.at("net").at("filter").at("black")){
-							// Получаем тип передаваемого адреса
-							type = net.host(addr.get <string> ());
-							// Определяем тип фильтра
-							switch(static_cast <uint8_t> (filter)){
-								// Если очищается IP-адрес
-								case static_cast <uint8_t> (filtred_t::IP): {
-									// Если адрес является IP-адресом
-									if((type == awh::net_t::type_t::IPV4) || (type == awh::net_t::type_t::IPV6))
-										// Устанавливаем разрешённый адрес подключения в фильтр
-										this->_ipBlack.emplace(addr.get <string> ());
-									// Иначе выводим сообщение об ошибке
-									else this->_log->print("%s [%s]", log_t::flag_t::WARNING, "Address for blacklist filter is not correct", addr.get <string> ().c_str());
-								} break;
-								// Если очищается MAC-адрес
-								case static_cast <uint8_t> (filtred_t::MAC): {
-									// Если адрес является MAC-адресом
-									if(type == awh::net_t::type_t::MAC)
-										// Устанавливаем разрешённый адрес подключения в фильтр
-										this->_macBlack.emplace(addr.get <string> ());
-									// Иначе выводим сообщение об ошибке
-									else this->_log->print("%s [%s]", log_t::flag_t::WARNING, "Address for blacklist filter is not correct", addr.get <string> ().c_str());
-								} break;
+						for(auto & v : config["net"]["filter"]["black"].GetArray()){
+							// Если запись в чёрном списке является строкой
+							if(v.IsString()){
+								// Получаем тип передаваемого адреса
+								type = net.host(v.GetString());
+								// Определяем тип фильтра
+								switch(static_cast <uint8_t> (filter)){
+									// Если очищается IP-адрес
+									case static_cast <uint8_t> (filtred_t::IP): {
+										// Если адрес является IP-адресом
+										if((type == awh::net_t::type_t::IPV4) || (type == awh::net_t::type_t::IPV6))
+											// Устанавливаем разрешённый адрес подключения в фильтр
+											this->_ipBlack.emplace(v.GetString());
+										// Иначе выводим сообщение об ошибке
+										else this->_log->print("%s [%s]", log_t::flag_t::WARNING, "Address for blacklist filter is not correct", v.GetString());
+									} break;
+									// Если очищается MAC-адрес
+									case static_cast <uint8_t> (filtred_t::MAC): {
+										// Если адрес является MAC-адресом
+										if(type == awh::net_t::type_t::MAC)
+											// Устанавливаем разрешённый адрес подключения в фильтр
+											this->_macBlack.emplace(v.GetString());
+										// Иначе выводим сообщение об ошибке
+										else this->_log->print("%s [%s]", log_t::flag_t::WARNING, "Address for blacklist filter is not correct", v.GetString());
+									} break;
+								}
 							}
 						}
 					}
 					// Если передан белый список адресов
-					if(config.at("net").at("filter").contains("white") &&
-					   config.at("net").at("filter").at("white").is_array() &&
-					   !config.at("net").at("filter").at("white").empty()){
+					if(config["net"]["filter"].HasMember("white") &&
+					   config["net"]["filter"]["white"].IsArray() &&
+					   !config["net"]["filter"]["white"].Empty()){
 						// Переходим по всему массиву адресов
-						for(auto & addr : config.at("net").at("filter").at("white")){
-							// Получаем тип передаваемого адреса
-							type = net.host(addr.get <string> ());
-							// Определяем тип фильтра
-							switch(static_cast <uint8_t> (filter)){
-								// Если очищается IP-адрес
-								case static_cast <uint8_t> (filtred_t::IP): {
-									// Если адрес является IP-адресом
-									if((type == awh::net_t::type_t::IPV4) || (type == awh::net_t::type_t::IPV6))
-										// Устанавливаем разрешённый адрес подключения в фильтр
-										this->_ipWhite.emplace(addr.get <string> ());
-									// Иначе выводим сообщение об ошибке
-									else this->_log->print("%s [%s]", log_t::flag_t::WARNING, "Address for whitelist filter is not correct", addr.get <string> ().c_str());
-								} break;
-								// Если очищается MAC-адрес
-								case static_cast <uint8_t> (filtred_t::MAC): {
-									// Если адрес является MAC-адресом
-									if(type == awh::net_t::type_t::MAC)
-										// Устанавливаем разрешённый адрес подключения в фильтр
-										this->_macWhite.emplace(addr.get <string> ());
-									// Иначе выводим сообщение об ошибке
-									else this->_log->print("%s [%s]", log_t::flag_t::WARNING, "Address for whitelist filter is not correct", addr.get <string> ().c_str());
-								} break;
+						for(auto & v : config["net"]["filter"]["white"].GetArray()){
+							// Если запись в белом списке является строкой
+							if(v.IsString()){
+								// Получаем тип передаваемого адреса
+								type = net.host(v.GetString());
+								// Определяем тип фильтра
+								switch(static_cast <uint8_t> (filter)){
+									// Если очищается IP-адрес
+									case static_cast <uint8_t> (filtred_t::IP): {
+										// Если адрес является IP-адресом
+										if((type == awh::net_t::type_t::IPV4) || (type == awh::net_t::type_t::IPV6))
+											// Устанавливаем разрешённый адрес подключения в фильтр
+											this->_ipWhite.emplace(v.GetString());
+										// Иначе выводим сообщение об ошибке
+										else this->_log->print("%s [%s]", log_t::flag_t::WARNING, "Address for whitelist filter is not correct", v.GetString());
+									} break;
+									// Если очищается MAC-адрес
+									case static_cast <uint8_t> (filtred_t::MAC): {
+										// Если адрес является MAC-адресом
+										if(type == awh::net_t::type_t::MAC)
+											// Устанавливаем разрешённый адрес подключения в фильтр
+											this->_macWhite.emplace(v.GetString());
+										// Иначе выводим сообщение об ошибке
+										else this->_log->print("%s [%s]", log_t::flag_t::WARNING, "Address for whitelist filter is not correct", v.GetString());
+									} break;
+								}
 							}
 						}
 					}
@@ -1342,33 +1385,33 @@ void anyks::Server::config(const json & config) noexcept {
 				// Создаём объект работы с операционной системой
 				os_t os;
 				// Если требуется перенастроить сервер на максимальную производительность
-				if(config.contains("boost") && config.at("boost").is_boolean() && config.at("boost").get <bool> ())
+				if(config.HasMember("boost") && config["boost"].IsBool() && config["boost"].GetBool())
 					// Выполняем перенастрофку сервера на максимальную производительность
 					os.boost();
 				// Если пользователь получен
-				if(config.contains("user")){
+				if(config.HasMember("user")){
 					// Если пользователь указан как число или как строка но не строка в виде "auto"
-					if(config.at("user").is_number() || (config.at("user").is_string() && !this->_fmk->compare("auto", config.at("user").get <string> ()))){
+					if(config["user"].IsUint() || (config["user"].IsString() && !this->_fmk->compare("auto", config["user"].GetString()))){
 						// Если пользователь указан как число
-						if(config.at("user").is_number()){
+						if(config["user"].IsUint()){
 							// Идентификатор группы
 							gid_t gid = 0;
 							// Если группа пользователя получена
-							if(config.contains("group") && config.at("group").is_number())
+							if(config.HasMember("group") && config["group"].IsUint())
 								// Получаем идентификатор группы
-								gid = config.at("group").get <gid_t> ();
+								gid = static_cast <gid_t> (config["group"].GetUint());
 							// Выполняем активацию пользователя
-							os.chown(config.at("user").get <uid_t> (), gid);
+							os.chown(static_cast <uid_t> (config["user"].GetUint()), gid);
 						// Если пользователь указан как строка
 						} else {
 							// Название группы
 							string group = "";
 							// Если группа пользователя получена
-							if(config.contains("group") && (config.at("group").is_string() && !this->_fmk->compare("auto", config.at("group").get <string> ())))
+							if(config.HasMember("group") && (config["group"].IsString() && !this->_fmk->compare("auto", config["group"].GetString())))
 								// Получаем название группы
-								group = config.at("group").get <string> ();
+								group = config["group"].GetString();
 							// Выполняем активацию пользователя
-							os.chown(config.at("user").get <string> (), group);
+							os.chown(config["user"].GetString(), group);
 						}
 					}
 				}
@@ -1378,8 +1421,19 @@ void anyks::Server::config(const json & config) noexcept {
 	 * Если возникает ошибка
 	 */
 	} catch(const std::exception & error) {
-		// Выводим сообщение об ошибке
-		this->_log->print("Config: %s", log_t::flag_t::CRITICAL, error.what());
+		/**
+		 * Если включён режим отладки
+		 */
+		#if defined(DEBUG_MODE)
+			// Выводим сообщение об ошибке
+			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+		/**
+		* Если режим отладки не включён
+		*/
+		#else
+			// Выводим сообщение об ошибке
+			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+		#endif
 	}
 }
 /**

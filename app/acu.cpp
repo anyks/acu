@@ -240,15 +240,15 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			}
 		#endif
 		// Если формат вывода лога передан
-		if(env.is("formatDate", true))
+		if(env.isString(true, "formatDate"))
 			// Получаем формат вывода даты
-			formatDate = env.get("formatDate", true);
+			formatDate = env.get <string> (true, "formatDate");
 		// Устанавливаем формат вывода даты
 		log.format(formatDate);
 		// Если адрес файла лога передан
-		if(env.isString("log")){
+		if(env.isString(true, "log")){
 			// Получаем адрес файла лога
-			const string & filename = env.get("log");
+			const string & filename = env.get <string> (true, "log");
 			// Если адрес файла лога получен
 			if(!filename.empty()){
 				// Позиция разделителя каталога
@@ -267,13 +267,22 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			}
 		}
 		// Если нужно вывести справочную помощь
-		if(!env.size() || (env.is("info") || env.is("H"))){
+		if((env.count(true) == 0) || env.is(false, "info") || env.is(false, "H")){
+			// Выполняем загрузку конфигурационного файла
+			if(env.isString(false, "config")){
+				// Получаем параметр конфигурационного файла
+				const string configFile = env.get <string> (false, "config");
+				// Если конфигурационный файл получен
+				if(!configFile.empty())
+					// Выполняем извлечение данных конфигурационного файла
+					env.filename(configFile);
+			}
 			// Выводим справочную информацию
 			help(name);
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
 		// Если версия получена
-		} else if(env.is("version") || env.is("V")) {
+		} else if(env.is(false, "version") || env.is(false, "V")) {
 			/**
 			 * Выполняем работу для Windows
 			 */
@@ -291,15 +300,15 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			::exit(EXIT_SUCCESS);
 		}
 		// Если уровень логирования передан
-		if(env.isNumber("logLevel"))
+		if(env.isUint(false, "logLevel"))
 			// Выполняем установку уровня логирования
-			log.level(static_cast <log_t::level_t> (env.get <uint8_t> ("logLevel")));
+			log.level(static_cast <log_t::level_t> (env.get <uint32_t> (false, "logLevel")));
 		// Если уровень логирования прописан в конфигурационном файле
-		else if(env.isNumber("logLevel", true))
+		else if(env.isUint(true, "logLevel"))
 			// Выполняем установку уровня логирования из конфигурационного файла
-			log.level(static_cast <log_t::level_t> (env.get <uint8_t> ("logLevel", true)));
+			log.level(static_cast <log_t::level_t> (env.get <uint32_t> (true, "logLevel")));
 		// Если указанны форматы конвертирования
-		if(env.isString("from") && env.isString("to")){
+		if(env.isString(false, "from") && env.isString(false, "to")){
 			// Регулярное выражение в формате GROK
 			string express = "";
 			// Выполняем инициализацию объекта парсера
@@ -332,50 +341,68 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Тип конвертируемого формата данных и тип формата для конвертации
 			type_t from = type_t::TEXT, to = type_t::TEXT;
 			// Если формат входящих данных указан как Text
-			if(fmk.compare("text", env.get("from")))
+			if(fmk.compare("text", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::TEXT;
 			// Если формат входящих данных указан как XML
-			else if(fmk.compare("xml", env.get("from")))
+			else if(fmk.compare("xml", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::XML;
 			// Если формат входящих данных указан как JSON
-			else if(fmk.compare("json", env.get("from")))
+			else if(fmk.compare("json", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::JSON;
 			// Если формат входящих данных указан как INI
-			else if(fmk.compare("ini", env.get("from")))
+			else if(fmk.compare("ini", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::INI;
 			// Если формат входящих данных указан как YAML
-			else if(fmk.compare("yaml", env.get("from")))
+			else if(fmk.compare("yaml", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::YAML;
 			// Если формат входящих данных указан как CEF
-			else if(fmk.compare("cef", env.get("from")))
+			else if(fmk.compare("cef", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::CEF;
 			// Если формат входящих данных указан как CSV
-			else if(fmk.compare("csv", env.get("from")))
+			else if(fmk.compare("csv", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::CSV;
 			// Если формат входящих данных указан как GROK
-			else if(fmk.compare("grok", env.get("from"))) {
+			else if(fmk.compare("grok", env.get <string> (false, "from"))) {
 				// Определяем формат данных
 				from = type_t::GROK;
 				// Если файл шаблона указан
-				if(env.isString("patterns")){
-					// Выполняем чтение объекта шаблонов
-					json patterns = json::parse(fs.read(env.get("patterns")));
+				if(env.isString(false, "patterns")){
+					// Объект шаблонов
+					json patterns;
+					// Выполяем получение текста шаблонов
+					const auto & buffer = fs.read(env.get <string> (false, "patterns"));
+					// Выполняем парсинг полученных текстовых данных
+					if(patterns.Parse(buffer.data(), buffer.size()).HasParseError()){
+						/**
+						 * Если включён режим отладки
+						 */
+						#if defined(DEBUG_MODE)
+							// Выводим сообщение об ошибке
+							log.debug("Patterns JSON: (offset %d): %s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, patterns.GetErrorOffset(), GetParseError_En(patterns.GetParseError()));
+						/**
+						* Если режим отладки не включён
+						*/
+						#else
+							// Выводим сообщение об ошибке
+							log.print("Patterns JSON: (offset %d): %s", log_t::flag_t::CRITICAL, patterns.GetErrorOffset(), GetParseError_En(patterns.GetParseError()));
+						#endif
+					}
 					// Если данные шаблонов получены
-					if(patterns.is_object() && !patterns.empty())
+					if(patterns.IsObject() && !patterns.ObjectEmpty())
 						// Выполняем добавление поддерживаемых шаблонов
 						parser.patterns(patterns);
 				}
 				// Если регулярное выражение передано
-				if(env.isString("express")){
+				if(env.isString(false, "express")){
 					// Выполняем чтение данных регулярного выражения
-					const auto & buffer = fs.read(env.get("express"));
+					const auto & buffer = fs.read(env.get <string> (false, "express"));
 					// Если регулярное выражение не получено
 					if(buffer.empty()){
 						// Выводим сообщение об ошибке
@@ -392,11 +419,11 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 					return EXIT_FAILURE;
 				}
 			// Если формат входящих данных указан как SysLog
-			} else if(fmk.compare("syslog", env.get("from")))
+			} else if(fmk.compare("syslog", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::SYSLOG;
 			// Если формат входящих данных указан как BASE64
-			else if(fmk.compare("base64", env.get("from")))
+			else if(fmk.compare("base64", env.get <string> (false, "from")))
 				// Определяем формат данных
 				from = type_t::BASE64;
 			// Если формат не определён
@@ -407,63 +434,63 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				return EXIT_FAILURE;
 			}
 			// Если формат исходящих данных указан как Text
-			if(fmk.compare("text", env.get("to")))
+			if(fmk.compare("text", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::TEXT;
 			// Если формат исходящих данных указан как XML
-			else if(fmk.compare("xml", env.get("to")))
+			else if(fmk.compare("xml", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::XML;
 			// Если формат исходящих данных указан как JSON
-			else if(fmk.compare("json", env.get("to")))
+			else if(fmk.compare("json", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::JSON;
 			// Если формат исходящих данных указан как INI
-			else if(fmk.compare("ini", env.get("to")))
+			else if(fmk.compare("ini", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::INI;
 			// Если формат исходящих данных указан как YAML
-			else if(fmk.compare("yaml", env.get("to")))
+			else if(fmk.compare("yaml", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::YAML;
 			// Если формат исходящих данных указан как CEF
-			else if(fmk.compare("cef", env.get("to")))
+			else if(fmk.compare("cef", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::CEF;
 			// Если формат исходящих данных указан как CSV
-			else if(fmk.compare("csv", env.get("to")))
+			else if(fmk.compare("csv", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::CSV;
 			// Если формат исходящих данных указан как SysLog
-			else if(fmk.compare("syslog", env.get("to")))
+			else if(fmk.compare("syslog", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::SYSLOG;
 			// Если формат исходящих данных указан как BASE64
-			else if(fmk.compare("base64", env.get("to")))
+			else if(fmk.compare("base64", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::BASE64;
 			// Если формат исходящих данных указан как MD5
-			else if(fmk.compare("md5", env.get("to")))
+			else if(fmk.compare("md5", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::MD5;
 			// Если формат исходящих данных указан как SHA1
-			else if(fmk.compare("sha1", env.get("to")))
+			else if(fmk.compare("sha1", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::SHA1;
 			// Если формат исходящих данных указан как SHA224
-			else if(fmk.compare("sha224", env.get("to")))
+			else if(fmk.compare("sha224", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::SHA224;
 			// Если формат исходящих данных указан как SHA256
-			else if(fmk.compare("sha256", env.get("to")))
+			else if(fmk.compare("sha256", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::SHA256;
 			// Если формат исходящих данных указан как SHA384
-			else if(fmk.compare("sha384", env.get("to")))
+			else if(fmk.compare("sha384", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::SHA384;
 			// Если формат исходящих данных указан как SHA512
-			else if(fmk.compare("sha512", env.get("to")))
+			else if(fmk.compare("sha512", env.get <string> (false, "to")))
 				// Определяем формат данных
 				to = type_t::SHA512;
 			// Если формат не определён
@@ -476,9 +503,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Получаем ключ HMAC
 			string hmac = "";
 			// Если ключ проверки подлинности передан
-			if(env.isString("hmac")){
+			if(env.isString(false, "hmac")){
 				// Получаем ключ подтверждения подлинности
-				hmac = env.get("hmac");
+				hmac = env.get <string> (false, "hmac");
 				// Если ключ подтверждения подлинности получен
 				if(!hmac.empty()){
 					// Проверяем формат данных для конвертации
@@ -519,13 +546,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Если данные прочитаны из потока
 			if(!text.empty()){
 				// Объект в формате JSON
-				json result = json::object();
+				json result(kObjectType);
 				// Определяем формат данных
 				switch(static_cast <uint8_t> (from)){
 					// Если формат входящих данных указан как Text
 					case static_cast <uint8_t> (type_t::TEXT):
 						// Выполняем передачу данных как она есть
-						result = text;
+						result.SetString(text.c_str(), text.length(), result.GetAllocator());
 					break;
 					// Если формат входящих данных указан как XML
 					case static_cast <uint8_t> (type_t::XML):
@@ -552,9 +579,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						// Режим парсинга CEF по умолчанию
 						cef_t::mode_t mode = cef_t::mode_t::STRONG;
 						// Если режим парсинга CEF передан
-						if(env.isString("cef")){
+						if(env.isString(false, "cef")){
 							// Получаем режим парсинга
-							const string & cef = env.get("cef");
+							const string & cef = env.get <string> (false, "cef");
 							// Если режим парсинга установлен как строгий
 							if(fmk.compare("strong", cef))
 								// Устанавливаем строгий режим парсинга
@@ -574,7 +601,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 					// Если формат входящих данных указан как CSV
 					case static_cast <uint8_t> (type_t::CSV):
 						// Выполняем конвертацию данных
-						result = parser.csv(text, env.is("header"));
+						result = parser.csv(text, env.isBoolean(false, "header"));
 					break;
 					// Если формат входящих данных указан как GROK
 					case static_cast <uint8_t> (type_t::GROK):
@@ -587,17 +614,19 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						result = parser.syslog(text);
 					break;
 					// Если формат входящих данных указан как BASE64
-					case static_cast <uint8_t> (type_t::BASE64):
+					case static_cast <uint8_t> (type_t::BASE64): {
 						// Выполняем декодирование хэша BASE64
-						result = hash_t(&log).decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
-					break;
+						const string & hash = hash_t(&log).decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
+						// Выполняем установку полученного хэша BASE64
+						result.SetString(hash.c_str(), hash.length(), result.GetAllocator());
+					} break;
 				}
 				// Если результат получен
-				if(!result.empty()){
+				if(!result.IsNull()){
 					// Если указан адрес каталога назначения
-					if(env.isString("dest")){
+					if(env.isString(false, "dest")){
 						// Получаем адрес каталога
-						const string & addr = env.get("dest");
+						const string & addr = env.get <string> (false, "dest");
 						// Если адрес каталога получен
 						if(!addr.empty()){
 							// Адрес файла для сохранения
@@ -605,7 +634,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							// Если каталог не существует
 							if(fs.isDir(addr)){
 								// Получаем расширение файла
-								const string extension = env.get("to");
+								const string extension = env.get <string> (false, "to");
 								// Переводим расширение в нижний регистр
 								fmk.transform(extension, fmk_t::transform_t::LOWER);
 								// Выполняем создание адреса файла для сохранения
@@ -618,17 +647,17 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Если формат входящих данных указан как Text
 								case static_cast <uint8_t> (type_t::TEXT):
 									// Выполняем вывод текст как он есть
-									buffer = result;
+									buffer = result.GetString();
 								break;
 								// Если формат входящих данных указан как XML
 								case static_cast <uint8_t> (type_t::XML):
 									// Выполняем конвертирование в формат XML
-									buffer = parser.xml(result, env.is("prettify"));
+									buffer = parser.xml(result, env.isBoolean(false, "prettify"));
 								break;
 								// Если формат входящих данных указан как JSON
 								case static_cast <uint8_t> (type_t::JSON):
 									// Выполняем конвертирование в формат JSON
-									buffer = parser.json(result, env.is("prettify"));
+									buffer = parser.json(result, env.isBoolean(false, "prettify"));
 								break;
 								// Если формат входящих данных указан как INI
 								case static_cast <uint8_t> (type_t::INI):
@@ -645,9 +674,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Режим парсинга CEF по умолчанию
 									cef_t::mode_t mode = cef_t::mode_t::STRONG;
 									// Если режим парсинга CEF передан
-									if(env.isString("cef")){
+									if(env.isString(false, "cef")){
 										// Получаем режим парсинга
-										const string & cef = env.get("cef");
+										const string & cef = env.get <string> (false, "cef");
 										// Если режим парсинга установлен как строгий
 										if(fmk.compare("strong", cef))
 											// Устанавливаем строгий режим парсинга
@@ -667,7 +696,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Если формат входящих данных указан как CSV
 								case static_cast <uint8_t> (type_t::CSV):
 									// Выполняем конвертирование в формат CSV
-									buffer = parser.csv(result, env.is("header"), (env.isString("delim") ? env.get("delim").front() : ';'));
+									buffer = parser.csv(result, env.isBoolean(false, "header"), (env.isString(false, "delim") ? env.get <string> (false, "delim").front() : ';'));
 								break;
 								// Если формат входящих данных указан как SysLog
 								case static_cast <uint8_t> (type_t::SYSLOG):
@@ -677,69 +706,69 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Если формат входящих данных указан как BASE64
 								case static_cast <uint8_t> (type_t::BASE64): {
 									// Выполняем получение текста для шифрования
-									const string data = result.get <string> ();
+									const string data = result.GetString();
 									// Выполняем конвертирование в формат BASE64
 									hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, buffer);
 								} break;
 								// Если формат входящих данных указан как MD5
 								case static_cast <uint8_t> (type_t::MD5):
 									// Выполняем конвертирование в формат MD5
-									hash_t(&log).hashing(result.get <string> (), hash_t::type_t::MD5, buffer);
+									hash_t(&log).hashing(result.GetString(), hash_t::type_t::MD5, buffer);
 								break;
 								// Если формат входящих данных указан как SHA1
 								case static_cast <uint8_t> (type_t::SHA1):
 									// Выполняем конвертирование в формат SHA1
-									hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA1, buffer);
+									hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA1, buffer);
 								break;
 								// Если формат входящих данных указан как SHA224
 								case static_cast <uint8_t> (type_t::SHA224):
 									// Выполняем конвертирование в формат SHA224
-									hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA224, buffer);
+									hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA224, buffer);
 								break;
 								// Если формат входящих данных указан как SHA256
 								case static_cast <uint8_t> (type_t::SHA256):
 									// Выполняем конвертирование в формат SHA256
-									hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA256, buffer);
+									hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA256, buffer);
 								break;
 								// Если формат входящих данных указан как SHA384
 								case static_cast <uint8_t> (type_t::SHA384):
 									// Выполняем конвертирование в формат SHA384
-									hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA384, buffer);
+									hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA384, buffer);
 								break;
 								// Если формат входящих данных указан как SHA512
 								case static_cast <uint8_t> (type_t::SHA512):
 									// Выполняем конвертирование в формат SHA512
-									hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA512, buffer);
+									hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA512, buffer);
 								break;
 								// Если формат входящих данных указан как HMAC MD5
 								case static_cast <uint8_t> (type_t::HMAC_MD5):
 									// Выполняем конвертирование в формат HMAC MD5
-									hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::MD5, buffer);
+									hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::MD5, buffer);
 								break;
 								// Если формат входящих данных указан как HMAC SHA1
 								case static_cast <uint8_t> (type_t::HMAC_SHA1):
 									// Выполняем конвертирование в формат HMAC SHA1
-									hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA1, buffer);
+									hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA1, buffer);
 								break;
 								// Если формат входящих данных указан как HMAC SHA224
 								case static_cast <uint8_t> (type_t::HMAC_SHA224):
 									// Выполняем конвертирование в формат HMAC SHA224
-									hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA224, buffer);
+									hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA224, buffer);
 								break;
 								// Если формат входящих данных указан как HMAC SHA256
 								case static_cast <uint8_t> (type_t::HMAC_SHA256):
 									// Выполняем конвертирование в формат HMAC SHA256
-									hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA256, buffer);
+									hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA256, buffer);
 								break;
 								// Если формат входящих данных указан как HMAC SHA384
 								case static_cast <uint8_t> (type_t::HMAC_SHA384):
 									// Выполняем конвертирование в формат HMAC SHA384
-									hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA384, buffer);
+									hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA384, buffer);
 								break;
 								// Если формат входящих данных указан как HMAC SHA512
 								case static_cast <uint8_t> (type_t::HMAC_SHA512):
 									// Выполняем конвертирование в формат HMAC SHA512
-									hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA512, buffer);
+									hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA512, buffer);
 								break;
 							}
 							// Если данные для записи получены
@@ -747,7 +776,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Выполняем запись данных в файл
 								fs.write(filename, buffer.data(), buffer.size());
 							// Выводим сообщение об ошибке
-							else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
+							else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get <string> (false, "from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get <string> (false, "to"), fmk_t::transform_t::UPPER).c_str());
 							// Выводим удачное завершение работы
 							return EXIT_SUCCESS;
 						}
@@ -762,17 +791,17 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							// Если формат входящих данных указан как Text
 							case static_cast <uint8_t> (type_t::TEXT):
 								// Выполняем вывод текст как он есть
-								cout << result << endl;
+								cout << result.GetString() << endl;
 							break;
 							// Если формат входящих данных указан как XML
 							case static_cast <uint8_t> (type_t::XML):
 								// Выполняем конвертирование в формат XML
-								cout << parser.xml(result, env.is("prettify")) << endl;
+								cout << parser.xml(result, env.isBoolean(false, "prettify")) << endl;
 							break;
 							// Если формат входящих данных указан как JSON
 							case static_cast <uint8_t> (type_t::JSON):
 								// Выполняем конвертирование в формат JSON
-								cout << parser.json(result, env.is("prettify")) << endl;
+								cout << parser.json(result, env.isBoolean(false, "prettify")) << endl;
 							break;
 							// Если формат входящих данных указан как INI
 							case static_cast <uint8_t> (type_t::INI):
@@ -789,9 +818,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Режим парсинга CEF по умолчанию
 								cef_t::mode_t mode = cef_t::mode_t::STRONG;
 								// Если режим парсинга CEF передан
-								if(env.isString("cef")){
+								if(env.isString(false, "cef")){
 									// Получаем режим парсинга
-									const string & cef = env.get("cef");
+									const string & cef = env.get <string> (false, "cef");
 									// Если режим парсинга установлен как строгий
 									if(fmk.compare("strong", cef))
 										// Устанавливаем строгий режим парсинга
@@ -811,7 +840,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							// Если формат входящих данных указан как CSV
 							case static_cast <uint8_t> (type_t::CSV):
 								// Выполняем конвертирование в формат CSV
-								cout << parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';')) << endl;
+								cout << parser.csv(result, (env.isString(false, "delim") ? env.get <string> (false, "delim").front() : ';')) << endl;
 							break;
 							// Если формат входящих данных указан как SysLog
 							case static_cast <uint8_t> (type_t::SYSLOG):
@@ -821,81 +850,81 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							// Если формат входящих данных указан как BASE64
 							case static_cast <uint8_t> (type_t::BASE64): {
 								// Выполняем получение текста для шифрования
-								const string data = result.get <string> ();
+								const string data = result.GetString();
 								// Выполняем конвертирование в формат BASE64
 								cout << hash_t(&log).encode <string> (data.c_str(), data.size(), hash_t::cipher_t::BASE64) << endl;
 							} break;
 							// Если формат входящих данных указан как MD5
 							case static_cast <uint8_t> (type_t::MD5):
 								// Выполняем конвертирование в формат MD5
-								cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::MD5) << endl;
+								cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::MD5) << endl;
 							break;
 							// Если формат входящих данных указан как SHA1
 							case static_cast <uint8_t> (type_t::SHA1):
 								// Выполняем конвертирование в формат SHA1
-								cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA1) << endl;
+								cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA1) << endl;
 							break;
 							// Если формат входящих данных указан как SHA224
 							case static_cast <uint8_t> (type_t::SHA224):
 								// Выполняем конвертирование в формат SHA224
-								cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA224) << endl;
+								cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA224) << endl;
 							break;
 							// Если формат входящих данных указан как SHA256
 							case static_cast <uint8_t> (type_t::SHA256):
 								// Выполняем конвертирование в формат SHA256
-								cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA256) << endl;
+								cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA256) << endl;
 							break;
 							// Если формат входящих данных указан как SHA384
 							case static_cast <uint8_t> (type_t::SHA384):
 								// Выполняем конвертирование в формат SHA384
-								cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA384) << endl;
+								cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA384) << endl;
 							break;
 							// Если формат входящих данных указан как SHA512
 							case static_cast <uint8_t> (type_t::SHA512):
 								// Выполняем конвертирование в формат SHA512
-								cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA512) << endl;
+								cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA512) << endl;
 							break;
 							// Если формат входящих данных указан как HMAC MD5
 							case static_cast <uint8_t> (type_t::HMAC_MD5):
 								// Выполняем конвертирование в формат HMAC MD5
-								cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::MD5) << endl;
+								cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::MD5) << endl;
 							break;
 							// Если формат входящих данных указан как HMAC SHA1
 							case static_cast <uint8_t> (type_t::HMAC_SHA1):
 								// Выполняем конвертирование в формат HMAC SHA1
-								cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA1) << endl;
+								cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA1) << endl;
 							break;
 							// Если формат входящих данных указан как HMAC SHA224
 							case static_cast <uint8_t> (type_t::HMAC_SHA224):
 								// Выполняем конвертирование в формат HMAC SHA224
-								cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA224) << endl;
+								cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA224) << endl;
 							break;
 							// Если формат входящих данных указан как HMAC SHA256
 							case static_cast <uint8_t> (type_t::HMAC_SHA256):
 								// Выполняем конвертирование в формат HMAC SHA256
-								cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA256) << endl;
+								cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA256) << endl;
 							break;
 							// Если формат входящих данных указан как HMAC SHA384
 							case static_cast <uint8_t> (type_t::HMAC_SHA384):
 								// Выполняем конвертирование в формат HMAC SHA384
-								cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA384) << endl;
+								cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA384) << endl;
 							break;
 							// Если формат входящих данных указан как HMAC SHA512
 							case static_cast <uint8_t> (type_t::HMAC_SHA512):
 								// Выполняем конвертирование в формат HMAC SHA512
-								cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA512) << endl;
+								cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA512) << endl;
 							break;
 						}
 					}
 				}
 			// Если адрес файла хранения указан
-			} else if(env.isString("src")) {
+			} else if(env.isString(false, "src")) {
 				// Получаем адрес файла или каталога
-				const string & addr = env.get("src");
+				const string & addr = env.get <string> (false, "src");
 				// Если адрес является каталогом
 				if(fs.isDir(addr)){
 					// Получаем расширение файла
-					const string extension = env.get("from");
+					const string extension = env.get <string> (false, "from");
 					// Переводим расширение в нижний регистр
 					fmk.transform(extension, fmk_t::transform_t::LOWER);
 					// Выполняем чтение каталога
@@ -907,7 +936,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						// Если данные файла загружены
 						if(!buffer.empty()){
 							// Объект в формате JSON
-							json result = json::object();
+							json result(kObjectType);
 							// Формируем полученный текст
 							const string text(buffer.begin(), buffer.end());
 							// Определяем формат данных
@@ -915,7 +944,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Если формат входящих данных указан как Text
 								case static_cast <uint8_t> (type_t::TEXT):
 									// Выполняем передачу данных как она есть
-									result = text;
+									result.SetString(text.c_str(), text.length(), result.GetAllocator());
 								break;
 								// Если формат входящих данных указан как XML
 								case static_cast <uint8_t> (type_t::XML):
@@ -942,9 +971,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Режим парсинга CEF по умолчанию
 									cef_t::mode_t mode = cef_t::mode_t::STRONG;
 									// Если режим парсинга CEF передан
-									if(env.isString("cef")){
+									if(env.isString(false, "cef")){
 										// Получаем режим парсинга
-										const string & cef = env.get("cef");
+										const string & cef = env.get <string> (false, "cef");
 										// Если режим парсинга установлен как строгий
 										if(fmk.compare("strong", cef))
 											// Устанавливаем строгий режим парсинга
@@ -964,7 +993,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Если формат входящих данных указан как CSV
 								case static_cast <uint8_t> (type_t::CSV):
 									// Выполняем конвертацию данных
-									result = parser.csv(text, env.is("header"));
+									result = parser.csv(text, env.isBoolean(false, "header"));
 								break;
 								// Если формат входящих данных указан как GROK
 								case static_cast <uint8_t> (type_t::GROK):
@@ -977,17 +1006,19 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									result = parser.syslog(text);
 								break;
 								// Если формат входящих данных указан как BASE64
-								case static_cast <uint8_t> (type_t::BASE64):
+								case static_cast <uint8_t> (type_t::BASE64): {
 									// Выполняем декодирование хэша BASE64
-									result = hash_t(&log).decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
-								break;
+									const string & hash = hash_t(&log).decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
+									// Выполняем установку полученного хэша BASE64
+									result.SetString(hash.c_str(), hash.length(), result.GetAllocator());
+								} break;
 							}
 							// Если результат получен
-							if(!result.empty()){
+							if(!result.IsNull()){
 								// Если указан адрес каталога назначения
-								if(env.isString("dest")){
+								if(env.isString(false, "dest")){
 									// Получаем адрес каталога
-									const string & addr = env.get("dest");
+									const string & addr = env.get <string> (false, "dest");
 									// Если адрес каталога получен
 									if(!addr.empty()){
 										// Если каталог не существует
@@ -1015,17 +1046,17 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Если формат входящих данных указан как Text
 											case static_cast <uint8_t> (type_t::TEXT):
 												// Выполняем вывод текст как он есть
-												buffer = result;
+												buffer = result.GetString();
 											break;
 											// Если формат входящих данных указан как XML
 											case static_cast <uint8_t> (type_t::XML):
 												// Выполняем конвертирование в формат XML
-												buffer = parser.xml(result, env.is("prettify"));
+												buffer = parser.xml(result, env.isBoolean(false, "prettify"));
 											break;
 											// Если формат входящих данных указан как JSON
 											case static_cast <uint8_t> (type_t::JSON):
 												// Выполняем конвертирование в формат JSON
-												buffer = parser.json(result, env.is("prettify"));
+												buffer = parser.json(result, env.isBoolean(false, "prettify"));
 											break;
 											// Если формат входящих данных указан как INI
 											case static_cast <uint8_t> (type_t::INI):
@@ -1042,9 +1073,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 												// Режим парсинга CEF по умолчанию
 												cef_t::mode_t mode = cef_t::mode_t::STRONG;
 												// Если режим парсинга CEF передан
-												if(env.isString("cef")){
+												if(env.isString(false, "cef")){
 													// Получаем режим парсинга
-													const string & cef = env.get("cef");
+													const string & cef = env.get <string> (false, "cef");
 													// Если режим парсинга установлен как строгий
 													if(fmk.compare("strong", cef))
 														// Устанавливаем строгий режим парсинга
@@ -1064,7 +1095,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Если формат входящих данных указан как CSV
 											case static_cast <uint8_t> (type_t::CSV):
 												// Выполняем конвертирование в формат CSV
-												buffer = parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';'));
+												buffer = parser.csv(result, (env.isString(false, "delim") ? env.get <string> (false, "delim").front() : ';'));
 											break;
 											// Если формат входящих данных указан как SysLog
 											case static_cast <uint8_t> (type_t::SYSLOG):
@@ -1074,81 +1105,81 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Если формат входящих данных указан как BASE64
 											case static_cast <uint8_t> (type_t::BASE64): {
 												// Выполняем получение текста для шифрования
-												const string data = result.get <string> ();
+												const string data = result.GetString();
 												// Выполняем конвертирование в формат BASE64
 												hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, buffer);
 											} break;
 											// Если формат входящих данных указан как MD5
 											case static_cast <uint8_t> (type_t::MD5):
 												// Выполняем конвертирование в формат MD5
-												hash_t(&log).hashing(result.get <string> (), hash_t::type_t::MD5, buffer);
+												hash_t(&log).hashing(result.GetString(), hash_t::type_t::MD5, buffer);
 											break;
 											// Если формат входящих данных указан как SHA1
 											case static_cast <uint8_t> (type_t::SHA1):
 												// Выполняем конвертирование в формат SHA1
-												hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA1, buffer);
+												hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA1, buffer);
 											break;
 											// Если формат входящих данных указан как SHA224
 											case static_cast <uint8_t> (type_t::SHA224):
 												// Выполняем конвертирование в формат SHA224
-												hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA224, buffer);
+												hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA224, buffer);
 											break;
 											// Если формат входящих данных указан как SHA256
 											case static_cast <uint8_t> (type_t::SHA256):
 												// Выполняем конвертирование в формат SHA256
-												hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA256, buffer);
+												hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA256, buffer);
 											break;
 											// Если формат входящих данных указан как SHA384
 											case static_cast <uint8_t> (type_t::SHA384):
 												// Выполняем конвертирование в формат SHA384
-												hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA384, buffer);
+												hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA384, buffer);
 											break;
 											// Если формат входящих данных указан как SHA512
 											case static_cast <uint8_t> (type_t::SHA512):
 												// Выполняем конвертирование в формат SHA512
-												hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA512, buffer);
+												hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA512, buffer);
 											break;
 											// Если формат входящих данных указан как HMAC MD5
 											case static_cast <uint8_t> (type_t::HMAC_MD5):
 												// Выполняем конвертирование в формат HMAC MD5
-												hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::MD5, buffer);
+												hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::MD5, buffer);
 											break;
 											// Если формат входящих данных указан как HMAC SHA1
 											case static_cast <uint8_t> (type_t::HMAC_SHA1):
 												// Выполняем конвертирование в формат HMAC SHA1
-												hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA1, buffer);
+												hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA1, buffer);
 											break;
 											// Если формат входящих данных указан как HMAC SHA224
 											case static_cast <uint8_t> (type_t::HMAC_SHA224):
 												// Выполняем конвертирование в формат HMAC SHA224
-												hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA224, buffer);
+												hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA224, buffer);
 											break;
 											// Если формат входящих данных указан как HMAC SHA256
 											case static_cast <uint8_t> (type_t::HMAC_SHA256):
 												// Выполняем конвертирование в формат HMAC SHA256
-												hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA256, buffer);
+												hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA256, buffer);
 											break;
 											// Если формат входящих данных указан как HMAC SHA384
 											case static_cast <uint8_t> (type_t::HMAC_SHA384):
 												// Выполняем конвертирование в формат HMAC SHA384
-												hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA384, buffer);
+												hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA384, buffer);
 											break;
 											// Если формат входящих данных указан как HMAC SHA512
 											case static_cast <uint8_t> (type_t::HMAC_SHA512):
 												// Выполняем конвертирование в формат HMAC SHA512
-												hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA512, buffer);
+												hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA512, buffer);
 											break;
 										}
 										// Если данные для записи получены
 										if(!buffer.empty()){
 											// Получаем расширение файла
-											const string extension = env.get("to");
+											const string extension = env.get <string> (false, "to");
 											// Переводим расширение в нижний регистр
 											fmk.transform(extension, fmk_t::transform_t::LOWER);
 											// Выполняем запись данных в файл
 											fs.write(fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, name.c_str(), extension.c_str()), buffer.data(), buffer.size());
 										// Выводим сообщение об ошибке
-										} else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
+										} else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get <string> (false, "from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get <string> (false, "to"), fmk_t::transform_t::UPPER).c_str());
 										// Выводим удачное завершение работы
 										return;
 									}
@@ -1163,17 +1194,17 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Если формат входящих данных указан как Text
 										case static_cast <uint8_t> (type_t::TEXT):
 											// Выполняем вывод текст как он есть
-											cout << result << endl;
+											cout << result.GetString() << endl;
 										break;
 										// Если формат входящих данных указан как XML
 										case static_cast <uint8_t> (type_t::XML):
 											// Выполняем конвертирование в формат XML
-											cout << parser.xml(result, env.is("prettify")) << endl;
+											cout << parser.xml(result, env.isBoolean(false, "prettify")) << endl;
 										break;
 										// Если формат входящих данных указан как JSON
 										case static_cast <uint8_t> (type_t::JSON):
 											// Выполняем конвертирование в формат JSON
-											cout << parser.json(result, env.is("prettify")) << endl;
+											cout << parser.json(result, env.isBoolean(false, "prettify")) << endl;
 										break;
 										// Если формат входящих данных указан как INI
 										case static_cast <uint8_t> (type_t::INI):
@@ -1190,9 +1221,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Режим парсинга CEF по умолчанию
 											cef_t::mode_t mode = cef_t::mode_t::STRONG;
 											// Если режим парсинга CEF передан
-											if(env.isString("cef")){
+											if(env.isString(false, "cef")){
 												// Получаем режим парсинга
-												const string & cef = env.get("cef");
+												const string & cef = env.get <string> (false, "cef");
 												// Если режим парсинга установлен как строгий
 												if(fmk.compare("strong", cef))
 													// Устанавливаем строгий режим парсинга
@@ -1212,7 +1243,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Если формат входящих данных указан как CSV
 										case static_cast <uint8_t> (type_t::CSV):
 											// Выполняем конвертирование в формат CSV
-											cout << parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';')) << endl;
+											cout << parser.csv(result, (env.isString(false, "delim") ? env.get <string> (false, "delim").front() : ';')) << endl;
 										break;
 										// Если формат входящих данных указан как SysLog
 										case static_cast <uint8_t> (type_t::SYSLOG):
@@ -1222,69 +1253,69 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Если формат входящих данных указан как BASE64
 										case static_cast <uint8_t> (type_t::BASE64): {
 											// Выполняем получение текста для шифрования
-											const string data = result.get <string> ();
+											const string data = result.GetString();
 											// Выполняем конвертирование в формат BASE64
 											cout << hash_t(&log).encode <string> (data.c_str(), data.size(), hash_t::cipher_t::BASE64) << endl;
 										} break;
 										// Если формат входящих данных указан как MD5
 										case static_cast <uint8_t> (type_t::MD5):
 											// Выполняем конвертирование в формат MD5
-											cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::MD5) << endl;
+											cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::MD5) << endl;
 										break;
 										// Если формат входящих данных указан как SHA1
 										case static_cast <uint8_t> (type_t::SHA1):
 											// Выполняем конвертирование в формат SHA1
-											cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA1) << endl;
+											cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA1) << endl;
 										break;
 										// Если формат входящих данных указан как SHA224
 										case static_cast <uint8_t> (type_t::SHA224):
 											// Выполняем конвертирование в формат SHA224
-											cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA224) << endl;
+											cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA224) << endl;
 										break;
 										// Если формат входящих данных указан как SHA256
 										case static_cast <uint8_t> (type_t::SHA256):
 											// Выполняем конвертирование в формат SHA256
-											cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA256) << endl;
+											cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA256) << endl;
 										break;
 										// Если формат входящих данных указан как SHA384
 										case static_cast <uint8_t> (type_t::SHA384):
 											// Выполняем конвертирование в формат SHA384
-											cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA384) << endl;
+											cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA384) << endl;
 										break;
 										// Если формат входящих данных указан как SHA512
 										case static_cast <uint8_t> (type_t::SHA512):
 											// Выполняем конвертирование в формат SHA512
-											cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA512) << endl;
+											cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA512) << endl;
 										break;
 										// Если формат входящих данных указан как HMAC MD5
 										case static_cast <uint8_t> (type_t::HMAC_MD5):
 											// Выполняем конвертирование в формат HMAC MD5
-											cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::MD5) << endl;
+											cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::MD5) << endl;
 										break;
 										// Если формат входящих данных указан как HMAC SHA1
 										case static_cast <uint8_t> (type_t::HMAC_SHA1):
 											// Выполняем конвертирование в формат HMAC SHA1
-											cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA1) << endl;
+											cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA1) << endl;
 										break;
 										// Если формат входящих данных указан как HMAC SHA224
 										case static_cast <uint8_t> (type_t::HMAC_SHA224):
 											// Выполняем конвертирование в формат HMAC SHA224
-											cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA224) << endl;
+											cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA224) << endl;
 										break;
 										// Если формат входящих данных указан как HMAC SHA256
 										case static_cast <uint8_t> (type_t::HMAC_SHA256):
 											// Выполняем конвертирование в формат HMAC SHA256
-											cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA256) << endl;
+											cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA256) << endl;
 										break;
 										// Если формат входящих данных указан как HMAC SHA384
 										case static_cast <uint8_t> (type_t::HMAC_SHA384):
 											// Выполняем конвертирование в формат HMAC SHA384
-											cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA384) << endl;
+											cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA384) << endl;
 										break;
 										// Если формат входящих данных указан как HMAC SHA512
 										case static_cast <uint8_t> (type_t::HMAC_SHA512):
 											// Выполняем конвертирование в формат HMAC SHA512
-											cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA512) << endl;
+											cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA512) << endl;
 										break;
 									}
 								}
@@ -1300,7 +1331,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 					// Если данные файла загружены
 					if(!buffer.empty()){
 						// Объект в формате JSON
-						json result = json::object();
+						json result(kObjectType);
 						// Формируем полученный текст
 						const string text(buffer.begin(), buffer.end());
 						// Определяем формат данных
@@ -1308,7 +1339,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							// Если формат входящих данных указан как Text
 							case static_cast <uint8_t> (type_t::TEXT):
 								// Выполняем передачу данных как она есть
-								result = text;
+								result.SetString(text.c_str(), text.length(), result.GetAllocator());
 							break;
 							// Если формат входящих данных указан как XML
 							case static_cast <uint8_t> (type_t::XML):
@@ -1335,9 +1366,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Режим парсинга CEF по умолчанию
 								cef_t::mode_t mode = cef_t::mode_t::STRONG;
 								// Если режим парсинга CEF передан
-								if(env.isString("cef")){
+								if(env.isString(false, "cef")){
 									// Получаем режим парсинга
-									const string & cef = env.get("cef");
+									const string & cef = env.get <string> (false, "cef");
 									// Если режим парсинга установлен как строгий
 									if(fmk.compare("strong", cef))
 										// Устанавливаем строгий режим парсинга
@@ -1357,7 +1388,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							// Если формат входящих данных указан как CSV
 							case static_cast <uint8_t> (type_t::CSV):
 								// Выполняем конвертацию данных
-								result = parser.csv(text, env.is("header"));
+								result = parser.csv(text, env.isBoolean(false, "header"));
 							break;
 							// Если формат входящих данных указан как GROK
 							case static_cast <uint8_t> (type_t::GROK):
@@ -1370,17 +1401,19 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								result = parser.syslog(text);
 							break;
 							// Если формат входящих данных указан как BASE64
-							case static_cast <uint8_t> (type_t::BASE64):
+							case static_cast <uint8_t> (type_t::BASE64): {
 								// Выполняем декодирование хэша BASE64
-								result = hash_t(&log).decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
-							break;
+								const string & hash = hash_t(&log).decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
+								// Выполняем установку входящих данных в результат
+								result.SetString(hash.c_str(), hash.length(), result.GetAllocator());
+							} break;
 						}
 						// Если результат получен
-						if(!result.empty()){
+						if(!result.IsNull()){
 							// Если указан адрес каталога назначения
-							if(env.isString("dest")){
+							if(env.isString(false, "dest")){
 								// Получаем адрес каталога
-								const string & addr = env.get("dest");
+								const string & addr = env.get <string> (false, "dest");
 								// Если адрес каталога получен
 								if(!addr.empty()){
 									// Адрес файла для сохранения
@@ -1388,7 +1421,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Если каталог не существует
 									if(fs.isDir(addr)){
 										// Получаем расширение файла
-										const string extension = env.get("to");
+										const string extension = env.get <string> (false, "to");
 										// Переводим расширение в нижний регистр
 										fmk.transform(extension, fmk_t::transform_t::LOWER);
 										// Выполняем создание адреса файла для сохранения
@@ -1401,17 +1434,17 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Если формат входящих данных указан как Text
 										case static_cast <uint8_t> (type_t::TEXT):
 											// Выполняем вывод текст как он есть
-											buffer = result;
+											buffer = result.GetString();
 										break;
 										// Если формат входящих данных указан как XML
 										case static_cast <uint8_t> (type_t::XML):
 											// Выполняем конвертирование в формат XML
-											buffer = parser.xml(result, env.is("prettify"));
+											buffer = parser.xml(result, env.isBoolean(false, "prettify"));
 										break;
 										// Если формат входящих данных указан как JSON
 										case static_cast <uint8_t> (type_t::JSON):
 											// Выполняем конвертирование в формат JSON
-											buffer = parser.json(result, env.is("prettify"));
+											buffer = parser.json(result, env.isBoolean(false, "prettify"));
 										break;
 										// Если формат входящих данных указан как INI
 										case static_cast <uint8_t> (type_t::INI):
@@ -1428,9 +1461,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Режим парсинга CEF по умолчанию
 											cef_t::mode_t mode = cef_t::mode_t::STRONG;
 											// Если режим парсинга CEF передан
-											if(env.isString("cef")){
+											if(env.isString(false, "cef")){
 												// Получаем режим парсинга
-												const string & cef = env.get("cef");
+												const string & cef = env.get <string> (false, "cef");
 												// Если режим парсинга установлен как строгий
 												if(fmk.compare("strong", cef))
 													// Устанавливаем строгий режим парсинга
@@ -1450,7 +1483,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Если формат входящих данных указан как CSV
 										case static_cast <uint8_t> (type_t::CSV):
 											// Выполняем конвертирование в формат CSV
-											buffer = parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';'));
+											buffer = parser.csv(result, (env.isString(false, "delim") ? env.get <string> (false, "delim").front() : ';'));
 										break;
 										// Если формат входящих данных указан как SysLog
 										case static_cast <uint8_t> (type_t::SYSLOG):
@@ -1460,69 +1493,69 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Если формат входящих данных указан как BASE64
 										case static_cast <uint8_t> (type_t::BASE64): {
 											// Выполняем получение текста для шифрования
-											const string data = result.get <string> ();
+											const string data = result.GetString();
 											// Выполняем конвертирование в формат BASE64
 											hash_t(&log).encode(data.c_str(), data.size(), hash_t::cipher_t::BASE64, buffer);
 										} break;
 										// Если формат входящих данных указан как MD5
 										case static_cast <uint8_t> (type_t::MD5):
 											// Выполняем конвертирование в формат MD5
-											hash_t(&log).hashing(result.get <string> (), hash_t::type_t::MD5, buffer);
+											hash_t(&log).hashing(result.GetString(), hash_t::type_t::MD5, buffer);
 										break;
 										// Если формат входящих данных указан как SHA1
 										case static_cast <uint8_t> (type_t::SHA1):
 											// Выполняем конвертирование в формат SHA1
-											hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA1, buffer);
+											hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA1, buffer);
 										break;
 										// Если формат входящих данных указан как SHA224
 										case static_cast <uint8_t> (type_t::SHA224):
 											// Выполняем конвертирование в формат SHA224
-											hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA224, buffer);
+											hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA224, buffer);
 										break;
 										// Если формат входящих данных указан как SHA256
 										case static_cast <uint8_t> (type_t::SHA256):
 											// Выполняем конвертирование в формат SHA256
-											hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA256, buffer);
+											hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA256, buffer);
 										break;
 										// Если формат входящих данных указан как SHA384
 										case static_cast <uint8_t> (type_t::SHA384):
 											// Выполняем конвертирование в формат SHA384
-											hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA384, buffer);
+											hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA384, buffer);
 										break;
 										// Если формат входящих данных указан как SHA512
 										case static_cast <uint8_t> (type_t::SHA512):
 											// Выполняем конвертирование в формат SHA512
-											hash_t(&log).hashing(result.get <string> (), hash_t::type_t::SHA512, buffer);
+											hash_t(&log).hashing(result.GetString(), hash_t::type_t::SHA512, buffer);
 										break;
 										// Если формат входящих данных указан как HMAC MD5
 										case static_cast <uint8_t> (type_t::HMAC_MD5):
 											// Выполняем конвертирование в формат HMAC MD5
-											hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::MD5, buffer);
+											hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::MD5, buffer);
 										break;
 										// Если формат входящих данных указан как HMAC SHA1
 										case static_cast <uint8_t> (type_t::HMAC_SHA1):
 											// Выполняем конвертирование в формат HMAC SHA1
-											hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA1, buffer);
+											hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA1, buffer);
 										break;
 										// Если формат входящих данных указан как HMAC SHA224
 										case static_cast <uint8_t> (type_t::HMAC_SHA224):
 											// Выполняем конвертирование в формат HMAC SHA224
-											hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA224, buffer);
+											hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA224, buffer);
 										break;
 										// Если формат входящих данных указан как HMAC SHA256
 										case static_cast <uint8_t> (type_t::HMAC_SHA256):
 											// Выполняем конвертирование в формат HMAC SHA256
-											hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA256, buffer);
+											hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA256, buffer);
 										break;
 										// Если формат входящих данных указан как HMAC SHA384
 										case static_cast <uint8_t> (type_t::HMAC_SHA384):
 											// Выполняем конвертирование в формат HMAC SHA384
-											hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA384, buffer);
+											hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA384, buffer);
 										break;
 										// Если формат входящих данных указан как HMAC SHA512
 										case static_cast <uint8_t> (type_t::HMAC_SHA512):
 											// Выполняем конвертирование в формат HMAC SHA512
-											hash_t(&log).hmac(hmac, result.get <string> (), hash_t::type_t::SHA512, buffer);
+											hash_t(&log).hmac(hmac, result.GetString(), hash_t::type_t::SHA512, buffer);
 										break;
 									}
 									// Если данные для записи получены
@@ -1530,7 +1563,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Выполняем запись данных в файл
 										fs.write(filename, buffer.data(), buffer.size());
 									// Выводим сообщение об ошибке
-									else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get("from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get("to"), fmk_t::transform_t::UPPER).c_str());
+									else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get <string> (false, "from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get <string> (false, "to"), fmk_t::transform_t::UPPER).c_str());
 									// Выводим удачное завершение работы
 									return EXIT_SUCCESS;
 								}
@@ -1545,17 +1578,17 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Если формат входящих данных указан как Text
 									case static_cast <uint8_t> (type_t::TEXT):
 										// Выполняем вывод текст как он есть
-										cout << result << endl;
+										cout << result.GetString() << endl;
 									break;
 									// Если формат входящих данных указан как XML
 									case static_cast <uint8_t> (type_t::XML):
 										// Выполняем конвертирование в формат XML
-										cout << parser.xml(result, env.is("prettify")) << endl;
+										cout << parser.xml(result, env.isBoolean(false, "prettify")) << endl;
 									break;
 									// Если формат входящих данных указан как JSON
 									case static_cast <uint8_t> (type_t::JSON):
 										// Выполняем конвертирование в формат JSON
-										cout << parser.json(result, env.is("prettify")) << endl;
+										cout << parser.json(result, env.isBoolean(false, "prettify")) << endl;
 									break;
 									// Если формат входящих данных указан как INI
 									case static_cast <uint8_t> (type_t::INI):
@@ -1572,9 +1605,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Режим парсинга CEF по умолчанию
 										cef_t::mode_t mode = cef_t::mode_t::STRONG;
 										// Если режим парсинга CEF передан
-										if(env.isString("cef")){
+										if(env.isString(false, "cef")){
 											// Получаем режим парсинга
-											const string & cef = env.get("cef");
+											const string & cef = env.get <string> (false, "cef");
 											// Если режим парсинга установлен как строгий
 											if(fmk.compare("strong", cef))
 												// Устанавливаем строгий режим парсинга
@@ -1594,7 +1627,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Если формат входящих данных указан как CSV
 									case static_cast <uint8_t> (type_t::CSV):
 										// Выполняем конвертирование в формат CSV
-										cout << parser.csv(result, (env.isString("delim") ? env.get("delim").front() : ';')) << endl;
+										cout << parser.csv(result, (env.isString(false, "delim") ? env.get <string> (false, "delim").front() : ';')) << endl;
 									break;
 									// Если формат входящих данных указан как SysLog
 									case static_cast <uint8_t> (type_t::SYSLOG):
@@ -1604,69 +1637,69 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 									// Если формат входящих данных указан как BASE64
 									case static_cast <uint8_t> (type_t::BASE64): {
 										// Выполняем получение текста для шифрования
-										const string data = result.get <string> ();
+										const string data = result.GetString();
 										// Выполняем конвертирование в формат BASE64
 										cout << hash_t(&log).encode <string> (data.c_str(), data.size(), hash_t::cipher_t::BASE64) << endl;
 									} break;
 									// Если формат входящих данных указан как MD5
 									case static_cast <uint8_t> (type_t::MD5):
 										// Выполняем конвертирование в формат MD5
-										cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::MD5) << endl;
+										cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::MD5) << endl;
 									break;
 									// Если формат входящих данных указан как SHA1
 									case static_cast <uint8_t> (type_t::SHA1):
 										// Выполняем конвертирование в формат SHA1
-										cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA1) << endl;
+										cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA1) << endl;
 									break;
 									// Если формат входящих данных указан как SHA224
 									case static_cast <uint8_t> (type_t::SHA224):
 										// Выполняем конвертирование в формат SHA224
-										cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA224) << endl;
+										cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA224) << endl;
 									break;
 									// Если формат входящих данных указан как SHA256
 									case static_cast <uint8_t> (type_t::SHA256):
 										// Выполняем конвертирование в формат SHA256
-										cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA256) << endl;
+										cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA256) << endl;
 									break;
 									// Если формат входящих данных указан как SHA384
 									case static_cast <uint8_t> (type_t::SHA384):
 										// Выполняем конвертирование в формат SHA384
-										cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA384) << endl;
+										cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA384) << endl;
 									break;
 									// Если формат входящих данных указан как SHA512
 									case static_cast <uint8_t> (type_t::SHA512):
 										// Выполняем конвертирование в формат SHA512
-										cout << hash_t(&log).hashing <string> (result.get <string> (), hash_t::type_t::SHA512) << endl;
+										cout << hash_t(&log).hashing <string> (result.GetString(), hash_t::type_t::SHA512) << endl;
 									break;
 									// Если формат входящих данных указан как HMAC MD5
 									case static_cast <uint8_t> (type_t::HMAC_MD5):
 										// Выполняем конвертирование в формат HMAC MD5
-										cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::MD5) << endl;
+										cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::MD5) << endl;
 									break;
 									// Если формат входящих данных указан как HMAC SHA1
 									case static_cast <uint8_t> (type_t::HMAC_SHA1):
 										// Выполняем конвертирование в формат HMAC SHA1
-										cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA1) << endl;
+										cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA1) << endl;
 									break;
 									// Если формат входящих данных указан как HMAC SHA224
 									case static_cast <uint8_t> (type_t::HMAC_SHA224):
 										// Выполняем конвертирование в формат HMAC SHA224
-										cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA224) << endl;
+										cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA224) << endl;
 									break;
 									// Если формат входящих данных указан как HMAC SHA256
 									case static_cast <uint8_t> (type_t::HMAC_SHA256):
 										// Выполняем конвертирование в формат HMAC SHA256
-										cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA256) << endl;
+										cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA256) << endl;
 									break;
 									// Если формат входящих данных указан как HMAC SHA384
 									case static_cast <uint8_t> (type_t::HMAC_SHA384):
 										// Выполняем конвертирование в формат HMAC SHA384
-										cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA384) << endl;
+										cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA384) << endl;
 									break;
 									// Если формат входящих данных указан как HMAC SHA512
 									case static_cast <uint8_t> (type_t::HMAC_SHA512):
 										// Выполняем конвертирование в формат HMAC SHA512
-										cout << hash_t(&log).hmac <string> (hmac, result.get <string> (), hash_t::type_t::SHA512) << endl;
+										cout << hash_t(&log).hmac <string> (hmac, result.GetString(), hash_t::type_t::SHA512) << endl;
 									break;
 								}
 							}

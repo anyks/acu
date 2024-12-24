@@ -51,9 +51,7 @@ void anyks::Parser::patterns(const Document & patterns) noexcept {
  */
 Document anyks::Parser::yaml(const string & text) noexcept {
 	// Результат работы функции
-	Document result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	Document result(kObjectType);
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
@@ -158,9 +156,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 					// Если объект является последовательностью
 					case YAML::NodeType::Sequence: {
 						// Создаём новый массив данных
-						Document item;
-						// Устанавливаем тип JSON как массив
-						item.SetArray();
+						Document item(kArrayType);
 						// Выполняем перебор всей последовательности
 						for(size_t i = 0; i < node.size(); i++)
 							// Выполняем добавление последовательности
@@ -181,9 +177,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 					// Если объект является картой
 					case YAML::NodeType::Map: {
 						// Создаём новый массив данных
-						Document item;
-						// Устанавливаем тип JSON как объект
-						item.SetObject();
+						Document item(kObjectType);
 						// Выполняем перебор всего списка полученных данных
 						for(auto i = node.begin(); i != node.end(); ++i){
 							// Если ключ является строковым значением
@@ -552,9 +546,7 @@ string anyks::Parser::yaml(const Document & data) noexcept {
  */
 Document anyks::Parser::ini(const string & text) noexcept {
 	// Результат работы функции
-	Document result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	Document result(kObjectType);
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
@@ -735,9 +727,7 @@ string anyks::Parser::ini(const Document & data) noexcept {
  */
 Document anyks::Parser::syslog(const string & text) noexcept {
 	// Результат работы функции
-	Document result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	Document result(kObjectType);
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
@@ -824,9 +814,7 @@ string anyks::Parser::syslog(const Document & data) noexcept {
  */
 Document anyks::Parser::grok(const string & text, const string & pattern) noexcept {
 	// Результат работы функции
-	Document result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	Document result(kObjectType);
 	// Если текст и шаблон переданы
 	if(!text.empty() && !pattern.empty()){
 		// Выполняем блокировку потока
@@ -875,9 +863,7 @@ Document anyks::Parser::grok(const string & text, const string & pattern) noexce
  */
 Document anyks::Parser::csv(const string & text, const bool header) noexcept {
 	// Результат работы функции
-	Document result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	Document result(kObjectType);
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
@@ -976,9 +962,7 @@ string anyks::Parser::csv(const Document & data, const bool header, const char d
  */
 Document anyks::Parser::xml(const string & text) noexcept {
 	// Результат работы функции
-	Document result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	Document result(kObjectType);
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
@@ -1042,25 +1026,27 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										// Если такого ключа ещё не существует в списке
 										if(!root.HasMember(reinterpret_cast <const char *> (node->name))){
 											// Документ для извлечения данных
-											Document result;
+											Document result(kObjectType);
 											// Выполняем парсинг ноды дальше
 											parseFn(result, node->xmlChildrenNode, result.GetAllocator());
+											// Создаём объект контейнера для помещения в него данных XML
+											root.AddMember(Value(reinterpret_cast <const char *> (node->name), allocator).Move(), Value(kObjectType).Move(), allocator);
 											// Извлекаем полученные данные объекта
-											root[reinterpret_cast <const char *> (node->name)].CopyFrom(result, result.GetAllocator());
+											root[reinterpret_cast <const char *> (node->name)].CopyFrom(result, allocator);
 										// Если текущий ключ не является массивом
 										} else if(!root[reinterpret_cast <const char *> (node->name)].IsArray()) {
 											// Документ для извлечения данных
-											Document result;
-											// Устанавливаем тип JSON как массив
-											result.SetArray();
+											Document result(kArrayType);
 											// Добавляем в массив полученное значение
 											result.PushBack(Value(root[reinterpret_cast <const char *> (node->name)], result.GetAllocator()), result.GetAllocator());
 											// Добавляем пустой объект в список
 											result.PushBack(Value(kObjectType).Move(), result.GetAllocator());
 											// Выполняем парсинг ноды дальше
 											parseFn(result[result.Size() - 1], node->xmlChildrenNode, result.GetAllocator());
+											// Создаём из текущего объекта массив
+											root[reinterpret_cast <const char *> (node->name)].SetArray();
 											// Копируем полученный результат
-											root[reinterpret_cast <const char *> (node->name)].CopyFrom(result, result.GetAllocator());
+											root[reinterpret_cast <const char *> (node->name)].CopyFrom(result, allocator);
 										// Если текущий ключ уже является массивом
 										} else {
 											// Получаем количество элементов в массиве
@@ -1209,13 +1195,13 @@ Document anyks::Parser::xml(const string & text) noexcept {
 											// Если ключ не является массивом
 											if(!root[reinterpret_cast <const char *> (node->name)].IsArray()){
 												// Документ для извлечения данных
-												Document result;
-												// Устанавливаем тип JSON как массив
-												result.SetArray();
+												Document result(kArrayType);
 												// Добавляем в массив полученное значение
 												result.PushBack(Value(root[reinterpret_cast <const char *> (node->name)], result.GetAllocator()), result.GetAllocator());
 												// Добавляем пустой объект в список
 												result.PushBack(Value(kObjectType).Move(), result.GetAllocator());
+												// Создаём из текущего объекта массив
+												root[reinterpret_cast <const char *> (node->name)].SetArray();
 												// Копируем полученный результат
 												root[reinterpret_cast <const char *> (node->name)].CopyFrom(result, result.GetAllocator());
 											// Выполняем создание объекта внутри массива
@@ -1544,24 +1530,24 @@ Document anyks::Parser::xml(const string & text) noexcept {
 									}
 								// Если дочерних элементов не обнаружено
 								} else {
+									// Если корневой элемент не является объектом
+									if(!root.IsObject())
+										// Устанавливаем тип JSON как объект
+										root.SetObject();
 									// Если у ноды есть параметры
 									if(node->properties != nullptr){
-										// Если корневой элемент не является объектом
-										if(!root.IsObject())
-											// Устанавливаем тип JSON как объект
-											root.SetObject();
 										// Если такой ключ уже существует
 										if(root.HasMember(reinterpret_cast <const char *> (node->name))){
 											// Если ключ не является массивом
 											if(!root[reinterpret_cast <const char *> (node->name)].IsArray()){
 												// Документ для извлечения данных
-												Document result;
-												// Устанавливаем тип JSON как массив
-												result.SetArray();
+												Document result(kArrayType);
 												// Добавляем в массив полученное значение
 												result.PushBack(Value(root[reinterpret_cast <const char *> (node->name)], result.GetAllocator()), result.GetAllocator());
 												// Добавляем пустой объект в список
 												result.PushBack(Value(kObjectType).Move(), result.GetAllocator());
+												// Создаём из текущего объекта массив
+												root[reinterpret_cast <const char *> (node->name)].SetArray();
 												// Копируем полученный результат
 												root[reinterpret_cast <const char *> (node->name)].CopyFrom(result, result.GetAllocator());
 											// Выполняем создание объекта внутри массива
@@ -1610,6 +1596,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 												/**
 												 * Если возникает ошибка
 												 */
+									
 												} catch(const std::exception &) {
 													// Если элемент не является массивом
 													if(root[reinterpret_cast <const char *> (node->name)].IsObject())
@@ -1695,10 +1682,14 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										}
 									// Если тег просто присутствует в списке
 									} else {
-										// Если корневой объект не является массивом
-										if(!root[reinterpret_cast <const char *> (node->name)].IsArray())
-											// Устанавливаем значение как булевое
-											root[reinterpret_cast <const char *> (node->name)].SetBool(true);
+										// Если указанный ключ существует в корневом разделе
+										if(root.HasMember(reinterpret_cast <const char *> (node->name))){
+											// Если корневой объект не является массивом
+											if(!root[reinterpret_cast <const char *> (node->name)].IsArray())
+												// Устанавливаем значение как булевое
+												root[reinterpret_cast <const char *> (node->name)].SetBool(true);
+										// Создаём булевое значение с положительным вложением
+										} else root.AddMember(Value(reinterpret_cast <const char *> (node->name), allocator).Move(), Value(kTrueType).Move(), allocator);
 									}
 								}
 							}
@@ -1769,45 +1760,92 @@ Document anyks::Parser::xml(const string & text) noexcept {
 					}
 					// Выполняем получение значения
 					xmlChar * value = xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
-					// Получаем значение текущего блока данных
-					const string item = reinterpret_cast <const char *> (value);
-					// Выполняем удаление всех лишних символов
-					this->_fmk->transform(item, fmk_t::transform_t::TRIM);
-					// Если значение получено
-					if(!item.empty()){
-						// Получаем ключ записи
-						string key("value");
-						// Если элемент не является массивом
-						if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
-							// Если такой ключ уже существует в объекте
-							while(result[reinterpret_cast <const char *> (node->name)].HasMember(key.c_str()))
-								// Выполняем изменение ключа
-								key.insert(key.begin(), '_');
-						// Иначе добавляем в указанный индекс массива
-						} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
-							// Получаем количество элементов в массиве
-							const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
-							// Если такой ключ уже существует в объекте
-							while(result[reinterpret_cast <const char *> (node->name)][size - 1].HasMember(key.c_str()))
-								// Выполняем изменение ключа
-								key.insert(key.begin(), '_');
-						}
-						// Если полученное значение является числом
-						if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
-							/**
-							 * Выполняем отлов ошибок
-							 */
-							try {
-								// Если число является отрицательным
-								if(item.front() == '-'){
+					// Если значение ноды существует
+					if(value != nullptr){
+						// Получаем значение текущего блока данных
+						const string item = reinterpret_cast <const char *> (value);
+						// Выполняем удаление всех лишних символов
+						this->_fmk->transform(item, fmk_t::transform_t::TRIM);
+						// Если значение получено
+						if(!item.empty()){
+							// Получаем ключ записи
+							string key("value");
+							// Если элемент не является массивом
+							if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
+								// Если такой ключ уже существует в объекте
+								while(result[reinterpret_cast <const char *> (node->name)].HasMember(key.c_str()))
+									// Выполняем изменение ключа
+									key.insert(key.begin(), '_');
+							// Иначе добавляем в указанный индекс массива
+							} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
+								// Получаем количество элементов в массиве
+								const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
+								// Если такой ключ уже существует в объекте
+								while(result[reinterpret_cast <const char *> (node->name)][size - 1].HasMember(key.c_str()))
+									// Выполняем изменение ключа
+									key.insert(key.begin(), '_');
+							}
+							// Если полученное значение является числом
+							if(this->_fmk->is(item, fmk_t::check_t::NUMBER)){
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если число является отрицательным
+									if(item.front() == '-'){
+										// Если элемент не является массивом
+										if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
+											// Если у ноды есть параметры
+											if(node->properties != nullptr)
+												// Выполняем формирования списка параметров
+												result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(item))).Move(), result.GetAllocator());
+											// Выполняем установку полученного значения
+											else result[reinterpret_cast <const char *> (node->name)].SetInt64(static_cast <int64_t> (::stoll(item)));
+										// Иначе добавляем в указанный индекс массива
+										} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
+											// Получаем количество элементов в массиве
+											const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
+											// Если у ноды есть параметры
+											if(node->properties != nullptr)
+												// Выполняем добавление названия атрибута
+												result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(item))).Move(), result.GetAllocator());
+											// Выполняем установку полученного значения
+											else result[reinterpret_cast <const char *> (node->name)][size - 1].SetInt64(static_cast <int64_t> (::stoll(item)));
+										}
+									// Если число является положительным
+									} else {
+										// Если элемент не является массивом
+										if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
+											// Если у ноды есть параметры
+											if(node->properties != nullptr)
+												// Выполняем формирования списка параметров
+												result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(item))).Move(), result.GetAllocator());
+											// Выполняем установку полученного значения
+											else result[reinterpret_cast <const char *> (node->name)].SetUint64(static_cast <uint64_t> (::stoull(item)));
+										// Иначе добавляем в указанный индекс массива
+										} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
+											// Получаем количество элементов в массиве
+											const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
+											// Если у ноды есть параметры
+											if(node->properties != nullptr)
+												// Выполняем добавление названия атрибута
+												result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(item))).Move(), result.GetAllocator());
+											// Выполняем установку полученного значения
+											else result[reinterpret_cast <const char *> (node->name)][size - 1].SetUint64(static_cast <uint64_t> (::stoull(item)));
+										}
+									}
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
 									// Если элемент не является массивом
 									if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
 										// Если у ноды есть параметры
 										if(node->properties != nullptr)
 											// Выполняем формирования списка параметров
-											result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(item))).Move(), result.GetAllocator());
+											result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 										// Выполняем установку полученного значения
-										else result[reinterpret_cast <const char *> (node->name)].SetInt64(static_cast <int64_t> (::stoll(item)));
+										else result[reinterpret_cast <const char *> (node->name)].SetString(item.c_str(), item.length(), result.GetAllocator());
 									// Иначе добавляем в указанный индекс массива
 									} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
 										// Получаем количество элементов в массиве
@@ -1815,20 +1853,95 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										// Если у ноды есть параметры
 										if(node->properties != nullptr)
 											// Выполняем добавление названия атрибута
-											result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(item))).Move(), result.GetAllocator());
+											result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 										// Выполняем установку полученного значения
-										else result[reinterpret_cast <const char *> (node->name)][size - 1].SetInt64(static_cast <int64_t> (::stoll(item)));
+										else result[reinterpret_cast <const char *> (node->name)][size - 1].SetString(item.c_str(), item.length(), result.GetAllocator());
 									}
-								// Если число является положительным
+								}
+							// Если полученное значение является числом с плавающей точкой
+							} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL)) {
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Если элемент не является массивом
+									if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем формирования списка параметров
+											result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(::stod(item)).Move(), result.GetAllocator());
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)].SetDouble(::stod(item));
+									// Иначе добавляем в указанный индекс массива
+									} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
+										// Получаем количество элементов в массиве
+										const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем добавление названия атрибута
+											result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(::stod(item)).Move(), result.GetAllocator());
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)][size - 1].SetDouble(::stod(item));
+									}
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const std::exception &) {
+									// Если элемент не является массивом
+									if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем формирования списка параметров
+											result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)].SetString(item.c_str(), item.length(), result.GetAllocator());
+									// Иначе добавляем в указанный индекс массива
+									} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
+										// Получаем количество элементов в массиве
+										const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем добавление названия атрибута
+											result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)][size - 1].SetString(item.c_str(), item.length(), result.GetAllocator());
+									}
+								}
+							// Если значение не является числом
+							} else {
+								// Флаг булевого значения
+								bool flag = false;
+								// Если строка является булевым значением
+								if((flag = this->_fmk->compare("true", item)) || this->_fmk->compare("false", item)){
+									// Если элемент не является массивом
+									if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем формирования списка параметров
+											result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(flag).Move(), result.GetAllocator());
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)].SetBool(flag);
+									// Иначе добавляем в указанный индекс массива
+									} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
+										// Получаем количество элементов в массиве
+										const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
+										// Если у ноды есть параметры
+										if(node->properties != nullptr)
+											// Выполняем добавление названия атрибута
+											result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(flag).Move(), result.GetAllocator());
+										// Выполняем установку полученного значения
+										else result[reinterpret_cast <const char *> (node->name)][size - 1].SetBool(flag);
+									}
+								// Если значение является обычной строкой
 								} else {
 									// Если элемент не является массивом
 									if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
 										// Если у ноды есть параметры
 										if(node->properties != nullptr)
 											// Выполняем формирования списка параметров
-											result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(item))).Move(), result.GetAllocator());
+											result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 										// Выполняем установку полученного значения
-										else result[reinterpret_cast <const char *> (node->name)].SetUint64(static_cast <uint64_t> (::stoull(item)));
+										else result[reinterpret_cast <const char *> (node->name)].SetString(item.c_str(), item.length(), result.GetAllocator());
 									// Иначе добавляем в указанный индекс массива
 									} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
 										// Получаем количество элементов в массиве
@@ -1836,137 +1949,18 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										// Если у ноды есть параметры
 										if(node->properties != nullptr)
 											// Выполняем добавление названия атрибута
-											result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(item))).Move(), result.GetAllocator());
+											result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 										// Выполняем установку полученного значения
-										else result[reinterpret_cast <const char *> (node->name)][size - 1].SetUint64(static_cast <uint64_t> (::stoull(item)));
+										else result[reinterpret_cast <const char *> (node->name)][size - 1].SetString(item.c_str(), item.length(), result.GetAllocator());
 									}
-								}
-							/**
-							 * Если возникает ошибка
-							 */
-							} catch(const std::exception &) {
-								// Если элемент не является массивом
-								if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем формирования списка параметров
-										result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)].SetString(item.c_str(), item.length(), result.GetAllocator());
-								// Иначе добавляем в указанный индекс массива
-								} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
-									// Получаем количество элементов в массиве
-									const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем добавление названия атрибута
-										result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)][size - 1].SetString(item.c_str(), item.length(), result.GetAllocator());
-								}
-							}
-						// Если полученное значение является числом с плавающей точкой
-						} else if(this->_fmk->is(item, fmk_t::check_t::DECIMAL)) {
-							/**
-							 * Выполняем отлов ошибок
-							 */
-							try {
-								// Если элемент не является массивом
-								if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем формирования списка параметров
-										result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(::stod(item)).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)].SetDouble(::stod(item));
-								// Иначе добавляем в указанный индекс массива
-								} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
-									// Получаем количество элементов в массиве
-									const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем добавление названия атрибута
-										result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(::stod(item)).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)][size - 1].SetDouble(::stod(item));
-								}
-							/**
-							 * Если возникает ошибка
-							 */
-							} catch(const std::exception &) {
-								// Если элемент не является массивом
-								if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем формирования списка параметров
-										result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)].SetString(item.c_str(), item.length(), result.GetAllocator());
-								// Иначе добавляем в указанный индекс массива
-								} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
-									// Получаем количество элементов в массиве
-									const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем добавление названия атрибута
-										result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)][size - 1].SetString(item.c_str(), item.length(), result.GetAllocator());
-								}
-							}
-						// Если значение не является числом
-						} else {
-							// Флаг булевого значения
-							bool flag = false;
-							// Если строка является булевым значением
-							if((flag = this->_fmk->compare("true", item)) || this->_fmk->compare("false", item)){
-								// Если элемент не является массивом
-								if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем формирования списка параметров
-										result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(flag).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)].SetBool(flag);
-								// Иначе добавляем в указанный индекс массива
-								} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
-									// Получаем количество элементов в массиве
-									const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем добавление названия атрибута
-										result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(flag).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)][size - 1].SetBool(flag);
-								}
-							// Если значение является обычной строкой
-							} else {
-								// Если элемент не является массивом
-								if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем формирования списка параметров
-										result[reinterpret_cast <const char *> (node->name)].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)].SetString(item.c_str(), item.length(), result.GetAllocator());
-								// Иначе добавляем в указанный индекс массива
-								} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
-									// Получаем количество элементов в массиве
-									const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
-									// Если у ноды есть параметры
-									if(node->properties != nullptr)
-										// Выполняем добавление названия атрибута
-										result[reinterpret_cast <const char *> (node->name)][size - 1].AddMember(Value(key.c_str(), key.length(), result.GetAllocator()).Move(), Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
-									// Выполняем установку полученного значения
-									else result[reinterpret_cast <const char *> (node->name)][size - 1].SetString(item.c_str(), item.length(), result.GetAllocator());
 								}
 							}
 						}
+						// Выполняем освобождение памяти выделенной под значение
+						xmlFree(value);
+						// Выполняем парсинг всего XML объекта
+						parseFn(result[reinterpret_cast <const char *> (node->name)], node->xmlChildrenNode, result.GetAllocator());
 					}
-					// Выполняем освобождение памяти выделенной под значение
-					xmlFree(value);
-					// Выполняем парсинг всего XML объекта
-					parseFn(result[reinterpret_cast <const char *> (node->name)], node->xmlChildrenNode, result.GetAllocator());
 				// Сообщаем, что переданные данные не соответствуют ожидаемым
 				} else {
 					/**
@@ -2159,21 +2153,22 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 			if(prettify)
 				// Выполняем добавление переноса строк
 				result.append(1, '\n');
-			
 			/**
 			 * parseFn Прототип функции парсинга XML документа
-			 * @param таблица результатов
-			 * @param объект текущей ноды
-			 * @param количество отступов
 			 */
 			function <void (string &, const Document &, const uint16_t)> parseFn;
-
-			function <void (const string &, const Value &, string &, const uint16_t)> workerFn, workerArrayFn, workerObjectFn;
-
-			
-
-
-			workerArrayFn = [&](const string & key, const Value & value, string & result, const uint16_t tabs) -> void {
+			/**
+			 * simpleFn, arrayFn, objectFn Прототип функций формирования разметки JSON
+			 */
+			function <void (const string &, const Value &, string &, const uint16_t)> simpleFn, arrayFn, objectFn;
+			/**
+			 * arrayFn Функция формирования разметки массива
+			 * @param key    ключ записи для формирования
+			 * @param value  значение записи для формирования
+			 * @param result итоговый собранный результат в формате XML
+			 * @param tabs   смещение в итоговом результате позиции разметки
+			 */
+			arrayFn = [&](const string & key, const Value & value, string & result, const uint16_t tabs) noexcept -> void {
 				// Если значение является массивом
 				if(value.IsArray()){
 					// Получаем флаг генерации ключа
@@ -2446,7 +2441,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 						// Если значение является объектом
 						} else if(v.IsObject())
 							// Выполняем извлечение данных таблицы
-							workerObjectFn(key, v, result, (tabs + (flag ? 1 : 0)));
+							objectFn(key, v, result, (tabs + (flag ? 1 : 0)));
 						// Если значение является массивом
 						else if(v.IsArray()) {
 							// Если ключ не является сгенерированным
@@ -2490,9 +2485,14 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 					}
 				}
 			};
-
-
-			workerObjectFn = [&](const string & key, const Value & value, string & result, const uint16_t tabs) -> void {
+			/**
+			 * objectFn Функция формирования разметки объекта
+			 * @param key    ключ записи для формирования
+			 * @param value  значение записи для формирования
+			 * @param result итоговый собранный результат в формате XML
+			 * @param tabs   смещение в итоговом результате позиции разметки
+			 */
+			objectFn = [&](const string & key, const Value & value, string & result, const uint16_t tabs) noexcept -> void {
 				// Если значение является объектом
 				if(value.IsObject()){
 					// Если количество отступов больше нуля
@@ -2523,8 +2523,10 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 						size_t pos = string::npos, count = 0;
 						// Выполняем перебор всех значений объекта
 						for(auto & m : value.GetObject()){
-							// Если ключом является устанавливаемое значение
-							if((pos = string(m.name.GetString()).rfind("value")) != string::npos){
+							// Получаем ключ записи
+							const string & key = (this->_fmk->is(m.name.GetString(), fmk_t::check_t::NUMBER) ? this->_fmk->format("Item%s", m.name.GetString()) : m.name.GetString());
+							// Если ключом является устанавливаемое значение							
+							if((pos = key.rfind("value")) != string::npos){
 								// Если значение ещё не установлено
 								if(item.empty() || (pos > count)){
 									// Если значение уже установлено и количество подчеркиваний больше чем было
@@ -2532,7 +2534,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 										// Выполняем добавление разделителя параметра
 										result.append(1, ' ');
 										// Выполняем добавление ключа записи
-										result.append("value");
+										result.append(key.substr(pos - count));
 										// Выполняем добавление знака присвоения
 										result.append("=\"");
 										// Выполняем добавление установленного значения
@@ -2600,107 +2602,107 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 								}
 							}
 							// Если значение является отрицательным 32-х битным числом
-							if(value.IsInt()){
+							if(m.value.IsInt()){
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем установку полученного числа
-								result.append(std::to_string(value.GetInt()));
+								result.append(std::to_string(m.value.GetInt()));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является положительным 32-х битным числом
-							} else if(value.IsUint()) {
+							} else if(m.value.IsUint()) {
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем установку полученного числа
-								result.append(std::to_string(value.GetUint()));
+								result.append(std::to_string(m.value.GetUint()));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является отрицательным 64-х битным числом
-							} else if(value.IsInt64()) {
+							} else if(m.value.IsInt64()) {
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем установку полученного числа
-								result.append(std::to_string(value.GetInt64()));
+								result.append(std::to_string(m.value.GetInt64()));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является положительным 64-х битным числом
-							} else if(value.IsUint64()) {
+							} else if(m.value.IsUint64()) {
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем установку полученного числа
-								result.append(std::to_string(value.GetUint64()));
+								result.append(std::to_string(m.value.GetUint64()));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является числом с правающей точкой
-							} else if(value.IsFloat()) {
+							} else if(m.value.IsFloat()) {
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем установку полученного числа
-								result.append(this->_fmk->noexp(value.GetFloat(), true));
+								result.append(this->_fmk->noexp(m.value.GetFloat(), true));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является числом с правающей точкой двойной точности
-							} else if(value.IsDouble()) {
+							} else if(m.value.IsDouble()) {
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем установку полученного числа
-								result.append(this->_fmk->noexp(value.GetDouble(), true));
+								result.append(this->_fmk->noexp(m.value.GetDouble(), true));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является строкой
-							} else if(value.IsString()) {
+							} else if(m.value.IsString()) {
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем добавление значения
-								result.append(removeBracketsFn(value.GetString()));
+								result.append(removeBracketsFn(m.value.GetString()));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является булевым значением
-							} else if(value.IsBool()) {
+							} else if(m.value.IsBool()) {
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем добавление значения
-								result.append(value.GetBool() ? "True" : "False");
+								result.append(m.value.GetBool() ? "True" : "False");
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является пустым значением
-							} else if(value.IsNull()) {
+							} else if(m.value.IsNull()) {
 								// Выполняем добавление разделителя параметра
 								result.append(1, ' ');
 								// Выполняем добавление ключа записи
-								result.append(m.name.GetString());
+								result.append(key);
 								// Выполняем добавление знака присвоения
 								result.append("=\"");
 								// Выполняем добавление значения
@@ -2760,11 +2762,14 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 						result.append(1, '\n');
 				}
 			};
-
-			
-
-
-			workerFn = [&](const string & key, const Value & value, string & result, const uint16_t tabs) -> void {
+			/**
+			 * simpleFn Функция формирования разметки простых данных
+			 * @param key    ключ записи для формирования
+			 * @param value  значение записи для формирования
+			 * @param result итоговый собранный результат в формате XML
+			 * @param tabs   смещение в итоговом результате позиции разметки
+			 */
+			simpleFn = [&](const string & key, const Value & value, string & result, const uint16_t tabs) noexcept -> void {
 				// Если значение является отрицательным 32-х битным числом
 				if(value.IsInt()){
 					// Если количество отступов больше нуля
@@ -3022,20 +3027,19 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 				// Если значение является объектом
 				} else if(value.IsObject())
 					// Выполняем разбор объекта
-					workerObjectFn(key, value, result, tabs);
+					objectFn(key, value, result, tabs);
 				// Если значение является массивом
 				else if(value.IsArray())
 					// Выполняем разбор массива
-					workerArrayFn(key, value, result, tabs);
+					arrayFn(key, value, result, tabs);
 			};
-			
 			/**
 			 * parseFn Функция парсинга XML документа
 			 * @param root корень объекта для записи результата
 			 * @param node объект текущей ноды
 			 * @param tabs количество отступов
 			 */
-			parseFn = [&](string & root, const Document & node, const uint16_t tabs) -> void {
+			parseFn = [&](string & root, const Document & node, const uint16_t tabs) noexcept -> void {
 				// Создаём объект результата
 				string result = "";
 				// Если нода является объектом
@@ -3045,7 +3049,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 						// Получаем ключ записи
 						const string & key = m.name.GetString();
 						// Выполняем обработку полученного результата
-						workerFn(key, m.value, result, tabs);
+						simpleFn(key, m.value, result, tabs);
 					}
 				// Если нода является массивом
 				} else if(node.IsArray()) {
@@ -3054,7 +3058,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 					// Переходим по всему массиву
 					for(auto & v : node.GetArray())
 						// Выполняем обработку полученного результата
-						workerFn(key, v, result, tabs);
+						simpleFn(key, v, result, tabs);
 				}
 				// Если результат сформирован
 				if(!result.empty())
@@ -3062,7 +3066,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 					root.append(result);
 			};
 			// Если нет корневого элемента
-			if(data.IsArray() || (data.MemberCount() > 1) || data.MemberBegin()->name.IsArray()){
+			if(data.IsArray() || (data.MemberCount() > 1) || data.MemberBegin()->value.IsArray()){
 				// Добавляем тип документа
 				result.append("<!DOCTYPE root>");
 				// Если разрешено выполнять разложение XML-объекта
@@ -3131,9 +3135,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
  */
 Document anyks::Parser::json(const string & text) noexcept {
 	// Результат работы функции
-	Document result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	Document result(kObjectType);
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
@@ -3142,7 +3144,7 @@ Document anyks::Parser::json(const string & text) noexcept {
 		 * Выполняем отлов ошибок
 		 */
 		try {
-			// Выполняем установку настроек консьюмера брокера сообщений
+			// Выполняем парсинг полученных текстовых данных
 			if(result.Parse(text.c_str(), text.size()).HasParseError()){
 				/**
 				 * Если включён режим отладки
@@ -3244,9 +3246,7 @@ string anyks::Parser::json(const Document & data, const bool prettify) noexcept 
  */
 Document anyks::Parser::cef(const string & text, const cef_t::mode_t mode) noexcept {
 	// Результат работы функции
-	Document result;
-	// Устанавливаем тип JSON как объект
-	result.SetObject();
+	Document result(kObjectType);
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока

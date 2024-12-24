@@ -127,8 +127,19 @@ namespace anyks {
 					 * Если возникает ошибка
 					 */
 					} catch(const std::exception & error) {
-						// Выводим переданный лог
-						this->_log->print("Env: \"%s\" - %s [key=%s]", log_t::flag_t::CRITICAL, "env", error.what(), key.c_str());
+						/**
+						 * Если включён режим отладки
+						 */
+						#if defined(DEBUG_MODE)
+							// Выводим сообщение об ошибке
+							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key), log_t::flag_t::CRITICAL, error.what());
+						/**
+						* Если режим отладки не включён
+						*/
+						#else
+							// Выводим сообщение об ошибке
+							this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						#endif
 					}
 				}
 				// Выводим результат
@@ -136,23 +147,21 @@ namespace anyks {
 			}
 		private:
 			/**
-			 * add Метод выполнения добавления значения в базу данных
-			 * @param key   ключ записи для добавления
-			 * @param value текстовое значение для добавления
+			 * set Метод выполнения установку значения в базу данных
+			 * @param key   ключ записи для установки
+			 * @param value текстовое значение для установки
 			 */
-			void add(const string & key, const string & value) noexcept {
+			void set(const string & key, const string & value) noexcept {
 				/**
 				 * Выполняем отлов ошибок
 				 */
 				try {
 					// Если строка передана
 					if(!value.empty() && (value.find("|") != string::npos)){
-						// Результат работы функции
-						json result;
-						// Устанавливаем тип JSON как массив
-						result.SetArray();
 						// Список параметров
 						vector <string> params;
+						// Результат работы функции
+						json result(kArrayType);
 						// Выполняем сплит параметров
 						if(!this->_fmk->split(value, "|", params).empty()){
 							// Заполняем массив данными
@@ -194,11 +203,11 @@ namespace anyks {
 								// Если - это флаг, устанавливаем истинное булевое значение
 								} else if(this->_fmk->compare(param, "true"))
 									// Выполняем добавление истинное значение
-									result.PushBack(Value(true).Move(), result.GetAllocator());
+									result.PushBack(Value(kTrueType).Move(), result.GetAllocator());
 								// Если - это флаг, устанавливаем ложное булевое значение
 								else if(this->_fmk->compare(param, "false"))
 									// Выполняем добавление ложное значение
-									result.PushBack(Value(false).Move(), result.GetAllocator());
+									result.PushBack(Value(kFalseType).Move(), result.GetAllocator());
 								// Добавляем строку как она есть
 								else result.PushBack(Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
 							}
@@ -207,12 +216,16 @@ namespace anyks {
 						if(!this->_data.HasMember("work"))
 							// Выполняем добавление ключа work
 							this->_data.AddMember(Value("work", this->_data.GetAllocator()).Move(), Value(kObjectType).Move(), this->_data.GetAllocator());
-						// Создаём значение сообщения
-						Value value(kArrayType);
-						// Выполняем копирование полученного JSON
-						value.CopyFrom(result, result.GetAllocator());
-						// Добавляем полученный массив в базу данных
-						this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), value.Move(), this->_data.GetAllocator());
+						// Если такого ключа ещё не существует в объекте
+						if(!this->_data["work"].HasMember(key.c_str())){
+							// Создаём значение сообщения
+							Value value(kArrayType);
+							// Выполняем копирование полученного JSON
+							value.CopyFrom(result, result.GetAllocator());
+							// Добавляем полученный массив в базу данных
+							this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), value.Move(), this->_data.GetAllocator());
+						// Если такой ключ уже существует в объекте
+						} else this->_data["work"][key.c_str()].CopyFrom(result, result.GetAllocator());
 					// Если передаваемое значение не является массивом
 					} else if(!value.empty()) {
 						// Если ключ work не обнаружен
@@ -225,18 +238,33 @@ namespace anyks {
 							 * Выполняем отлов ошибок
 							 */
 							try {
-								// Если число является отрицательным
-								if(value.front() == '-')
-									// Выполняем добавление вещественного отрицательного числа в базу данных
-									this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(value))).Move(), this->_data.GetAllocator());
-								// Выполняем добавление вещественного положительного числа в базу данных
-								else this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(value))).Move(), this->_data.GetAllocator());
+								// Если такого ключа ещё не существует в объекте
+								if(!this->_data["work"].HasMember(key.c_str())){
+									// Если число является отрицательным
+									if(value.front() == '-')
+										// Выполняем добавление вещественного отрицательного числа в базу данных
+										this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(value))).Move(), this->_data.GetAllocator());
+									// Выполняем добавление вещественного положительного числа в базу данных
+									else this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(value))).Move(), this->_data.GetAllocator());
+								// Если такой ключ уже существует в объекте
+								} else {
+									// Если число является отрицательным
+									if(value.front() == '-')
+										// Выполняем установку вещественного отрицательного числа в базу данных
+										this->_data["work"][key.c_str()].SetInt64(static_cast <int64_t> (::stoll(value)));
+									// Выполняем добавление вещественного положительного числа в базу данных
+									else this->_data["work"][key.c_str()].SetUint64(static_cast <uint64_t> (::stoull(value)));
+								}
 							/**
 							 * Если возникает ошибка
 							 */
 							} catch(const std::exception &) {
-								// Добавляем строку как она есть
-								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+								// Если такого ключа ещё не существует в объекте
+								if(!this->_data["work"].HasMember(key.c_str()))
+									// Добавляем строку как она есть
+									this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+								// Если такой ключ уже существует в объекте
+								else this->_data["work"][key.c_str()].SetString(value.c_str(), value.length(), this->_data.GetAllocator());
 							}
 						// Если ключ - это дробное число
 						} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
@@ -244,32 +272,66 @@ namespace anyks {
 							 * Выполняем отлов ошибок
 							 */
 							try {
-								// Выполняем добавление числа с двойной точностью в базу данных
-								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(::stod(value)).Move(), this->_data.GetAllocator());
+								// Если такого ключа ещё не существует в объекте
+								if(!this->_data["work"].HasMember(key.c_str()))
+									// Выполняем добавление числа с двойной точностью в базу данных
+									this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(::stod(value)).Move(), this->_data.GetAllocator());
+								// Если такой ключ уже существует в объекте
+								else this->_data["work"][key.c_str()].SetDouble(::stod(value));
 							/**
 							 * Если возникает ошибка
 							 */
 							} catch(const std::exception &) {
-								// Добавляем строку как она есть
-								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+								// Если такого ключа ещё не существует в объекте
+								if(!this->_data["work"].HasMember(key.c_str()))
+									// Добавляем строку как она есть
+									this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+								// Если такой ключ уже существует в объекте
+								else this->_data["work"][key.c_str()].SetString(value.c_str(), value.length(), this->_data.GetAllocator());
 							}
 						// Если - это флаг, устанавливаем истинное булевое значение
-						} else if(this->_fmk->compare(value, "true"))
-							// Выполняем добавление истинное значение
-							this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(true).Move(), this->_data.GetAllocator());
+						} else if(this->_fmk->compare(value, "true")) {
+							// Если такого ключа ещё не существует в объекте
+							if(!this->_data["work"].HasMember(key.c_str()))
+								// Выполняем добавление истинное значение
+								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(kTrueType).Move(), this->_data.GetAllocator());
+							// Если такой ключ уже существует в объекте
+							else this->_data["work"][key.c_str()].SetBool(kTrueType);
 						// Если - это флаг, устанавливаем ложное булевое значение
-						else if(this->_fmk->compare(value, "false"))
-							// Выполняем добавление ложное значение
-							this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(false).Move(), this->_data.GetAllocator());
+						} else if(this->_fmk->compare(value, "false")) {
+							// Если такого ключа ещё не существует в объекте
+							if(!this->_data["work"].HasMember(key.c_str()))
+								// Выполняем добавление ложное значение
+								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(kFalseType).Move(), this->_data.GetAllocator());
+							// Если такой ключ уже существует в объекте
+							else this->_data["work"][key.c_str()].SetBool(kFalseType);
 						// Добавляем строку как она есть
-						else this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+						} else {
+							// Если такого ключа ещё не существует в объекте
+							if(!this->_data["work"].HasMember(key.c_str()))
+								// Добавляем строку как она есть
+								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+							// Если такой ключ уже существует в объекте
+							else this->_data["work"][key.c_str()].SetString(value.c_str(), value.length(), this->_data.GetAllocator());
+						}
 					}
 				/**
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s [key=%s, value=%s]", log_t::flag_t::CRITICAL, "add", error.what(), key.c_str(), value.c_str());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 			}
 		public:
@@ -313,7 +375,7 @@ namespace anyks {
 									// Если данные получены в переменных окружения
 									if(!value.empty())
 										// Выполняем добавление полученных значений переменной окружения
-										const_cast <Env *> (this)->add(key, value);
+										const_cast <Env *> (this)->set(key, value);
 									// Если ключ в базе данных существует
 									if(this->exist(root, key))
 										// Получаем значение родительского объекта
@@ -322,7 +384,7 @@ namespace anyks {
 									else break;
 								}
 							// Если ключ существует в объекте
-							} else if(item.IsObject() && item.HasMember(key.c_str()))
+							} else if(item.IsObject() && !item.ObjectEmpty() && item.HasMember(key.c_str()))
 								// Получаем значение текущего ключа
 								item = item[key.c_str()];
 							// Выходим из цикла
@@ -330,11 +392,11 @@ namespace anyks {
 							// Если мы перебрали все ключи
 							if(i == (keys.size() - 1)){
 								// Если элемент является массивом
-								if(item.IsArray())
+								if(item.IsArray() && !item.Empty())
 									// Выполняем получение количества элементов в массиве
 									result = item.Size();
 								// Если это объект
-								else if(item.IsObject()) {
+								else if(item.IsObject() && !item.ObjectEmpty()) {
 									// Переходим по всем ключам
 									for(auto & i : item.GetObject())
 										// Подсчитываем весь список ключей
@@ -348,11 +410,11 @@ namespace anyks {
 						// Если нужно проверить корневой элемент
 						if(root){
 							// Если элемент является массивом
-							if(this->_data.IsArray())
+							if(this->_data.IsArray() && !this->_data.Empty())
 								// Выполняем получение количества элементов в массиве
 								result = this->_data.Size();
 							// Если это объект
-							else if(this->_data.IsObject()) {
+							else if(this->_data.IsObject() && !this->_data.ObjectEmpty()) {
 								// Переходим по всем ключам
 								for(auto & i : this->_data.GetObject())
 									// Подсчитываем весь список ключей
@@ -361,11 +423,11 @@ namespace anyks {
 						// Если нужно проверить рабочий элемент
 						} else if(this->_data.HasMember("work")) {
 							// Если элемент является массивом
-							if(this->_data["work"].IsArray())
+							if(this->_data["work"].IsArray() && !this->_data["work"].Empty())
 								// Выполняем получение количества элементов в массиве
 								result = this->_data["work"].Size();
 							// Если это объект
-							else if(this->_data["work"].IsObject()) {
+							else if(this->_data["work"].IsObject() && !this->_data["work"].ObjectEmpty()) {
 								// Переходим по всем ключам
 								for(auto & i : this->_data["work"].GetObject())
 									// Подсчитываем весь список ключей
@@ -377,8 +439,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "count", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 				// Выводим результат
 				return result;
@@ -434,7 +507,7 @@ namespace anyks {
 										// Если данные получены в переменных окружения
 										if(!value.empty())
 											// Выполняем добавление полученных значений переменной окружения
-											const_cast <Env *> (this)->add(key, value);
+											const_cast <Env *> (this)->set(key, value);
 										// Если ключ в базе данных существует
 										if(this->_data["work"].HasMember(key.c_str()))
 											// Получаем значение родительского объекта
@@ -445,7 +518,7 @@ namespace anyks {
 								// Выходим из цикла
 								} else break;
 							// Если ключ существует в объекте
-							} else if(item.IsObject() && item.HasMember(key.c_str()))
+							} else if(item.IsObject() && !item.ObjectEmpty() && item.HasMember(key.c_str()))
 								// Получаем значение текущего ключа
 								item = item[key.c_str()];
 							// Выходим из цикла
@@ -458,8 +531,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "exist", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 				// Выводим результат
 				return result;
@@ -494,8 +578,19 @@ namespace anyks {
 					 * Если возникает ошибка
 					 */
 					} catch(const std::exception & error) {
-						// Выводим переданный лог
-						this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "is", error.what());
+						/**
+						 * Если включён режим отладки
+						 */
+						#if defined(DEBUG_MODE)
+							// Выводим сообщение об ошибке
+							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(root, key, val), log_t::flag_t::CRITICAL, error.what());
+						/**
+						* Если режим отладки не включён
+						*/
+						#else
+							// Выводим сообщение об ошибке
+							this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						#endif
 					}
 				}
 				// Выводим результат
@@ -553,7 +648,7 @@ namespace anyks {
 										// Если данные получены в переменных окружения
 										if(!value.empty())
 											// Выполняем добавление полученных значений переменной окружения
-											const_cast <Env *> (this)->add(key, value);
+											const_cast <Env *> (this)->set(key, value);
 										// Если ключ в базе данных существует
 										if(this->_data["work"].HasMember(key.c_str()))
 											// Получаем значение родительского объекта
@@ -563,7 +658,7 @@ namespace anyks {
 									}
 								}
 							// Если ключ существует в объекте
-							} else if(item.IsObject() && item.HasMember(key.c_str()))
+							} else if(item.IsObject() && !item.ObjectEmpty() && item.HasMember(key.c_str()))
 								// Получаем значение текущего ключа
 								item = item[key.c_str()];
 							// Выходим из цикла
@@ -758,8 +853,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "isArray", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 				// Выводим результат
 				return result;
@@ -940,8 +1046,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 			}
 			/**
@@ -992,8 +1109,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 			}
 			/**
@@ -1056,8 +1184,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(result), log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 			}
 			/**
@@ -1078,8 +1217,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 			}
 		public:
@@ -1123,7 +1273,7 @@ namespace anyks {
 									// Если данные получены в переменных окружения
 									if(!value.empty())
 										// Выполняем добавление полученных значений переменной окружения
-										const_cast <Env *> (this)->add(key, value);
+										const_cast <Env *> (this)->set(key, value);
 									// Если ключ в базе данных существует
 									if(this->exist(root, key))
 										// Получаем значение родительского объекта
@@ -1132,7 +1282,7 @@ namespace anyks {
 									else break;
 								}
 							// Если ключ существует в объекте
-							} else if(item.IsObject() && item.HasMember(key.c_str()))
+							} else if(item.IsObject() && !item.ObjectEmpty() && item.HasMember(key.c_str()))
 								// Получаем значение текущего ключа
 								item = item[key.c_str()];
 							// Выходим из цикла
@@ -1155,8 +1305,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 				// Выводим полученный результат
 				return result;
@@ -1202,7 +1363,7 @@ namespace anyks {
 									// Если данные получены в переменных окружения
 									if(!value.empty())
 										// Выполняем добавление полученных значений переменной окружения
-										const_cast <Env *> (this)->add(key, value);
+										const_cast <Env *> (this)->set(key, value);
 									// Если ключ в базе данных существует
 									if(this->exist(root, key))
 										// Получаем значение родительского объекта
@@ -1211,7 +1372,7 @@ namespace anyks {
 									else break;
 								}
 							// Если ключ существует в объекте
-							} else if(item.IsObject() && item.HasMember(key.c_str()))
+							} else if(item.IsObject() && !item.ObjectEmpty() && item.HasMember(key.c_str()))
 								// Получаем значение текущего ключа
 								item = item[key.c_str()];
 							// Выходим из цикла
@@ -1227,7 +1388,7 @@ namespace anyks {
 									// Формируем список полученных значений
 									result.push_back(std::move(data));
 								// Если элемент является массивом
-								} else if(item.IsArray()) {
+								} else if(item.IsArray() && !item.Empty()) {
 									// Создаём объект данных
 									T data;
 									// Переходим по всему массиву
@@ -1238,7 +1399,7 @@ namespace anyks {
 										result.push_back(std::move(data));
 									}
 								// Если элемент является объектом
-								} else if(item.IsObject()) {
+								} else if(item.IsObject() && !item.ObjectEmpty()) {
 									// Создаём объект данных
 									T data;
 									// Переходим по всему объекту
@@ -1252,7 +1413,7 @@ namespace anyks {
 							}
 						}
 					// Если список ключей не указан
-					} else if(this->_data.IsObject()) {
+					} else if(this->_data.IsObject() && !this->_data.ObjectEmpty()) {
 						// Если нужно выполнить поиск в корневом элементе
 						if(root){
 							// Создаём объект данных
@@ -1281,8 +1442,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 				// Выводим результат
 				return result;
@@ -1328,7 +1500,7 @@ namespace anyks {
 									// Если данные получены в переменных окружения
 									if(!value.empty())
 										// Выполняем добавление полученных значений переменной окружения
-										const_cast <Env *> (this)->add(key, value);
+										const_cast <Env *> (this)->set(key, value);
 									// Если ключ в базе данных существует
 									if(this->exist(root, key))
 										// Получаем значение родительского объекта
@@ -1337,7 +1509,7 @@ namespace anyks {
 									else break;
 								}
 							// Если ключ существует в объекте
-							} else if(item.IsObject() && item.HasMember(key.c_str()))
+							} else if(item.IsObject() && !item.ObjectEmpty() && item.HasMember(key.c_str()))
 								// Получаем значение текущего ключа
 								item = item[key.c_str()];
 							// Выходим из цикла
@@ -1353,7 +1525,7 @@ namespace anyks {
 									// Формируем список полученных значений
 									result.emplace("item", std::move(data));
 								// Если элемент является массивом
-								} else if(item.IsArray()) {
+								} else if(item.IsArray() && !item.Empty()) {
 									// Создаём объект данных
 									T data;
 									// Индекс текущего элемента
@@ -1366,7 +1538,7 @@ namespace anyks {
 										result.emplace(std::to_string(index++), std::move(data));
 									}
 								// Если элемент является объектом
-								} else if(item.IsObject()) {
+								} else if(item.IsObject() && !item.ObjectEmpty()) {
 									// Создаём объект данных
 									T data;
 									// Переходим по всему объекту
@@ -1380,7 +1552,7 @@ namespace anyks {
 							}
 						}
 					// Если список ключей не указан
-					} else if(this->_data.IsObject()) {
+					} else if(this->_data.IsObject() && !this->_data.ObjectEmpty()) {
 						// Если нужно выполнить поиск в корневом элементе
 						if(root){
 							// Создаём объект данных
@@ -1409,8 +1581,19 @@ namespace anyks {
 				 * Если возникает ошибка
 				 */
 				} catch(const std::exception & error) {
-					// Выводим переданный лог
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "get", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 				// Выводим результат
 				return result;
@@ -1430,7 +1613,7 @@ namespace anyks {
 			 */
 			void config(const json & config) noexcept {
 				// Если данные переданы
-				if(config.IsObject()){
+				if(config.IsObject() && !config.ObjectEmpty()){
 					/**
 					 * Выполняем отлов ошибок
 					 */
@@ -1464,8 +1647,19 @@ namespace anyks {
 					 * Если возникает ошибка
 					 */
 					} catch(const std::exception & error) {
-						// Выводим переданный лог
-						this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "config", error.what());
+						/**
+						 * Если включён режим отладки
+						 */
+						#if defined(DEBUG_MODE)
+							// Выводим сообщение об ошибке
+							this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						/**
+						* Если режим отладки не включён
+						*/
+						#else
+							// Выводим сообщение об ошибке
+							this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						#endif
 					}
 				}
 			}
@@ -1488,8 +1682,19 @@ namespace anyks {
 					else this->config(std::move(data));
 				// Если возникает ошибка
 				} catch(const std::exception & error) {
-					// Выводим сообщение об ошибке
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "config", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(config), log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 			}
 		public:
@@ -1520,8 +1725,19 @@ namespace anyks {
 					}
 				// Если возникает ошибка
 				} catch(const std::exception & error) {
-					// Выводим сообщение об ошибке
-					this->_log->print("Env: \"%s\" - %s", log_t::flag_t::CRITICAL, "filename", error.what());
+					/**
+					 * Если включён режим отладки
+					 */
+					#if defined(DEBUG_MODE)
+						// Выводим сообщение об ошибке
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename), log_t::flag_t::CRITICAL, error.what());
+					/**
+					* Если режим отладки не включён
+					*/
+					#else
+						// Выводим сообщение об ошибке
+						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+					#endif
 				}
 			}
 		public:
@@ -1594,13 +1810,13 @@ namespace anyks {
 						// Добавляем полученные данные в список переменных
 						if(!key.empty())
 							// Добавляем полученное значение
-							this->add(key, val);
+							this->set(key, val);
 					// Если это относительное значение переменной
 					} else if(arg.front() == '-') {
 						// Получаем ключ
 						key = arg.substr(1, arg.length() - 1);
 						// Устанавливаем полученное значение
-						this->add(key, "true");
+						this->set(key, "true");
 						// Устанавливаем ожидание значения
 						isValue = true;
 					// Если это ожидание значения
@@ -1608,13 +1824,13 @@ namespace anyks {
 						// Убираем ожидание значения
 						isValue = false;
 						// Добавляем полученные данные в список переменных
-						if(!key.empty() && this->exist(true, key))
+						if(!key.empty() && this->exist(false, key))
 							// Выполняем добавление значения в базу данных
-							this->add(key, arg);
+							this->set(key, arg);
 					}
 				}
 				// Если переменная текста установлена и мы её из не получили
-				if(!this->_text.empty() && !this->exist(true, this->_text)){
+				if(!this->_text.empty() && !this->exist(false, this->_text)){
 					// Очищаем значение
 					val.clear();
 					// Считываем строку из буфера stdin
@@ -1624,7 +1840,7 @@ namespace anyks {
 					// Добавляем полученные данные в список переменных
 					if(!val.empty())
 						// Добавляем полученное значение
-						this->add(this->_text, val);
+						this->set(this->_text, val);
 				}
 			}
 			/**
@@ -1665,13 +1881,13 @@ namespace anyks {
 						// Добавляем полученные данные в список переменных
 						if(!key.empty())
 							// Добавляем полученное значение
-							this->add(this->_fmk->convert(key), this->_fmk->convert(val));
+							this->set(this->_fmk->convert(key), this->_fmk->convert(val));
 					// Если это относительное значение переменной
 					} else if(arg.front() == L'-') {
 						// Получаем ключ
 						key = arg.substr(1, arg.length() - 1);
 						// Устанавливаем полученное значение
-						this->add(this->_fmk->convert(key), "true");
+						this->set(this->_fmk->convert(key), "true");
 						// Устанавливаем ожидание значения
 						isValue = true;
 					// Если это ожидание значения
@@ -1681,13 +1897,13 @@ namespace anyks {
 						// Выполняем конвертацию ключа
 						const string & item = this->_fmk->convert(key);
 						// Добавляем полученные данные в список переменных
-						if(!key.empty() && this->exist(true, item))
+						if(!key.empty() && this->exist(false, item))
 							// Выполняем добавление значения в базу данных
-							this->add(item, this->_fmk->convert(arg));
+							this->set(item, this->_fmk->convert(arg));
 					}
 				}
 				// Если переменная текста установлена и мы её из не получили
-				if(!this->_text.empty() && !this->exist(true, this->_text)){
+				if(!this->_text.empty() && !this->exist(false, this->_text)){
 					// Значение считываемое из потока
 					string value = "";
 					// Если операционной системой является Windows
@@ -1706,7 +1922,7 @@ namespace anyks {
 					// Добавляем полученные данные в список переменных
 					if(!value.empty())
 						// Добавляем полученное значение
-						this->add(this->_text, value);
+						this->set(this->_text, value);
 				}
 			}
 		public:
@@ -1725,11 +1941,8 @@ namespace anyks {
 			 * @param log объект для работы с логами
 			 */
 			Env(const fmk_t * fmk, const log_t * log) noexcept :
-			 _fs(fmk, log), _automatic(false), _text{""},
-			 _prefix{ACU_SHORT_NAME}, _fmk(fmk), _log(log) {
-				// Устанавливаем тип JSON как объект
-				this->_data.SetObject();
-			}
+			 _fs(fmk, log), _data(kObjectType), _automatic(false),
+			 _text{""}, _prefix{ACU_SHORT_NAME}, _fmk(fmk), _log(log) {}
 			/**
 			 * Env Конструктор
 			 * @param prefix префикс переменной окружения
@@ -1737,9 +1950,7 @@ namespace anyks {
 			 * @param log    объект для работы с логами
 			 */
 			Env(const string & prefix, const fmk_t * fmk, const log_t * log) noexcept :
-			 _fs(fmk, log), _automatic(false), _text{""}, _prefix{prefix}, _fmk(fmk), _log(log) {
-				// Устанавливаем тип JSON как объект
-				this->_data.SetObject();
+			 _fs(fmk, log), _data(kObjectType), _automatic(false), _text{""}, _prefix{prefix}, _fmk(fmk), _log(log) {
 				// Переводим префикс в верхний регистр
 				this->_fmk->transform(this->_prefix, fmk_t::transform_t::UPPER);
 			}
@@ -1751,9 +1962,7 @@ namespace anyks {
 			 * @param log    объект для работы с логами
 			 */
 			Env(const string & prefix, const string & text, const fmk_t * fmk, const log_t * log) noexcept :
-			 _fs(fmk, log), _automatic(false), _text{text}, _prefix{prefix}, _fmk(fmk), _log(log) {
-				// Устанавливаем тип JSON как объект
-				this->_data.SetObject();
+			 _fs(fmk, log), _data(kObjectType), _automatic(false), _text{text}, _prefix{prefix}, _fmk(fmk), _log(log) {
 				// Переводим префикс в верхний регистр
 				this->_fmk->transform(this->_prefix, fmk_t::transform_t::UPPER);
 			}

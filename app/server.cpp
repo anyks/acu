@@ -21,115 +21,6 @@
 using namespace anyks;
 
 /**
- * config Функция загрузки данных конфигурационного файла
- * @param log объект для работы с логами
- * @param env объект для работы с переменными окружения
- * @param fs  объект работы с файловой системой
- */
-static void config(const log_t * log, const env_t * env, const fs_t * fs) noexcept {
-	// Если входящие данные переданы
-	if((log != nullptr) && (env != nullptr) && (fs != nullptr)){
-		// Значение параметра
-		string configFile = env->get("config");
-		// Если файл конфигурации не получен, ищем конфигурационный файл в системных каталогах
-		if(configFile.empty()){
-			// Получаем список системных каталогов
-			vector <string> configs = ACU_CONFIG;
-			// Если список системных каталогов получен
-			if(!configs.empty()){
-				// Переходим по всему списку системных каталогов
-				for(auto & config : configs){
-					// Устанавливаем адрес конфигурационного файла
-					configFile = fs->realPath(config);
-					// Если файл найден
-					if(fs->isFile(config))
-						// Выходим из цикла
-						break;
-				}
-			}
-		// Иначе получаем полный путь к файлу
-		} else configFile = fs->realPath(configFile);
-		// Если JSON файл указан
-		if(!configFile.empty() && fs->isFile(configFile)){
-			// Выполняем чтение конфигурационного файла
-			const auto & config = fs->read(configFile);
-			// Если данные получены
-			if(!config.empty())
-				// Устанавливаем собранный конфиг
-				const_cast <env_t *> (env)->config(string(config.begin(), config.end()));
-			// Выводим сообщение об ошибке
-			else {
-				// Выводим в лог сообщение
-				log->print("%s", log_t::flag_t::CRITICAL, "Config file is not read");
-				// Выходим из приложения
-				::exit(EXIT_FAILURE);
-			}
-		}
-	}
-}
-/**
- * help Функция вывода справки
- * @param name название приложения
- * @param fmk  объект фреймворка
- * @param env  объект для работы с переменными окружения
- * @param fs   объект работы с файловой системой
- */
-void help(const string & name, const fmk_t * fmk, const env_t * env, const fs_t * fs) noexcept {
-	// Если входящие данные переданы
-	if(!name.empty() && (fmk != nullptr) && (env != nullptr)){
-		// Строка адресов конфигурационных файлов и файловых путей
-		string config = "";
-		// Списки адресов конфигурационных файлов и файловых путей
-		vector <string> configs = ACU_CONFIG;
-		/**
-		 * Выполняем отлов ошибок
-		 */
-		try {
-			// Если адрес конфигурационного файла указан
-			if(env->is("config")){
-				// Получаем адрес файла
-				const string & filename = fs->realPath(env->get("config"));
-				// Определяем существует ли файл по указанному адресу
-				const bool exist = fs->isFile(filename);
-				// Добавляем полученный файл
-				config.append(fmk->format("\x1B[%sm\x1B[1m  %s\x1B[0m %s\r\n", (exist ? "32" : "35"), (exist ? "+" : "-"), filename.c_str()));
-			}
-		/**
-		 * Если возникает ошибка
-		 */
-		} catch(const exception &) {
-			/**
-			 * Все возможные ошибки мы пропускаем
-			 */
-		}
-		// Переходим по всему списку конфигурационных файлов
-		for(auto & item : configs){
-			// Получаем адрес файла
-			const string & filename = fs->realPath(item);
-			// Если адрес каталога со скриптами торговых ботов указан
-			if(!env->is("config", true) || (fs->realPath(env->get("config", true)).compare(filename) != 0)){
-				// Определяем существует ли файл по указанному адресу
-				const bool exist = fs->isFile(filename);
-				// Добавляем полученный файл
-				config.append(fmk->format("\x1B[%sm\x1B[1m  %s\x1B[0m %s\r\n", (exist ? "32" : "35"), (exist ? "+" : "-"), filename.c_str()));
-			}
-		}
-		// Формируем строку справки
-		const string msg = "\r\n\x1B[32m\x1B[1musage:\x1B[0m %s [-V | --version] [-H | --info] [<args>]\r\n\r\n\r\n"
-		"\x1B[34m\x1B[1m[ARGS]\x1B[0m\r\n"
-		"\x1B[33m\x1B[1m+\x1B[0m Format date: \x1B[1m[-formatDate \"<value>\" | --formatDate=\"<value>\"]\x1B[0m\r\n"
-		"\x1B[32m\x1B[1m  -\x1B[0m ( %%m/%%d/%%Y %%H:%%M:%%S | %%H:%%M:%%S %%d.%%m.%%Y | ... )\r\n\r\n"
-		"\x1B[33m\x1B[1m+\x1B[0m File address for writing logs: \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
-		"\x1B[33m\x1B[1m+\x1B[0m Logging level: \x1B[1m[-logLevel <value> | --logLevel=<value>]\x1B[0m\r\n"
-		"\x1B[32m\x1B[1m  -\x1B[0m ( 0 = NONE | 1 = INFO | 2 = WARNING | 3 = CRITICAL | 4 = INFO and WARNING | 5 = INFO and CRITICAL | 6 = WARNING CRITICAL | 7 = ALL)\r\n\r\n"
-		"\x1B[34m\x1B[1m[PATHS]\x1B[0m\r\n"
-		"\x1B[33m\x1B[1m+\x1B[0m \x1B[1mConfiguration file address:\x1B[0m\r\n"
-		"%s\r\n";
-		// Выводим сообщение справки
-		printf(msg.c_str(), name.c_str(), config.c_str());
-	}
-}
-/**
  * pidWrite Функция записи идентификатора процесса
  * @param fmk объект фреймворка
  * @param env объект для работы с переменными окружения
@@ -143,7 +34,7 @@ static void pidWrite(const fmk_t * fmk, const env_t * env, const fs_t * fs) noex
 		// Если входящие данные переданы
 		if((fmk != nullptr) && (env != nullptr) && (fs != nullptr)){
 			// Получаем название PID файла
-			const string & pidfile = env->get("pidfile", true);
+			const string & pidfile = env->get <string> (true, "pidfile");
 			// Если адрес PID файла получен
 			if(!pidfile.empty()){
 				// Получаем адрес файла PID
@@ -164,6 +55,68 @@ static void pidWrite(const fmk_t * fmk, const env_t * env, const fs_t * fs) noex
 			}
 		}
 	#endif
+}
+/**
+ * help Функция вывода справки
+ * @param name название приложения
+ * @param fmk  объект фреймворка
+ * @param env  объект для работы с переменными окружения
+ * @param fs   объект работы с файловой системой
+ */
+void help(const string & name, const fmk_t * fmk, const env_t * env, const fs_t * fs) noexcept {
+	// Если входящие данные переданы
+	if(!name.empty() && (fmk != nullptr) && (env != nullptr)){
+		// Строка адресов конфигурационных файлов и файловых путей
+		string config = "";
+		// Списки адресов конфигурационных файлов и файловых путей
+		vector <string> configs = ACU_CONFIG;
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Если адрес конфигурационного файла указан
+			if(env->isString(false, "config")){
+				// Получаем адрес файла
+				const string & filename = fs->realPath(env->get <string> (false, "config"));
+				// Определяем существует ли файл по указанному адресу
+				const bool exist = fs->isFile(filename);
+				// Добавляем полученный файл
+				config.append(fmk->format("\x1B[%sm\x1B[1m  %s\x1B[0m %s\r\n", (exist ? "32" : "35"), (exist ? "+" : "-"), filename.c_str()));
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const exception &) {
+			/**
+			 * Все возможные ошибки мы пропускаем
+			 */
+		}
+		// Переходим по всему списку конфигурационных файлов
+		for(auto & item : configs){
+			// Получаем адрес файла
+			const string & filename = fs->realPath(item);
+			// Если адрес каталога со скриптами торговых ботов указан
+			if(!env->isString(false, "config") || (fs->realPath(env->get <string> (false, "config")).compare(filename) != 0)){
+				// Определяем существует ли файл по указанному адресу
+				const bool exist = fs->isFile(filename);
+				// Добавляем полученный файл
+				config.append(fmk->format("\x1B[%sm\x1B[1m  %s\x1B[0m %s\r\n", (exist ? "32" : "35"), (exist ? "+" : "-"), filename.c_str()));
+			}
+		}
+		// Формируем строку справки
+		const string msg = "\r\n\x1B[32m\x1B[1musage:\x1B[0m %s [-V | --version] [-H | --info] [<args>]\r\n\r\n\r\n"
+		"\x1B[34m\x1B[1m[ARGS]\x1B[0m\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Format date: \x1B[1m[-formatDate \"<value>\" | --formatDate=\"<value>\"]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m ( %%m/%%d/%%Y %%H:%%M:%%S | %%H:%%M:%%S %%d.%%m.%%Y | ... )\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m File address for writing logs: \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Logging level: \x1B[1m[-logLevel <value> | --logLevel=<value>]\x1B[0m\r\n"
+		"\x1B[32m\x1B[1m  -\x1B[0m ( 0 = NONE | 1 = INFO | 2 = WARNING | 3 = CRITICAL | 4 = INFO and WARNING | 5 = INFO and CRITICAL | 6 = WARNING CRITICAL | 7 = ALL)\r\n\r\n"
+		"\x1B[34m\x1B[1m[PATHS]\x1B[0m\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m \x1B[1mConfiguration file address:\x1B[0m\r\n"
+		"%s\r\n";
+		// Выводим сообщение справки
+		printf(msg.c_str(), name.c_str(), config.c_str());
+	}
 }
 /**
  * version Функция вывода версии приложения
@@ -326,15 +279,15 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 			}
 		#endif
 		// Если формат вывода лога передан
-		if(env.is("formatDate", true))
+		if(env.isString(true, "formatDate"))
 			// Получаем формат вывода даты
-			formatDate = env.get("formatDate", true);
+			formatDate = env.get <string> (true, "formatDate");
 		// Устанавливаем формат вывода даты
 		log.format(formatDate);
 		// Если адрес файла лога передан
-		if(env.isString("log")){
+		if(env.isString(true, "log")){
 			// Получаем адрес файла лога
-			const string & filename = env.get("log");
+			const string & filename = env.get <string> (true, "log");
 			// Если адрес файла лога получен
 			if(!filename.empty()){
 				// Позиция разделителя каталога
@@ -353,15 +306,22 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 			}
 		}
 		// Если нужно вывести справочную помощь
-		if(!env.size() || (env.is("info") || env.is("H"))){
-			// Выполняем установку конфига
-			config(&log, &env, &fs);
+		if((env.count(true) == 0) || env.is(false, "info") || env.is(false, "H")){
+			// Выполняем загрузку конфигурационного файла
+			if(env.isString(false, "config")){
+				// Получаем параметр конфигурационного файла
+				const string configFile = env.get <string> (false, "config");
+				// Если конфигурационный файл получен
+				if(!configFile.empty())
+					// Выполняем извлечение данных конфигурационного файла
+					env.filename(configFile);
+			}
 			// Выводим справочную информацию
 			help(name, &fmk, &env, &fs);
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
 		// Если версия получена
-		} else if(env.is("version") || env.is("V")) {
+		} else if(env.is(false, "version") || env.is(false, "V")) {
 			/**
 			 * Выполняем работу для Windows
 			 */
@@ -378,14 +338,18 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
 		}
-		// Выполняем подключение конфигурационного файла
-		config(&log, &env, &fs);
+		// Получаем параметр конфигурационного файла
+		const string configFile = env.get <string> (false, "config");
+		// Если конфигурационный файл получен
+		if(!configFile.empty())
+			// Выполняем извлечение данных конфигурационного файла
+			env.filename(configFile);
 		// Выполняем инициализацию объекта сервера
 		server_t server(&fmk, &log);
 		// Выполняем установку конфигурационных параметров
-		server.config(env.config());
+		server.config(env.get <json> (true));
 		// Флаг удачной загрузки конфигурационных данных
-		bool successConfig = (env.is("config") && fs.isFile(fs.realPath(env.get("config"))));
+		bool successConfig = (env.isString(false, "config") && fs.isFile(fs.realPath(env.get <string> (false, "config"))));
 		// Если конфигурационный файл не загружен
 		if(!successConfig){
 			// Переходим по всему списку конфигурационных файлов
@@ -401,13 +365,13 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 		// Если конфигурационный файл загружен удачно
 		if(successConfig){
 			// Если уровень логирования передан
-			if(env.isNumber("logLevel"))
+			if(env.isUint(false, "logLevel"))
 				// Выполняем установку уровня логирования
-				log.level(static_cast <log_t::level_t> (env.get <uint8_t> ("logLevel")));
+				log.level(static_cast <log_t::level_t> (static_cast <uint8_t> (env.get <uint32_t> (false, "logLevel"))));
 			// Если уровень логирования прописан в конфигурационном файле
-			else if(env.isNumber("logLevel", true))
+			else if(env.isUint(true, "logLevel"))
 				// Выполняем установку уровня логирования из конфигурационного файла
-				log.level(static_cast <log_t::level_t> (env.get <uint8_t> ("logLevel", true)));
+				log.level(static_cast <log_t::level_t> (static_cast <uint8_t> (env.get <uint32_t> (true, "logLevel"))));
 			// Выполняем запись идентификатора процесса
 			pidWrite(&fmk, &env, &fs);
 			// Выполняем запуск сервера
