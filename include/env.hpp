@@ -1673,13 +1673,13 @@ namespace anyks {
 				 */
 				try {
 					// Создаём объект конфигурационного файла
-					json data;
+					json data(kObjectType);
 					// Выполняем парсинг объекта JSON
 					if(data.Parse(config.c_str(), config.length()).HasParseError())
 						// Выводим сообщение об ошибке
-						this->_log->print("Env config: (offset %d): %s", log_t::flag_t::CRITICAL, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
+						this->_log->print("\"Env:%s\": (offset %d): %s", log_t::flag_t::CRITICAL, __FUNCTION__, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
 					// Выполняем установку полученных данных конфигурационного файла
-					else this->config(std::move(data));
+					else this->config(data);
 				// Если возникает ошибка
 				} catch(const std::exception & error) {
 					/**
@@ -1714,13 +1714,13 @@ namespace anyks {
 						// Если данные получены, устанавливаем их
 						if(!config.empty()){
 							// Создаём объект конфигурационного файла
-							json data;
+							json data(kObjectType);
 							// Выполняем парсинг объекта JSON
 							if(data.Parse(config.data(), config.size()).HasParseError())
 								// Выводим сообщение об ошибке
-								this->_log->print("Env filename: (offset %d): %s", log_t::flag_t::CRITICAL, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
+								this->_log->print("\"Env:%s\": (offset %d): %s", log_t::flag_t::CRITICAL, __FUNCTION__, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
 							// Выполняем установку полученных данных конфигурационного файла
-							else this->config(std::move(data));
+							else this->config(data);
 						}
 					}
 				// Если возникает ошибка

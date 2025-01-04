@@ -7,32 +7,32 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 # Поиск пути к заголовочным файлам
-find_path(LZ4_INCLUDE_DIR NAMES lz4.h PATHS /Users/forman/Work/GIT/acu/third_party/include/lz4 NO_DEFAULT_PATH)
-find_path(BZ2_INCLUDE_DIR NAMES bzlib.h PATHS /Users/forman/Work/GIT/acu/third_party/include/bz2 NO_DEFAULT_PATH)
-find_path(ZSTD_INCLUDE_DIR NAMES zstd.h PATHS /Users/forman/Work/GIT/acu/third_party/include/zstd NO_DEFAULT_PATH)
-find_path(LZMA_INCLUDE_DIR NAMES lzma.h PATHS /Users/forman/Work/GIT/acu/third_party/include/lzma NO_DEFAULT_PATH)
-find_path(ZLIB_INCLUDE_DIR NAMES zlib.h PATHS /Users/forman/Work/GIT/acu/third_party/include/zlib NO_DEFAULT_PATH)
-find_path(CITY_INCLUDE_DIR NAMES cityhash/city.h PATHS /Users/forman/Work/GIT/acu/third_party/include NO_DEFAULT_PATH)
-find_path(AWH_INCLUDE_DIR NAMES server/awh.hpp PATHS /Users/forman/Work/GIT/acu/third_party/include/awh NO_DEFAULT_PATH)
-find_path(BROTLI_INCLUDE_ENCODE_DIR NAMES encode.h PATHS /Users/forman/Work/GIT/acu/third_party/include/brotli NO_DEFAULT_PATH)
-find_path(BROTLI_INCLUDE_DECODE_DIR NAMES decode.h PATHS /Users/forman/Work/GIT/acu/third_party/include/brotli NO_DEFAULT_PATH)
-find_path(OPENSSL_INCLUDE_DIR NAMES openssl/opensslconf.h PATHS /Users/forman/Work/GIT/acu/third_party/include NO_DEFAULT_PATH)
-find_path(PCRE_INCLUDE_DIR NAMES pcre2.h PATHS /Users/forman/Work/GIT/acu/third_party/include/pcre2 NO_DEFAULT_PATH)
-find_path(NGHTTP2_INCLUDE_DIR NAMES nghttp2.h PATHS /Users/forman/Work/GIT/acu/third_party/include/nghttp2 NO_DEFAULT_PATH)
+find_path(LZ4_INCLUDE_DIR NAMES lz4.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/lz4 NO_DEFAULT_PATH)
+find_path(BZ2_INCLUDE_DIR NAMES bzlib.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/bz2 NO_DEFAULT_PATH)
+find_path(ZSTD_INCLUDE_DIR NAMES zstd.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/zstd NO_DEFAULT_PATH)
+find_path(LZMA_INCLUDE_DIR NAMES lzma.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/lzma NO_DEFAULT_PATH)
+find_path(ZLIB_INCLUDE_DIR NAMES zlib.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/zlib NO_DEFAULT_PATH)
+find_path(CITY_INCLUDE_DIR NAMES cityhash/city.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include NO_DEFAULT_PATH)
+find_path(AWH_INCLUDE_DIR NAMES server/awh.hpp PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/awh NO_DEFAULT_PATH)
+find_path(BROTLI_INCLUDE_ENCODE_DIR NAMES encode.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/brotli NO_DEFAULT_PATH)
+find_path(BROTLI_INCLUDE_DECODE_DIR NAMES decode.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/brotli NO_DEFAULT_PATH)
+find_path(OPENSSL_INCLUDE_DIR NAMES openssl/opensslconf.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include NO_DEFAULT_PATH)
+find_path(PCRE_INCLUDE_DIR NAMES pcre2.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/pcre2 NO_DEFAULT_PATH)
+find_path(NGHTTP2_INCLUDE_DIR NAMES nghttp2.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/nghttp2 NO_DEFAULT_PATH)
 
 # Сборка модуля AWH_IDN, если операционной системой не является Windows
 if (CMAKE_BUILD_IDN AND (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows"))
-    find_path(IDN2_INCLUDE_DIR NAMES idn2.h PATHS /Users/forman/Work/GIT/acu/third_party/include/idn2 NO_DEFAULT_PATH)
-    find_path(ICONV_INCLUDE_DIR NAMES iconv.h PATHS /Users/forman/Work/GIT/acu/third_party/include/iconv NO_DEFAULT_PATH)
+    find_path(IDN2_INCLUDE_DIR NAMES idn2.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/idn2 NO_DEFAULT_PATH)
+    find_path(ICONV_INCLUDE_DIR NAMES iconv.h PATHS /Users/forman/Work/GIT/anyks/acu/third_party/include/iconv NO_DEFAULT_PATH)
 endif()
 
 # Поиск библиотеки AWH
-find_library(AWH_LIBRARY NAMES awh PATHS /Users/forman/Work/GIT/acu/third_party/lib NO_DEFAULT_PATH)
+find_library(AWH_LIBRARY NAMES awh PATHS /Users/forman/Work/GIT/anyks/acu/third_party/lib NO_DEFAULT_PATH)
 
 # Если активирован режим отладки
 if (CMAKE_AWH_BUILD_DEBUG)
     # Поиск библиотеки AWH
-    find_library(DEPEND_LIBRARY NAMES dependence PATHS /Users/forman/Work/GIT/acu/third_party/lib NO_DEFAULT_PATH)
+    find_library(DEPEND_LIBRARY NAMES dependence PATHS /Users/forman/Work/GIT/anyks/acu/third_party/lib NO_DEFAULT_PATH)
 endif()
 
 # Подключаем 'FindPackageHandle' для использования модуля поиска (find_package(<PackageName>))
