@@ -896,35 +896,59 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 																	sid = params.at(i);
 																// Выполняем перебор всех параметров
 																else {
-																	// Смещение в сообщении
-																	size_t offset = 0;
+																	// Позиция начала ключа и позиция начала значения
+																	size_t pos1 = 0, pos2 = 0;
+																	// Ключ и значения параметров
+																	string key = "", value = "";
 																	// Получаем строку текста для обработки
 																	const string & text = params.at(i);
-																	// Выполняем извлечение всех сообщений
-																	for(;;){
-																		// Выполняем извлечение всего списка установленных параметров
-																		const auto & items = this->_reg.match(text.c_str() + offset, this->_exp.items);
-																		// Если список параметров получен
-																		if(!items.empty()){
-																			// Если элементов параметров получены 4 штуки
-																			if(items.size() >= 4){
-																				// Получаем ключ записи
-																				const string & key = text.substr(items.at(1).first + offset, items.at(1).second);
-																				// Получаем значение записи
-																				const string & value = (items.back().first == 0 ? text.substr(items.at(2).first + offset, items.at(2).second) : text.substr(items.back().first + offset, items.back().second));
-																				// Получаем идентификатор структурированных данных
-																				auto i = this->_sd.find(sid);
-																				// Если идентификатор существует
-																				if(i != this->_sd.end())
-																					// Устанавливаем структурированные данные
-																					i->second.emplace(key, value);
-																				// Иначе добавляем новые структурированные данные
-																				else this->_sd.emplace(sid, std::unordered_map <string, string> {{key,  value}});
-																			}
-																			// Увеличиваем длину сообщения
-																			offset += (items.front().first + items.front().second);
-																		// Выходим из цикла
-																		} else break;
+																	// Выполняем перебор всего текста
+																	for(size_t i = 0; i < text.length(); i++){
+																		// Определяем значение текущего символа
+																		switch(text.at(i)){
+																			// Если символ является пробелом
+																			case ' ':
+																				// Устанавливаем начало ключа
+																				pos1 = (i + 1);
+																			break;
+																			// Если символ является знаком равенства
+																			case '=': {
+																				// Если конец ключа ещё не установлен
+																				if(key.empty())
+																					// Устанавливаем конец ключа
+																					key = text.substr(pos1, i - pos1);
+																			} break;
+																			// Если символ является кавычка
+																			case '"': {
+																				// Если начало кавычки не установлено
+																				if(pos2 == 0){
+																					// Выполняем смещение
+																					i++;
+																					// Выполняем установку начала значения
+																					pos2 = i;
+																				// Если начало значения уже установлено
+																				} else if(text.at(i - 1) != '\\') {
+																					// Получаем значение
+																					value = text.substr(pos2, i - pos2);
+																					// Получаем идентификатор структурированных данных
+																					auto j = this->_sd.find(sid);
+																					// Если идентификатор существует
+																					if(j != this->_sd.end())
+																						// Устанавливаем структурированные данные
+																						j->second.emplace(key, value);
+																					// Иначе добавляем новые структурированные данные
+																					else this->_sd.emplace(sid, std::unordered_map <string, string> {{key,  value}});
+																					// Выполняем сброс позиции ключа
+																					pos1 = 0;
+																					// Выполняем сброс позиции значения
+																					pos2 = 0;
+																					// Выполняем сброс ключа
+																					key.clear();
+																					// Выполняем сброс значения
+																					value.clear();
+																				}
+																			} break;
+																		}
 																	}
 																}
 															}
@@ -1628,12 +1652,19 @@ json anyks::SysLog::dump() const noexcept {
 						 * Выполняем отлов ошибок
 						 */
 						try {
-							// Если число положительное
-							if(param.second.front() != '-')
+							// Если длина текста больше одного символа и первый символ это ноль
+							if((param.second.length() > 1) && (param.second.front() == '0'))
 								// Добавляем полученные парасетры структурированных данных
-								result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(param.second))).Move(), result.GetAllocator());
-							// Добавляем полученные парасетры структурированных данных
-							else result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(param.second))).Move(), result.GetAllocator());
+								result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(param.second.c_str(), param.second.length(), result.GetAllocator()).Move(), result.GetAllocator());
+							// Выполняем преобразование строки в число
+							else {
+								// Если число положительное
+								if(param.second.front() != '-')
+									// Добавляем полученные парасетры структурированных данных
+									result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(param.second))).Move(), result.GetAllocator());
+								// Добавляем полученные парасетры структурированных данных
+								else result["sd"][sd.first.c_str()].AddMember(Value(param.first.c_str(), param.first.length(), result.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(param.second))).Move(), result.GetAllocator());
+							}
 						/**
 						 * Если возникает ошибка
 						 */
@@ -1983,11 +2014,6 @@ anyks::SysLog::SysLog(const fmk_t * fmk, const log_t * log) noexcept :
 	});
 	// Выполняем сборку регулярных выражений для извлечения параметров сообщений RFC5424
 	this->_exp.params = this->_reg.build("\\[([\\w\\@\\-]+)\\s+(.*)\\]", {
-		regexp_t::option_t::UTF8,
-		regexp_t::option_t::UCP
-	});
-	// Выполняем сборку регулярных выражений для извлечения параметров сообщения RFC5424
-	this->_exp.items = this->_reg.build("([\\w\\-]+)\\=(?:\\\"([^\\\"]+)\\\"|(\\d+))", {
 		regexp_t::option_t::UTF8,
 		regexp_t::option_t::UCP
 	});
