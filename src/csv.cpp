@@ -14,6 +14,12 @@
 // Подключаем заголовочный файл
 #include <csv.hpp>
 
+// Объявляем пространство имен
+using namespace std;
+using namespace awh;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
+
 /**
  * prepare Метод выполнения препарирования полученных данных строки
  * @param buffer буфер данных для препарирования
@@ -701,7 +707,7 @@ void anyks::CSV::read(const string & filename, function <void (const vector <str
  * dump Метод создания дампа данных
  * @return дамп данных в формате JSON
  */
-json anyks::CSV::dump() const noexcept {
+anyks::json anyks::CSV::dump() const noexcept {
 	// Результат работы функции
 	json result;
 	// Если данные реально собранны

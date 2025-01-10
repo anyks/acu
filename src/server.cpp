@@ -16,11 +16,18 @@
  */
 #include <server.hpp>
 
+// Подписываемся на стандартное пространство имён
+using namespace std;
+// Подписываемся на пространство имён awh
+using namespace awh;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
+
 /**
  * crash Метод обработки вызова крашей в приложении
  * @param sig номер сигнала операционной системы
  */
-void anyks::Server::crash(const int sig) noexcept {
+void anyks::Server::crash(const int32_t sig) noexcept {
 	// Если мы получили сигнал завершения работы
 	if(sig == 2)
 		// Выводим сообщение о заверщении работы

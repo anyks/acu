@@ -14,6 +14,12 @@
 // Подключаем заголовочный файл
 #include <cef.hpp>
 
+// Объявляем пространство имен
+using namespace std;
+using namespace awh;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
+
 /**
  * clear Метод очистки данных
  */
@@ -1042,7 +1048,7 @@ string anyks::Cef::cef() const noexcept {
  * dump Метод извлечения данных в виде JSON
  * @return json объект дампа данных
  */
-json anyks::Cef::dump() const noexcept {
+anyks::json anyks::Cef::dump() const noexcept {
 	// Результат работы функции
 	json result(kObjectType);
 	// Если данные заполнены

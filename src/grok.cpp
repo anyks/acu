@@ -15,6 +15,12 @@
 // Подключаем заголовочный файл
 #include <grok.hpp>
 
+// Объявляем пространство имен
+using namespace std;
+using namespace awh;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
+
 /**
  * reset Метод сброса параметров объекта
  */
@@ -1121,7 +1127,7 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
  * @param cid идентификатор записи в кэше
  * @return    json объект дампа данных
  */
-json anyks::Grok::dump(const uint64_t cid) const noexcept {
+anyks::json anyks::Grok::dump(const uint64_t cid) const noexcept {
 	// Результат работы функции
 	json result(kObjectType);
 	/**

@@ -17,8 +17,13 @@
 #include <env.hpp>
 #include <server.hpp>
 
+// Объявляем пространство имен
+using namespace std;
+using namespace awh;
 // Подключаем пространство имён
 using namespace anyks;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
 
 /**
  * pidWrite Функция записи идентификатора процесса

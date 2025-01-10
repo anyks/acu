@@ -14,6 +14,12 @@
 // Подключаем заголовочный файл
 #include <parser.hpp>
 
+// Объявляем пространство имен
+using namespace std;
+using namespace awh;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
+
 /**
  * clearPatterns Метод сброса списка добавленных шаблонов GROK
  */

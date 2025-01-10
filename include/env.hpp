@@ -45,20 +45,14 @@
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 
-// Устанавливаем область видимости
-using namespace std;
-// Подписываемся на пространство имён awh
-using namespace awh;
-// Подписываемся на пространство имён rapidjson
-using namespace rapidjson;
-
-// Активируем пространство имён json
-using json = Document;
-
 /**
  * anyks пространство имён
  */
 namespace anyks {
+	/**
+	 * Активируем пространство имён json
+	 */
+	using json = rapidjson::Document;
 	/**
 	 * Env Класс модуля работы с переменными окружения
 	 */
@@ -67,7 +61,7 @@ namespace anyks {
 			/**
 			 * Флаги типов данных
 			 */
-			enum class type_t : uint8_t {
+			enum class type_t : std::uint8_t {
 				ENV_NONE       = 0x00, // Тип данных не определён
 				ENV_NUMBER     = 0x01, // Тип данных Number
 				ENV_FLOAT      = 0x02, // Тип данных Float
@@ -82,33 +76,33 @@ namespace anyks {
 				ENV_UINTEGER64 = 0x0B  // Тип данных Unsigned Integer 64
 			};
 		private:
-			// Объект работы с файловой системой
-			fs_t _fs;
-		private:
 			// Список полученных переменных окружения
 			json _data;
+		private:
+			// Объект работы с файловой системой
+			awh::fs_t _fs;
 		private:
 			// Флаг автоматического чтения текстовой переменной
 			bool _automatic;
 		private:
 			// Название переменной содержащей текст
-			string _text;
+			std::string _text;
 			// Префикс переменной окружения
-			string _prefix;
+			std::string _prefix;
 		private:
 			// Создаём объект фреймворка
-			const fmk_t * _fmk;
+			const awh::fmk_t * _fmk;
 			// Создаём объект работы с логами
-			const log_t * _log;
+			const awh::log_t * _log;
 		private:
 			/**
 			 * env Метод извлечения переменной окружения
 			 * @param key переменная окружения
 			 * @return    значение переменной
 			 */
-			string env(const string & key) const noexcept {
+			std::string env(const std::string & key) const noexcept {
 				// Результат работы функции
-				string result = "";
+				std::string result = "";
 				// Если значение переменной передано
 				if(!key.empty() && !this->_prefix.empty() && (this->_fmk != nullptr)){
 					/**
@@ -116,11 +110,11 @@ namespace anyks {
 					 */
 					try {
 						// Получаем суффикс переменной окружения
-						string suffix = key;
+						std::string suffix = key;
 						// Переводим суффикс в верхний регистр
-						this->_fmk->transform(suffix, fmk_t::transform_t::UPPER);
+						this->_fmk->transform(suffix, awh::fmk_t::transform_t::UPPER);
 						// Получаем значение переменной
-						const char * val = ::getenv(this->_fmk->format("%s_%s", this->_prefix.c_str(), suffix.c_str()).c_str());
+						const char * val = std::getenv(this->_fmk->format("%s_%s", this->_prefix.c_str(), suffix.c_str()).c_str());
 						// Запоминаем результат
 						result = (val == nullptr ? "" : val);
 					/**
@@ -132,13 +126,13 @@ namespace anyks {
 						 */
 						#if defined(DEBUG_MODE)
 							// Выводим сообщение об ошибке
-							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key), log_t::flag_t::CRITICAL, error.what());
+							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key), awh::log_t::flag_t::CRITICAL, error.what());
 						/**
 						* Если режим отладки не включён
 						*/
 						#else
 							// Выводим сообщение об ошибке
-							this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+							this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 						#endif
 					}
 				}
@@ -151,23 +145,23 @@ namespace anyks {
 			 * @param key   ключ записи для установки
 			 * @param value текстовое значение для установки
 			 */
-			void set(const string & key, const string & value) noexcept {
+			void set(const std::string & key, const std::string & value) noexcept {
 				/**
 				 * Выполняем отлов ошибок
 				 */
 				try {
 					// Если строка передана
-					if(!value.empty() && (value.find("|") != string::npos)){
+					if(!value.empty() && (value.find("|") != std::string::npos)){
 						// Список параметров
-						vector <string> params;
+						std::vector <std::string> params;
 						// Результат работы функции
-						json result(kArrayType);
+						json result(rapidjson::kArrayType);
 						// Выполняем сплит параметров
 						if(!this->_fmk->split(value, "|", params).empty()){
 							// Заполняем массив данными
 							for(auto & param : params){
 								// Если ключ - это число или отрицательное число
-								if(this->_fmk->is(param, fmk_t::check_t::NUMBER)){
+								if(this->_fmk->is(param, awh::fmk_t::check_t::NUMBER)){
 									/**
 									 * Выполняем отлов ошибок
 									 */
@@ -175,55 +169,55 @@ namespace anyks {
 										// Если число является отрицательным
 										if(param.front() == '-')
 											// Выполняем добавление отрицательного числа
-											result.PushBack(Value(static_cast <int64_t> (::stoll(param))).Move(), result.GetAllocator());
+											result.PushBack(rapidjson::Value(static_cast <std::int64_t> (std::stoll(param))).Move(), result.GetAllocator());
 										// Выполняем добавление положительного числа
-										else result.PushBack(Value(static_cast <uint64_t> (::stoull(param))).Move(), result.GetAllocator());
+										else result.PushBack(rapidjson::Value(static_cast <std::uint64_t> (std::stoull(param))).Move(), result.GetAllocator());
 									/**
 									 * Если возникает ошибка
 									 */
 									} catch(const std::exception &) {
 										// Добавляем строку как она есть
-										result.PushBack(Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
+										result.PushBack(rapidjson::Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
 									}
 								// Если ключ - это дробное число
-								} else if(this->_fmk->is(param, fmk_t::check_t::DECIMAL)) {
+								} else if(this->_fmk->is(param, awh::fmk_t::check_t::DECIMAL)) {
 									/**
 									 * Выполняем отлов ошибок
 									 */
 									try {
 										// Выполняем добавление числа
-										result.PushBack(Value(::stod(param)).Move(), result.GetAllocator());
+										result.PushBack(rapidjson::Value(std::stod(param)).Move(), result.GetAllocator());
 									/**
 									 * Если возникает ошибка
 									 */
 									} catch(const std::exception &) {
 										// Добавляем строку как она есть
-										result.PushBack(Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
+										result.PushBack(rapidjson::Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
 									}
 								// Если - это флаг, устанавливаем истинное булевое значение
 								} else if(this->_fmk->compare(param, "true"))
 									// Выполняем добавление истинное значение
-									result.PushBack(Value(kTrueType).Move(), result.GetAllocator());
+									result.PushBack(rapidjson::Value(rapidjson::kTrueType).Move(), result.GetAllocator());
 								// Если - это флаг, устанавливаем ложное булевое значение
 								else if(this->_fmk->compare(param, "false"))
 									// Выполняем добавление ложное значение
-									result.PushBack(Value(kFalseType).Move(), result.GetAllocator());
+									result.PushBack(rapidjson::Value(rapidjson::kFalseType).Move(), result.GetAllocator());
 								// Добавляем строку как она есть
-								else result.PushBack(Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
+								else result.PushBack(rapidjson::Value(param.c_str(), param.length(), result.GetAllocator()).Move(), result.GetAllocator());
 							}
 						}
 						// Если ключ work не обнаружен
 						if(!this->_data.HasMember("work"))
 							// Выполняем добавление ключа work
-							this->_data.AddMember(Value("work", this->_data.GetAllocator()).Move(), Value(kObjectType).Move(), this->_data.GetAllocator());
+							this->_data.AddMember(rapidjson::Value("work", this->_data.GetAllocator()).Move(), rapidjson::Value(rapidjson::kObjectType).Move(), this->_data.GetAllocator());
 						// Если такого ключа ещё не существует в объекте
 						if(!this->_data["work"].HasMember(key.c_str())){
 							// Создаём значение сообщения
-							Value value(kArrayType);
+							rapidjson::Value value(rapidjson::kArrayType);
 							// Выполняем копирование полученного JSON
 							value.CopyFrom(result, result.GetAllocator());
 							// Добавляем полученный массив в базу данных
-							this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), value.Move(), this->_data.GetAllocator());
+							this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), value.Move(), this->_data.GetAllocator());
 						// Если такой ключ уже существует в объекте
 						} else this->_data["work"][key.c_str()].CopyFrom(result, result.GetAllocator());
 					// Если передаваемое значение не является массивом
@@ -231,9 +225,9 @@ namespace anyks {
 						// Если ключ work не обнаружен
 						if(!this->_data.HasMember("work"))
 							// Выполняем добавление ключа work
-							this->_data.AddMember(Value("work", this->_data.GetAllocator()).Move(), Value(kObjectType).Move(), this->_data.GetAllocator());
+							this->_data.AddMember(rapidjson::Value("work", this->_data.GetAllocator()).Move(), rapidjson::Value(rapidjson::kObjectType).Move(), this->_data.GetAllocator());
 						// Если ключ - это число или отрицательное число
-						if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+						if(this->_fmk->is(value, awh::fmk_t::check_t::NUMBER)){
 							/**
 							 * Выполняем отлов ошибок
 							 */
@@ -243,17 +237,17 @@ namespace anyks {
 									// Если число является отрицательным
 									if(value.front() == '-')
 										// Выполняем добавление вещественного отрицательного числа в базу данных
-										this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(static_cast <int64_t> (::stoll(value))).Move(), this->_data.GetAllocator());
+										this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), rapidjson::Value(static_cast <std::int64_t> (std::stoll(value))).Move(), this->_data.GetAllocator());
 									// Выполняем добавление вещественного положительного числа в базу данных
-									else this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(static_cast <uint64_t> (::stoull(value))).Move(), this->_data.GetAllocator());
+									else this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), rapidjson::Value(static_cast <std::uint64_t> (std::stoull(value))).Move(), this->_data.GetAllocator());
 								// Если такой ключ уже существует в объекте
 								} else {
 									// Если число является отрицательным
 									if(value.front() == '-')
 										// Выполняем установку вещественного отрицательного числа в базу данных
-										this->_data["work"][key.c_str()].SetInt64(static_cast <int64_t> (::stoll(value)));
+										this->_data["work"][key.c_str()].SetInt64(static_cast <std::int64_t> (std::stoll(value)));
 									// Выполняем добавление вещественного положительного числа в базу данных
-									else this->_data["work"][key.c_str()].SetUint64(static_cast <uint64_t> (::stoull(value)));
+									else this->_data["work"][key.c_str()].SetUint64(static_cast <std::uint64_t> (std::stoull(value)));
 								}
 							/**
 							 * Если возникает ошибка
@@ -262,12 +256,12 @@ namespace anyks {
 								// Если такого ключа ещё не существует в объекте
 								if(!this->_data["work"].HasMember(key.c_str()))
 									// Добавляем строку как она есть
-									this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+									this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), rapidjson::Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
 								// Если такой ключ уже существует в объекте
 								else this->_data["work"][key.c_str()].SetString(value.c_str(), value.length(), this->_data.GetAllocator());
 							}
 						// Если ключ - это дробное число
-						} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL)) {
+						} else if(this->_fmk->is(value, awh::fmk_t::check_t::DECIMAL)) {
 							/**
 							 * Выполняем отлов ошибок
 							 */
@@ -275,9 +269,9 @@ namespace anyks {
 								// Если такого ключа ещё не существует в объекте
 								if(!this->_data["work"].HasMember(key.c_str()))
 									// Выполняем добавление числа с двойной точностью в базу данных
-									this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(::stod(value)).Move(), this->_data.GetAllocator());
+									this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), rapidjson::Value(std::stod(value)).Move(), this->_data.GetAllocator());
 								// Если такой ключ уже существует в объекте
-								else this->_data["work"][key.c_str()].SetDouble(::stod(value));
+								else this->_data["work"][key.c_str()].SetDouble(std::stod(value));
 							/**
 							 * Если возникает ошибка
 							 */
@@ -285,7 +279,7 @@ namespace anyks {
 								// Если такого ключа ещё не существует в объекте
 								if(!this->_data["work"].HasMember(key.c_str()))
 									// Добавляем строку как она есть
-									this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+									this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), rapidjson::Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
 								// Если такой ключ уже существует в объекте
 								else this->_data["work"][key.c_str()].SetString(value.c_str(), value.length(), this->_data.GetAllocator());
 							}
@@ -294,23 +288,23 @@ namespace anyks {
 							// Если такого ключа ещё не существует в объекте
 							if(!this->_data["work"].HasMember(key.c_str()))
 								// Выполняем добавление истинное значение
-								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(kTrueType).Move(), this->_data.GetAllocator());
+								this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), rapidjson::Value(rapidjson::kTrueType).Move(), this->_data.GetAllocator());
 							// Если такой ключ уже существует в объекте
-							else this->_data["work"][key.c_str()].SetBool(kTrueType);
+							else this->_data["work"][key.c_str()].SetBool(rapidjson::kTrueType);
 						// Если - это флаг, устанавливаем ложное булевое значение
 						} else if(this->_fmk->compare(value, "false")) {
 							// Если такого ключа ещё не существует в объекте
 							if(!this->_data["work"].HasMember(key.c_str()))
 								// Выполняем добавление ложное значение
-								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(kFalseType).Move(), this->_data.GetAllocator());
+								this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), rapidjson::Value(rapidjson::kFalseType).Move(), this->_data.GetAllocator());
 							// Если такой ключ уже существует в объекте
-							else this->_data["work"][key.c_str()].SetBool(kFalseType);
+							else this->_data["work"][key.c_str()].SetBool(rapidjson::kFalseType);
 						// Добавляем строку как она есть
 						} else {
 							// Если такого ключа ещё не существует в объекте
 							if(!this->_data["work"].HasMember(key.c_str()))
 								// Добавляем строку как она есть
-								this->_data["work"].AddMember(Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+								this->_data["work"].AddMember(rapidjson::Value(key.c_str(), key.length(), this->_data.GetAllocator()).Move(), rapidjson::Value(value.c_str(), value.length(), this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
 							// Если такой ключ уже существует в объекте
 							else this->_data["work"][key.c_str()].SetString(value.c_str(), value.length(), this->_data.GetAllocator());
 						}
@@ -324,13 +318,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 			}
@@ -345,23 +339,23 @@ namespace anyks {
 			 * @param args ключи для извлечения
 			 * @return     количество полученных аргументов
 			 */
-			size_t count(const bool root, Args&&... args) const noexcept {
+			std::size_t count(const bool root, Args&&... args) const noexcept {
 				// Результат работы функции
-				size_t result = 0;
+				std::size_t result = 0;
 				/**
 				 * Выполняем отлов ошибок
 				 */
 				try {
 					// Получаем список ключей
-					const vector <string> & keys = {args...};
+					const std::vector <std::string> & keys = {args...};
 					// Если количество ключей получено
 					if(!keys.empty()){
 						// Значение ключа в объекте
-						Value item;
+						rapidjson::Value item;
 						// Выполняем перебор всех аргументов функции
-						for(size_t i = 0; i < keys.size(); i++){
+						for(std::size_t i = 0; i < keys.size(); i++){
 							// Поулчаем название ключа
-							const string & key = keys.at(i);
+							const std::string & key = keys.at(i);
 							// Если это первый элемент в списке
 							if(i == 0){
 								// Если ключ в базе данных существует
@@ -371,7 +365,7 @@ namespace anyks {
 								// Если ключа в базе данных не найдено
 								else if(!root) {
 									// Проверяем ключ в переменных окружения
-									const string & value = this->env(key);
+									const std::string & value = this->env(key);
 									// Если данные получены в переменных окружения
 									if(!value.empty())
 										// Выполняем добавление полученных значений переменной окружения
@@ -398,7 +392,7 @@ namespace anyks {
 								// Если это объект
 								else if(item.IsObject() && !item.ObjectEmpty()) {
 									// Переходим по всем ключам
-									for(auto & i : item.GetObj())
+									for([[maybe_unused]] auto & i : item.GetObj())
 										// Подсчитываем весь список ключей
 										result++;
 								// Запоминаем, что элемент всего один
@@ -416,7 +410,7 @@ namespace anyks {
 							// Если это объект
 							else if(this->_data.IsObject() && !this->_data.ObjectEmpty()) {
 								// Переходим по всем ключам
-								for(auto & i : this->_data.GetObj())
+								for([[maybe_unused]] auto & i : this->_data.GetObj())
 									// Подсчитываем весь список ключей
 									result++;
 							}
@@ -429,7 +423,7 @@ namespace anyks {
 							// Если это объект
 							else if(this->_data["work"].IsObject() && !this->_data["work"].ObjectEmpty()) {
 								// Переходим по всем ключам
-								for(auto & i : this->_data["work"].GetObj())
+								for([[maybe_unused]] auto & i : this->_data["work"].GetObj())
 									// Подсчитываем весь список ключей
 									result++;
 							}
@@ -444,13 +438,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 				// Выводим результат
@@ -475,15 +469,15 @@ namespace anyks {
 				 */
 				try {
 					// Получаем список ключей
-					const vector <string> & keys = {args...};
+					const std::vector <std::string> & keys = {args...};
 					// Если количество ключей получено
 					if(!keys.empty()){
 						// Значение ключа в объекте
-						Value item;
+						rapidjson::Value item;
 						// Выполняем перебор всех аргументов функции
-						for(size_t i = 0; i < keys.size(); i++){
+						for(std::size_t i = 0; i < keys.size(); i++){
 							// Поулчаем название ключа
-							const string & key = keys.at(i);
+							const std::string & key = keys.at(i);
 							// Если это первый элемент в списке
 							if(i == 0){
 								// Если это корневой элемент
@@ -503,7 +497,7 @@ namespace anyks {
 									// Если ключа в базе данных не найдено
 									else {
 										// Проверяем ключ в переменных окружения
-										const string & value = this->env(key);
+										const std::string & value = this->env(key);
 										// Если данные получены в переменных окружения
 										if(!value.empty())
 											// Выполняем добавление полученных значений переменной окружения
@@ -536,13 +530,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 				// Выводим результат
@@ -555,7 +549,7 @@ namespace anyks {
 			 * @param key  ключ переменной для проверки
 			 * @param val  значение переменной для проверки (если требуется)
 			 */
-			bool is(const bool root, const string & key, const string & val = "") const noexcept {
+			bool is(const bool root, const std::string & key, const std::string & val = "") const noexcept {
 				// Результат работы функции
 				bool result = false;
 				// Если ключ передан
@@ -565,7 +559,7 @@ namespace anyks {
 					 */
 					try {
 						// Выполняем чтение значения ключа
-						string data = this->get <string> (root, key);
+						std::string data = this->get <string> (root, key);
 						// Если значение переменной не получено
 						if(data.empty() && !root)
 							// Проверяем ключ в переменных окружения
@@ -583,13 +577,13 @@ namespace anyks {
 						 */
 						#if defined(DEBUG_MODE)
 							// Выводим сообщение об ошибке
-							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(root, key, val), log_t::flag_t::CRITICAL, error.what());
+							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(root, key, val), awh::log_t::flag_t::CRITICAL, error.what());
 						/**
 						* Если режим отладки не включён
 						*/
 						#else
 							// Выводим сообщение об ошибке
-							this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+							this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 						#endif
 					}
 				}
@@ -616,15 +610,15 @@ namespace anyks {
 				 */
 				try {
 					// Получаем список ключей
-					const vector <string> & keys = {args...};
+					const std::vector <std::string> & keys = {args...};
 					// Если количество ключей получено
 					if(!keys.empty()){
 						// Значение ключа в объекте
-						Value item;
+						rapidjson::Value item;
 						// Выполняем перебор всех аргументов функции
-						for(size_t i = 0; i < keys.size(); i++){
+						for(std::size_t i = 0; i < keys.size(); i++){
 							// Поулчаем название ключа
-							const string & key = keys.at(i);
+							const std::string & key = keys.at(i);
 							// Если это первый элемент в списке
 							if(i == 0){
 								// Если это корневой элемент
@@ -644,7 +638,7 @@ namespace anyks {
 									// Если ключа в базе данных не найдено
 									else {
 										// Проверяем ключ в переменных окружения
-										const string & value = this->env(key);
+										const std::string & value = this->env(key);
 										// Если данные получены в переменных окружения
 										if(!value.empty())
 											// Выполняем добавление полученных значений переменной окружения
@@ -666,59 +660,59 @@ namespace anyks {
 							// Если мы перебрали все ключи
 							if((i == (keys.size() - 1))){
 								// Определяем тип запрашиваемого элемента
-								switch(static_cast <uint8_t> (type)){
+								switch(static_cast <std::uint8_t> (type)){
 									// Если тип элемента является объектом
-									case static_cast <uint8_t> (type_t::ENV_OBJECT):
+									case static_cast <std::uint8_t> (type_t::ENV_OBJECT):
 										// Выполняем проверку типа элемента
 										result = item.IsObject();
 									break;
 									// Если тип элемента является массивом
-									case static_cast <uint8_t> (type_t::ENV_ARRAY):
+									case static_cast <std::uint8_t> (type_t::ENV_ARRAY):
 										// Выполняем проверку типа элемента
 										result = item.IsArray();
 									break;
 									// Если тип элемента является числом
-									case static_cast <uint8_t> (type_t::ENV_NUMBER):
+									case static_cast <std::uint8_t> (type_t::ENV_NUMBER):
 										// Выполняем проверку типа элемента
 										result = item.IsNumber();
 									break;
 									// Если тип элемента является строкой
-									case static_cast <uint8_t> (type_t::ENV_STRING):
+									case static_cast <std::uint8_t> (type_t::ENV_STRING):
 										// Выполняем проверку типа элемента
 										result = item.IsString();
 									break;
 									// Если тип элемента является булевым элементом
-									case static_cast <uint8_t> (type_t::ENV_BOOLEAN):
+									case static_cast <std::uint8_t> (type_t::ENV_BOOLEAN):
 										// Выполняем проверку типа элемента
 										result = item.IsBool();
 									break;
 									// Если тип элемента является Double элементом
-									case static_cast <uint8_t> (type_t::ENV_DOUBLE):
+									case static_cast <std::uint8_t> (type_t::ENV_DOUBLE):
 										// Выполняем проверку типа элемента
 										result = item.IsDouble();
 									break;
 									// Если тип элемента является Float элементом
-									case static_cast <uint8_t> (type_t::ENV_FLOAT):
+									case static_cast <std::uint8_t> (type_t::ENV_FLOAT):
 										// Выполняем проверку типа элемента
 										result = item.IsFloat();
 									break;
 									// Если тип элемента является Integer элементом
-									case static_cast <uint8_t> (type_t::ENV_INTEGER):
+									case static_cast <std::uint8_t> (type_t::ENV_INTEGER):
 										// Выполняем проверку типа элемента
 										result = item.IsInt();
 									break;
 									// Если тип элемента является Unsigned Integer элементом
-									case static_cast <uint8_t> (type_t::ENV_UINTEGER):
+									case static_cast <std::uint8_t> (type_t::ENV_UINTEGER):
 										// Выполняем проверку типа элемента
 										result = item.IsUint();
 									break;
 									// Если тип элемента является Integer 64 элементом
-									case static_cast <uint8_t> (type_t::ENV_INTEGER64):
+									case static_cast <std::uint8_t> (type_t::ENV_INTEGER64):
 										// Выполняем проверку типа элемента
 										result = item.IsInt64();
 									break;
 									// Если тип элемента является Unsigned Integer 64 элементом
-									case static_cast <uint8_t> (type_t::ENV_UINTEGER64):
+									case static_cast <std::uint8_t> (type_t::ENV_UINTEGER64):
 										// Выполняем проверку типа элемента
 										result = item.IsUint64();
 									break;
@@ -730,59 +724,59 @@ namespace anyks {
 						// Если нужно выполнить поиск в корневом элементе
 						if(root){
 							// Определяем тип запрашиваемого элемента
-							switch(static_cast <uint8_t> (type)){
+							switch(static_cast <std::uint8_t> (type)){
 								// Если тип элемента является объектом
-								case static_cast <uint8_t> (type_t::ENV_OBJECT):
+								case static_cast <std::uint8_t> (type_t::ENV_OBJECT):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsObject();
 								break;
 								// Если тип элемента является массивом
-								case static_cast <uint8_t> (type_t::ENV_ARRAY):
+								case static_cast <std::uint8_t> (type_t::ENV_ARRAY):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsArray();
 								break;
 								// Если тип элемента является числом
-								case static_cast <uint8_t> (type_t::ENV_NUMBER):
+								case static_cast <std::uint8_t> (type_t::ENV_NUMBER):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsNumber();
 								break;
 								// Если тип элемента является строкой
-								case static_cast <uint8_t> (type_t::ENV_STRING):
+								case static_cast <std::uint8_t> (type_t::ENV_STRING):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsString();
 								break;
 								// Если тип элемента является булевым элементом
-								case static_cast <uint8_t> (type_t::ENV_BOOLEAN):
+								case static_cast <std::uint8_t> (type_t::ENV_BOOLEAN):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsBool();
 								break;
 								// Если тип элемента является Double элементом
-								case static_cast <uint8_t> (type_t::ENV_DOUBLE):
+								case static_cast <std::uint8_t> (type_t::ENV_DOUBLE):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsDouble();
 								break;
 								// Если тип элемента является Float элементом
-								case static_cast <uint8_t> (type_t::ENV_FLOAT):
+								case static_cast <std::uint8_t> (type_t::ENV_FLOAT):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsFloat();
 								break;
 								// Если тип элемента является Integer элементом
-								case static_cast <uint8_t> (type_t::ENV_INTEGER):
+								case static_cast <std::uint8_t> (type_t::ENV_INTEGER):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsInt();
 								break;
 								// Если тип элемента является Unsigned Integer элементом
-								case static_cast <uint8_t> (type_t::ENV_UINTEGER):
+								case static_cast <std::uint8_t> (type_t::ENV_UINTEGER):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsUint();
 								break;
 								// Если тип элемента является Integer 64 элементом
-								case static_cast <uint8_t> (type_t::ENV_INTEGER64):
+								case static_cast <std::uint8_t> (type_t::ENV_INTEGER64):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsInt64();
 								break;
 								// Если тип элемента является Unsigned Integer 64 элементом
-								case static_cast <uint8_t> (type_t::ENV_UINTEGER64):
+								case static_cast <std::uint8_t> (type_t::ENV_UINTEGER64):
 									// Выполняем проверку типа элемента
 									result = this->_data.IsUint64();
 								break;
@@ -790,59 +784,59 @@ namespace anyks {
 						// Если нужно выполнить поиск в рабочем объекте
 						} else if(this->_data.HasMember("work")) {
 							// Определяем тип запрашиваемого элемента
-							switch(static_cast <uint8_t> (type)){
+							switch(static_cast <std::uint8_t> (type)){
 								// Если тип элемента является объектом
-								case static_cast <uint8_t> (type_t::ENV_OBJECT):
+								case static_cast <std::uint8_t> (type_t::ENV_OBJECT):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsObject();
 								break;
 								// Если тип элемента является массивом
-								case static_cast <uint8_t> (type_t::ENV_ARRAY):
+								case static_cast <std::uint8_t> (type_t::ENV_ARRAY):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsArray();
 								break;
 								// Если тип элемента является числом
-								case static_cast <uint8_t> (type_t::ENV_NUMBER):
+								case static_cast <std::uint8_t> (type_t::ENV_NUMBER):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsNumber();
 								break;
 								// Если тип элемента является строкой
-								case static_cast <uint8_t> (type_t::ENV_STRING):
+								case static_cast <std::uint8_t> (type_t::ENV_STRING):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsString();
 								break;
 								// Если тип элемента является булевым элементом
-								case static_cast <uint8_t> (type_t::ENV_BOOLEAN):
+								case static_cast <std::uint8_t> (type_t::ENV_BOOLEAN):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsBool();
 								break;
 								// Если тип элемента является Double элементом
-								case static_cast <uint8_t> (type_t::ENV_DOUBLE):
+								case static_cast <std::uint8_t> (type_t::ENV_DOUBLE):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsDouble();
 								break;
 								// Если тип элемента является Float элементом
-								case static_cast <uint8_t> (type_t::ENV_FLOAT):
+								case static_cast <std::uint8_t> (type_t::ENV_FLOAT):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsFloat();
 								break;
 								// Если тип элемента является Integer элементом
-								case static_cast <uint8_t> (type_t::ENV_INTEGER):
+								case static_cast <std::uint8_t> (type_t::ENV_INTEGER):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsInt();
 								break;
 								// Если тип элемента является Unsigned Integer элементом
-								case static_cast <uint8_t> (type_t::ENV_UINTEGER):
+								case static_cast <std::uint8_t> (type_t::ENV_UINTEGER):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsUint();
 								break;
 								// Если тип элемента является Integer 64 элементом
-								case static_cast <uint8_t> (type_t::ENV_INTEGER64):
+								case static_cast <std::uint8_t> (type_t::ENV_INTEGER64):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsInt64();
 								break;
 								// Если тип элемента является Unsigned Integer 64 элементом
-								case static_cast <uint8_t> (type_t::ENV_UINTEGER64):
+								case static_cast <std::uint8_t> (type_t::ENV_UINTEGER64):
 									// Выполняем проверку типа элемента
 									result = this->_data["work"].IsUint64();
 								break;
@@ -858,13 +852,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 				// Выводим результат
@@ -1031,7 +1025,7 @@ namespace anyks {
 			 * @param item   объект для извлечения данных
 			 * @param result полученный результат
 			 */
-			void get(const Value & item, bool & result) const noexcept {
+			void get(const rapidjson::Value & item, bool & result) const noexcept {
 				/**
 				 * Выполняем отлов ошибок
 				 */
@@ -1051,13 +1045,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 			}
@@ -1070,7 +1064,7 @@ namespace anyks {
 			 * @param item   объект для извлечения данных
 			 * @param result полученный результат
 			 */
-			void get(const Value & item, T & result) const noexcept {
+			void get(const rapidjson::Value & item, T & result) const noexcept {
 				/**
 				 * Выполняем отлов ошибок
 				 */
@@ -1104,7 +1098,7 @@ namespace anyks {
 					// Если запись является булевым значением
 					else if(item.IsBool())
 						// Выводим результат в виде булевого значения
-						result = static_cast <int8_t> (item.GetBool());
+						result = static_cast <std::int8_t> (item.GetBool());
 				/**
 				 * Если возникает ошибка
 				 */
@@ -1114,13 +1108,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 			}
@@ -1129,7 +1123,7 @@ namespace anyks {
 			 * @param item   объект для извлечения данных
 			 * @param result полученный результат
 			 */
-			void get(const Value & item, string & result) const noexcept {
+			void get(const rapidjson::Value & item, std::string & result) const noexcept {
 				/**
 				 * Выполняем отлов ошибок
 				 */
@@ -1143,11 +1137,11 @@ namespace anyks {
 					// Если запись является массивом или объектом
 					else if(item.IsArray() || item.IsObject()) {
 						// Создаём результьрующий буфер
-						StringBuffer data;
+						rapidjson::StringBuffer data;
 						// Выполняем очистку результирующего буфера
 						data.Clear();
 						// Выполняем создание объекта писателя
-						Writer <StringBuffer> writer(data);
+						rapidjson::Writer <rapidjson::StringBuffer> writer(data);
 						// Передаем данные объекта JSON писателю
 						item.Accept(writer);
 						// Извлекаем созданную запись сктроки в формате JSON
@@ -1189,13 +1183,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(result), log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(result), awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 			}
@@ -1204,7 +1198,7 @@ namespace anyks {
 			 * @param item   объект для извлечения данных
 			 * @param result полученный результат
 			 */
-			void get(const Value & item, json & result) const noexcept {
+			void get(const rapidjson::Value & item, json & result) const noexcept {
 				/**
 				 * Выполняем отлов ошибок
 				 */
@@ -1222,13 +1216,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 			}
@@ -1251,15 +1245,15 @@ namespace anyks {
 				 */
 				try {
 					// Получаем список ключей
-					const vector <string> & keys = {args...};
+					const std::vector <std::string> & keys = {args...};
 					// Если количество ключей получено
 					if(!keys.empty()){
 						// Значение ключа в объекте
-						Value item;
+						rapidjson::Value item;
 						// Выполняем перебор всех аргументов функции
-						for(size_t i = 0; i < keys.size(); i++){
+						for(std::size_t i = 0; i < keys.size(); i++){
 							// Поулчаем название ключа
-							const string & key = keys.at(i);
+							const std::string & key = keys.at(i);
 							// Если это первый элемент в списке
 							if(i == 0){
 								// Если ключ в базе данных существует
@@ -1269,7 +1263,7 @@ namespace anyks {
 								// Если ключа в базе данных не найдено
 								else if(!root) {
 									// Проверяем ключ в переменных окружения
-									const string & value = this->env(key);
+									const std::string & value = this->env(key);
 									// Если данные получены в переменных окружения
 									if(!value.empty())
 										// Выполняем добавление полученных значений переменной окружения
@@ -1295,7 +1289,7 @@ namespace anyks {
 					// Если список ключей не получен
 					} else {
 						// Значение ключа в объекте
-						Value item;
+						rapidjson::Value item;
 						// Получаем значение родительского объекта
 						item.CopyFrom((root ? const_cast <Env *> (this)->_data : const_cast <Env *> (this)->_data["work"]), const_cast <Env *> (this)->_data.GetAllocator());
 						// Выполняем извлечение данных записи
@@ -1310,13 +1304,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 				// Выводим полученный результат
@@ -1341,15 +1335,15 @@ namespace anyks {
 				 */
 				try {
 					// Получаем список ключей
-					const vector <string> & keys = {args...};
+					const std::vector <std::string> & keys = {args...};
 					// Если количество ключей получено
 					if(!keys.empty()){
 						// Значение ключа в объекте
-						Value item;
+						rapidjson::Value item;
 						// Выполняем перебор всех аргументов функции
-						for(size_t i = 0; i < keys.size(); i++){
+						for(std::size_t i = 0; i < keys.size(); i++){
 							// Поулчаем название ключа
-							const string & key = keys.at(i);
+							const std::string & key = keys.at(i);
 							// Если это первый элемент в списке
 							if(i == 0){
 								// Если ключ в базе данных существует
@@ -1359,7 +1353,7 @@ namespace anyks {
 								// Если ключа в базе данных не найдено
 								else if(!root) {
 									// Проверяем ключ в переменных окружения
-									const string & value = this->env(key);
+									const std::string & value = this->env(key);
 									// Если данные получены в переменных окружения
 									if(!value.empty())
 										// Выполняем добавление полученных значений переменной окружения
@@ -1447,13 +1441,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 				// Выводим результат
@@ -1470,23 +1464,23 @@ namespace anyks {
 			 * @param args ключи для извлечения
 			 * @return     значение ключа в базе данных в виде объекта
 			 */
-			const std::unordered_map <string, T> obj(const bool root, Args&&... args) const noexcept {
+			const std::unordered_map <std::string, T> obj(const bool root, Args&&... args) const noexcept {
 				// Результат работы функции
-				std::unordered_map <string, T> result;
+				std::unordered_map <std::string, T> result;
 				/**
 				 * Выполняем отлов ошибок
 				 */
 				try {
 					// Получаем список ключей
-					const vector <string> & keys = {args...};
+					const std::vector <std::string> & keys = {args...};
 					// Если количество ключей получено
 					if(!keys.empty()){
 						// Значение ключа в объекте
-						Value item;
+						rapidjson::Value item;
 						// Выполняем перебор всех аргументов функции
-						for(size_t i = 0; i < keys.size(); i++){
+						for(std::size_t i = 0; i < keys.size(); i++){
 							// Поулчаем название ключа
-							const string & key = keys.at(i);
+							const std::string & key = keys.at(i);
 							// Если это первый элемент в списке
 							if(i == 0){
 								// Если ключ в базе данных существует
@@ -1496,7 +1490,7 @@ namespace anyks {
 								// Если ключа в базе данных не найдено
 								else if(!root) {
 									// Проверяем ключ в переменных окружения
-									const string & value = this->env(key);
+									const std::string & value = this->env(key);
 									// Если данные получены в переменных окружения
 									if(!value.empty())
 										// Выполняем добавление полученных значений переменной окружения
@@ -1529,7 +1523,7 @@ namespace anyks {
 									// Создаём объект данных
 									T data;
 									// Индекс текущего элемента
-									size_t index = 0;
+									std::size_t index = 0;
 									// Переходим по всему массиву
 									for(auto & v : item.GetArray()){
 										// Выполняем извлечение данных записи
@@ -1586,13 +1580,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 				// Выводим результат
@@ -1627,20 +1621,20 @@ namespace anyks {
 							// Если такой ключ не существует
 							else if(!this->_data.HasMember(m.name.GetString()))
 								// Устанавливаем данные конфига в виде строки
-								this->_data.AddMember(Value(m.name, this->_data.GetAllocator()).Move(), Value(m.value, this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+								this->_data.AddMember(rapidjson::Value(m.name, this->_data.GetAllocator()).Move(), rapidjson::Value(m.value, this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
 						}
 						// Если рабочий раздел существует
 						if(config.HasMember("work")){
 							// Если ключ work не обнаружен
 							if(!this->_data.HasMember("work"))
 								// Выполняем добавление ключа work
-								this->_data.AddMember(Value("work", this->_data.GetAllocator()).Move(), Value(kObjectType).Move(), this->_data.GetAllocator());
+								this->_data.AddMember(rapidjson::Value("work", this->_data.GetAllocator()).Move(), rapidjson::Value(rapidjson::kObjectType).Move(), this->_data.GetAllocator());
 							// Переходим по всем ключам и добавляем всё в базу данных
 							for(auto & m : config["work"].GetObj()){
 								// Если такой ключ не существует
 								if(!this->_data["work"].HasMember(m.name.GetString()))
 									// Устанавливаем данные конфига
-									this->_data["work"].AddMember(Value(m.name, this->_data.GetAllocator()).Move(), Value(m.value, this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
+									this->_data["work"].AddMember(rapidjson::Value(m.name, this->_data.GetAllocator()).Move(), rapidjson::Value(m.value, this->_data.GetAllocator()).Move(), this->_data.GetAllocator());
 							}
 						}
 					/**
@@ -1652,13 +1646,13 @@ namespace anyks {
 						 */
 						#if defined(DEBUG_MODE)
 							// Выводим сообщение об ошибке
-							this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
+							this->_log->debug("%s", __PRETTY_FUNCTION__, {}, awh::log_t::flag_t::CRITICAL, error.what());
 						/**
 						* Если режим отладки не включён
 						*/
 						#else
 							// Выводим сообщение об ошибке
-							this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+							this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 						#endif
 					}
 				}
@@ -1667,17 +1661,17 @@ namespace anyks {
 			 * config Метод добавления данных конфига в формате строки JSON
 			 * @param config данные в формате строки JSON
 			 */
-			void config(const string & config) noexcept {
+			void config(const std::string & config) noexcept {
 				/**
 				 * Выполняем отлов ошибок
 				 */
 				try {
 					// Создаём объект конфигурационного файла
-					json data(kObjectType);
+					json data(rapidjson::kObjectType);
 					// Выполняем парсинг объекта JSON
 					if(data.Parse(config.c_str(), config.length()).HasParseError())
 						// Выводим сообщение об ошибке
-						this->_log->print("\"Env:%s\": (offset %d): %s", log_t::flag_t::CRITICAL, __FUNCTION__, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
+						this->_log->print("\"Env:%s\": (offset %d): %s", awh::log_t::flag_t::CRITICAL, __FUNCTION__, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
 					// Выполняем установку полученных данных конфигурационного файла
 					else this->config(data);
 				// Если возникает ошибка
@@ -1687,13 +1681,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(config), log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(config), awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 			}
@@ -1702,7 +1696,7 @@ namespace anyks {
 			 * filename Метод загрузки данных JSON из файла
 			 * @param filename адрес файла для загрузки
 			 */
-			void filename(const string & filename) noexcept {
+			void filename(const std::string & filename) noexcept {
 				/**
 				 * Выполняем отлов ошибок
 				 */
@@ -1714,11 +1708,11 @@ namespace anyks {
 						// Если данные получены, устанавливаем их
 						if(!config.empty()){
 							// Создаём объект конфигурационного файла
-							json data(kObjectType);
+							json data(rapidjson::kObjectType);
 							// Выполняем парсинг объекта JSON
 							if(data.Parse(config.data(), config.size()).HasParseError())
 								// Выводим сообщение об ошибке
-								this->_log->print("\"Env:%s\": (offset %d): %s", log_t::flag_t::CRITICAL, __FUNCTION__, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
+								this->_log->print("\"Env:%s\": (offset %d): %s", awh::log_t::flag_t::CRITICAL, __FUNCTION__, data.GetErrorOffset(), GetParseError_En(data.GetParseError()));
 							// Выполняем установку полученных данных конфигурационного файла
 							else this->config(data);
 						}
@@ -1730,13 +1724,13 @@ namespace anyks {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename), log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename), awh::log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
 					#else
 						// Выводим сообщение об ошибке
-						this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+						this->_log->print("%s", awh::log_t::flag_t::CRITICAL, error.what());
 					#endif
 				}
 			}
@@ -1745,7 +1739,7 @@ namespace anyks {
 			 * text Метод установки списка имён которые нужно извлечь
 			 * @param text название переменной для извлечения текстовой информации из потока (если параметром не передана)
 			 */
-			void text(const string & text) noexcept {
+			void text(const std::string & text) noexcept {
 				// Устанавливаем название текстовой переменной
 				this->_text = text;
 			}
@@ -1753,13 +1747,13 @@ namespace anyks {
 			 * prefix Метод установки префикса переменной окружения
 			 * @param prefix префикс переменной окружения
 			 */
-			void prefix(const string & prefix) noexcept {
+			void prefix(const std::string & prefix) noexcept {
 				// Если префикс передан, устанавливаем его
 				if(!prefix.empty()){
 					// Устанавливаем префикс переменных окружения
 					this->_prefix = prefix;
 					// Переводим префикс в верхний регистр
-					this->_fmk->transform(this->_prefix, fmk_t::transform_t::UPPER);
+					this->_fmk->transform(this->_prefix, awh::fmk_t::transform_t::UPPER);
 				}
 			}
 		public:
@@ -1777,15 +1771,15 @@ namespace anyks {
 			 * @param args  список переменных окружения
 			 * @param count количество переменных окружения
 			 */
-			void init(const char * args[], const uint8_t count) noexcept {
+			void init(const char * args[], const std::uint8_t count) noexcept {
 				// Позиция найденного значения
-				size_t pos = 0;
+				std::size_t pos = 0;
 				// Требуется прочитать значение
 				bool isValue = false;
 				// Строка аргумента, ключ и занчение
-				string arg = "", key = "", val = "";
+				std::string arg = "", key = "", val = "";
 				// Переходим по массиву аргументов
-				for(uint8_t i = 0; i < count; i++){
+				for(std::uint8_t i = 0; i < count; i++){
 					// Получаем значение аргумента
 					arg = args[i];
 					// Если это прямое значение переменной
@@ -1795,7 +1789,7 @@ namespace anyks {
 						// Ищем знак равенства
 						pos = arg.find("=", 2);
 						// Если знак равенства найден
-						if(pos != string::npos){
+						if(pos != std::string::npos){
 							// Получаем ключ
 							key = arg.substr(2, pos - 2);
 							// Получаем значение
@@ -1848,15 +1842,15 @@ namespace anyks {
 			 * @param args  список переменных окружения
 			 * @param count количество переменных окружения
 			 */
-			void init(const wchar_t * args[], const uint8_t count) noexcept {
+			void init(const wchar_t * args[], const std::uint8_t count) noexcept {
 				// Позиция найденного значения
-				size_t pos = 0;
+				std::size_t pos = 0;
 				// Требуется прочитать значение
 				bool isValue = false;
 				// Строка аргумента, ключ и занчение
-				wstring arg = L"", key = L"", val = L"";
+				std::wstring arg = L"", key = L"", val = L"";
 				// Переходим по массиву аргументов
-				for(uint8_t i = 0; i < count; i++){
+				for(std::uint8_t i = 0; i < count; i++){
 					// Получаем значение аргумента
 					arg = args[i];
 					// Если это прямое значение переменной
@@ -1866,7 +1860,7 @@ namespace anyks {
 						// Ищем знак равенства
 						pos = arg.find(L"=", 2);
 						// Если знак равенства найден
-						if(pos != wstring::npos){
+						if(pos != std::wstring::npos){
 							// Получаем ключ
 							key = arg.substr(2, pos - 2);
 							// Получаем значение
@@ -1895,7 +1889,7 @@ namespace anyks {
 						// Убираем ожидание значения
 						isValue = false;
 						// Выполняем конвертацию ключа
-						const string & item = this->_fmk->convert(key);
+						const std::string & item = this->_fmk->convert(key);
 						// Добавляем полученные данные в список переменных
 						if(!key.empty() && this->exist(false, item))
 							// Выполняем добавление значения в базу данных
@@ -1905,7 +1899,7 @@ namespace anyks {
 				// Если переменная текста установлена и мы её из не получили
 				if(!this->_text.empty() && !this->exist(false, this->_text)){
 					// Значение считываемое из потока
-					string value = "";
+					std::string value = "";
 					// Если операционной системой является Windows
 					#if defined(_WIN32) || defined(_WIN64)
 						// Считываем строку из буфера stdin
@@ -1940,8 +1934,8 @@ namespace anyks {
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
-			Env(const fmk_t * fmk, const log_t * log) noexcept :
-			 _fs(fmk, log), _data(kObjectType), _automatic(false),
+			Env(const awh::fmk_t * fmk, const awh::log_t * log) noexcept :
+			 _fs(fmk, log), _data(rapidjson::kObjectType), _automatic(false),
 			 _text{""}, _prefix{ACU_SHORT_NAME}, _fmk(fmk), _log(log) {}
 			/**
 			 * Env Конструктор
@@ -1949,10 +1943,10 @@ namespace anyks {
 			 * @param fmk    объект фреймворка
 			 * @param log    объект для работы с логами
 			 */
-			Env(const string & prefix, const fmk_t * fmk, const log_t * log) noexcept :
-			 _fs(fmk, log), _data(kObjectType), _automatic(false), _text{""}, _prefix{prefix}, _fmk(fmk), _log(log) {
+			Env(const std::string & prefix, const awh::fmk_t * fmk, const awh::log_t * log) noexcept :
+			 _fs(fmk, log), _data(rapidjson::kObjectType), _automatic(false), _text{""}, _prefix{prefix}, _fmk(fmk), _log(log) {
 				// Переводим префикс в верхний регистр
-				this->_fmk->transform(this->_prefix, fmk_t::transform_t::UPPER);
+				this->_fmk->transform(this->_prefix, awh::fmk_t::transform_t::UPPER);
 			}
 			/**
 			 * Env Конструктор
@@ -1961,10 +1955,10 @@ namespace anyks {
 			 * @param fmk    объект фреймворка
 			 * @param log    объект для работы с логами
 			 */
-			Env(const string & prefix, const string & text, const fmk_t * fmk, const log_t * log) noexcept :
-			 _fs(fmk, log), _data(kObjectType), _automatic(false), _text{text}, _prefix{prefix}, _fmk(fmk), _log(log) {
+			Env(const std::string & prefix, const std::string & text, const awh::fmk_t * fmk, const awh::log_t * log) noexcept :
+			 _fs(fmk, log), _data(rapidjson::kObjectType), _automatic(false), _text{text}, _prefix{prefix}, _fmk(fmk), _log(log) {
 				// Переводим префикс в верхний регистр
-				this->_fmk->transform(this->_prefix, fmk_t::transform_t::UPPER);
+				this->_fmk->transform(this->_prefix, awh::fmk_t::transform_t::UPPER);
 			}
 	} env_t;
 };

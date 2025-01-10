@@ -25,8 +25,13 @@
 #include <sys/fs.hpp>
 #include <sys/hash.hpp>
 
+// Объявляем пространство имен
+using namespace std;
+using namespace awh;
 // Подключаем пространство имён
 using namespace anyks;
+// Подписываемся на пространство имён rapidjson
+using namespace rapidjson;
 
 /**
  * help Функция вывода справки
