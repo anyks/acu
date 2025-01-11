@@ -1389,7 +1389,7 @@ namespace anyks {
 									// Выполняем извлечение данных записи
 									this->get(item, data);
 									// Формируем список полученных значений
-									result.push_back(::move(data));
+									result.push_back(std::move(data));
 								// Если элемент является массивом
 								} else if(item.IsArray() && !item.Empty()) {
 									// Создаём объект данных
@@ -1399,7 +1399,7 @@ namespace anyks {
 										// Выполняем извлечение данных записи
 										this->get(v, data);
 										// Формируем список полученных значений
-										result.push_back(::move(data));
+										result.push_back(std::move(data));
 									}
 								// Если элемент является объектом
 								} else if(item.IsObject() && !item.ObjectEmpty()) {
@@ -1410,7 +1410,7 @@ namespace anyks {
 										// Выполняем извлечение данных записи
 										this->get(m.value, data);
 										// Формируем список полученных значений
-										result.push_back(::move(data));
+										result.push_back(std::move(data));
 									}
 								}
 							}
@@ -1426,7 +1426,7 @@ namespace anyks {
 								// Выполняем извлечение данных записи
 								this->get(m.value, data);
 								// Формируем список полученных значений
-								result.push_back(::move(data));
+								result.push_back(std::move(data));
 							}
 						// Если нужно выполнить поиск в рабочем объекте
 						} else if(this->_data.HasMember("work")) {
@@ -1437,7 +1437,7 @@ namespace anyks {
 								// Выполняем извлечение данных записи
 								this->get(m.value, data);
 								// Формируем список полученных значений
-								result.push_back(::move(data));
+								result.push_back(std::move(data));
 							}
 						}
 					}
@@ -1526,7 +1526,7 @@ namespace anyks {
 									// Выполняем извлечение данных записи
 									this->get(item, data);
 									// Формируем список полученных значений
-									result.emplace("item", ::move(data));
+									result.emplace("item", std::move(data));
 								// Если элемент является массивом
 								} else if(item.IsArray() && !item.Empty()) {
 									// Создаём объект данных
@@ -1538,7 +1538,7 @@ namespace anyks {
 										// Выполняем извлечение данных записи
 										this->get(v, data);
 										// Формируем список полученных значений
-										result.emplace(std::to_string(index++), ::move(data));
+										result.emplace(std::to_string(index++), std::move(data));
 									}
 								// Если элемент является объектом
 								} else if(item.IsObject() && !item.ObjectEmpty()) {
@@ -1549,7 +1549,7 @@ namespace anyks {
 										// Выполняем извлечение данных записи
 										this->get(m.value, data);
 										// Формируем список полученных значений
-										result.emplace(m.name.GetString(), ::move(data));
+										result.emplace(m.name.GetString(), std::move(data));
 									}
 								}
 							}
@@ -1565,7 +1565,7 @@ namespace anyks {
 								// Выполняем извлечение данных записи
 								this->get(m.value, data);
 								// Формируем список полученных значений
-								result.emplace(m.name.GetString(), ::move(data));
+								result.emplace(m.name.GetString(), std::move(data));
 							}
 						// Если нужно выполнить поиск в рабочем объекте
 						} else if(this->_data.HasMember("work")) {
@@ -1576,7 +1576,7 @@ namespace anyks {
 								// Выполняем извлечение данных записи
 								this->get(m.value, data);
 								// Формируем список полученных значений
-								result.emplace(m.name.GetString(), ::move(data));
+								result.emplace(m.name.GetString(), std::move(data));
 							}
 						}
 					}
