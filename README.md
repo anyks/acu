@@ -15,16 +15,16 @@
 
 ## Requirements
 
-- [AWH](https://github.com/anyks/awh)
-- [LibXML2](https://github.com/GNOME/libxml2)
-- [YAML-CPP](https://github.com/jbeder/yaml-cpp)
+- [AWH](https://gitflic.ru/project/anyks/awh)
+- [LibXML2](https://gitflic.ru/project/third_party/libxml2)
+- [YAML-CPP](https://gitflic.ru/project/third_party/yaml-cpp)
 
 ## To build and launch the project
 
 ### To clone the project
 
 ```bash
-$ git clone --recursive https://github.com/anyks/acu.git
+$ git clone --recursive https://gitflic.ru/project/anyks/acu.git
 ```
 
 ### Activate SCTP only (FreeBSD / Linux)
