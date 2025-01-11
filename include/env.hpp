@@ -11,7 +11,6 @@
  * @copyright: Copyright © 2024
  */
 
-
 #ifndef __ANYKS_ACU_ENV__
 #define __ANYKS_ACU_ENV__
 
@@ -85,11 +84,11 @@ namespace anyks {
 				ENV_UINTEGER64 = 0x0B  // Тип данных Unsigned Integer 64
 			};
 		private:
-			// Список полученных переменных окружения
-			json _data;
-		private:
 			// Объект работы с файловой системой
 			fs_t _fs;
+		private:
+			// Список полученных переменных окружения
+			json _data;
 		private:
 			// Флаг автоматического чтения текстовой переменной
 			bool _automatic;
