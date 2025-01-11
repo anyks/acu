@@ -324,22 +324,6 @@ if [ ! -f "$src/.stamp_done" ]; then
 	cd "$ROOT" || exit 1
 fi
 
-# Если CMAKE-файл уже существует
-if [ -f "$ROOT/cmake/FindAWH.cmake" ]; then
-	# Выполняем удаление ранее созданный CMAKE-файл
-	rm "$ROOT/cmake/FindAWH.cmake" || exit 1
-fi
-
-# Если операционной системой является Windows
-if [ $OS = "Windows" ]; then
-	# Выполняем создание символьной ссылки CMAKE-файла
-	ln -s "$PREFIX/cmake/FindAWH.cmake" "$ROOT/cmake/FindAWH.cmake" || exit 1
-# Если операционная система является nix-подобной
-else
-	# Выполняем создание символьной ссылки CMAKE-файла
-	ln -f "$PREFIX/cmake/FindAWH.cmake" "$ROOT/cmake/FindAWH.cmake" || exit 1
-fi
-
 # Переименовываем расширение библиотек для Windows
 if [ $OS = "Windows" ]; then # Windows
 	for i in $(ls "$PREFIX/lib" | grep .a$);
