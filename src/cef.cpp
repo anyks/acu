@@ -187,7 +187,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 																			 */
 																			#if defined(DEBUG_MODE)
 																				// Выводим сообщение об ошибке
-																				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Extensions is not found");
+																				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Extensions is not found");
 																			/**
 																			* Если режим отладки не включён
 																			*/
@@ -203,7 +203,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 																		 */
 																		#if defined(DEBUG_MODE)
 																			// Выводим сообщение об ошибке
-																			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
+																			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
 																		/**
 																		* Если режим отладки не включён
 																		*/
@@ -219,7 +219,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 																	 */
 																	#if defined(DEBUG_MODE)
 																		// Выводим сообщение об ошибке
-																		this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
+																		this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
 																	/**
 																	* Если режим отладки не включён
 																	*/
@@ -235,7 +235,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 																 */
 																#if defined(DEBUG_MODE)
 																	// Выводим сообщение об ошибке
-																	this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
+																	this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
 																/**
 																* Если режим отладки не включён
 																*/
@@ -251,7 +251,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 															 */
 															#if defined(DEBUG_MODE)
 																// Выводим сообщение об ошибке
-																this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
+																this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
 															/**
 															* Если режим отладки не включён
 															*/
@@ -267,7 +267,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 														 */
 														#if defined(DEBUG_MODE)
 															// Выводим сообщение об ошибке
-															this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
+															this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
 														/**
 														* Если режим отладки не включён
 														*/
@@ -283,7 +283,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 													 */
 													#if defined(DEBUG_MODE)
 														// Выводим сообщение об ошибке
-														this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
+														this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
 													/**
 													* Если режим отладки не включён
 													*/
@@ -299,7 +299,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 												 */
 												#if defined(DEBUG_MODE)
 													// Выводим сообщение об ошибке
-													this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
+													this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
 												/**
 												* Если режим отладки не включён
 												*/
@@ -315,7 +315,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 											 */
 											#if defined(DEBUG_MODE)
 												// Выводим сообщение об ошибке
-												this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
+												this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
 											/**
 											* Если режим отладки не включён
 											*/
@@ -331,7 +331,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 										 */
 										#if defined(DEBUG_MODE)
 											// Выводим сообщение об ошибке
-											this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
+											this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
 										/**
 										* Если режим отладки не включён
 										*/
@@ -347,7 +347,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
 									/**
 									* Если режим отладки не включён
 									*/
@@ -363,7 +363,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 								 */
 								#if defined(DEBUG_MODE)
 									// Выводим сообщение об ошибке
-									this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
+									this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
 								/**
 								* Если режим отладки не включён
 								*/
@@ -379,7 +379,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 							 */
 							#if defined(DEBUG_MODE)
 								// Выводим сообщение об ошибке
-								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
+								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
 							/**
 							* Если режим отладки не включён
 							*/
@@ -395,7 +395,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 						 */
 						#if defined(DEBUG_MODE)
 							// Выводим сообщение об ошибке
-							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Container version must be a number");
+							this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Container version must be a number");
 						/**
 						* Если режим отладки не включён
 						*/
@@ -411,7 +411,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Version is not found");
+						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Version is not found");
 					/**
 					* Если режим отладки не включён
 					*/
@@ -427,7 +427,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 				 */
 				#if defined(DEBUG_MODE)
 					// Выводим сообщение об ошибке
-					this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "An invalid data format was passed");
+					this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "An invalid data format was passed");
 				/**
 				* Если режим отладки не включён
 				*/
@@ -439,13 +439,13 @@ void anyks::Cef::parse(const string & cef) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -461,7 +461,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "No parsing data passed");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "No parsing data passed");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -537,7 +537,7 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 								 */
 								#if defined(DEBUG_MODE)
 									// Выводим сообщение об ошибке
-									this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
+									this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
 								/**
 								* Если режим отладки не включён
 								*/
@@ -577,13 +577,13 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(extensions), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -599,7 +599,7 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(extensions), log_t::flag_t::CRITICAL, "No parsing extensions passed");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::CRITICAL, "No parsing extensions passed");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -980,11 +980,11 @@ string anyks::Cef::cef() const noexcept {
 									// Если формат даты установлен
 									if(!this->_format.empty()){
 										// Создаём объект потока
-										std::stringstream transTime;
+										stringstream transTime;
 										// Создаем структуру времени
-										std::tm * tm = ::localtime(&date);
+										tm * tm = ::localtime(&date);
 										// Выполняем извлечение даты
-										transTime << std::put_time(tm, this->_format.c_str());
+										transTime << put_time(tm, this->_format.c_str());
 										// Добавляем ключ расширения
 										result.append(extension.first);
 										// Добавляем разделитель
@@ -1025,7 +1025,7 @@ string anyks::Cef::cef() const noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -1256,7 +1256,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное значения расширения
 										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
 									}
@@ -1289,7 +1289,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное значения расширения
 										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
 									}
@@ -1322,7 +1322,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное значения расширения
 										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
 									}
@@ -1349,7 +1349,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное значения расширения
 										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
 									}
@@ -1376,7 +1376,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное значения расширения
 										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
 									}
@@ -1398,11 +1398,11 @@ anyks::json anyks::Cef::dump() const noexcept {
 									// Если формат даты установлен
 									if(!this->_format.empty()){
 										// Создаём объект потока
-										std::stringstream transTime;
+										stringstream transTime;
 										// Создаем структуру времени
-										std::tm * tm = ::localtime(&date);
+										tm * tm = ::localtime(&date);
 										// Выполняем извлечение даты
-										transTime << std::put_time(tm, this->_format.c_str());
+										transTime << put_time(tm, this->_format.c_str());
 										// Получаем строку штампа времени
 										const string & stamp = transTime.str();
 										// Устанавливаем значение ключа
@@ -1433,7 +1433,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 						/**
 						 * Если возникает ошибка
 						 */
-						} catch(const std::exception &) {
+						} catch(const exception &) {
 							// Устанавливаем значение ключа как число без знака
 							result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
 						}
@@ -1448,7 +1448,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 						/**
 						 * Если возникает ошибка
 						 */
-						} catch(const std::exception &) {
+						} catch(const exception &) {
 							// Устанавливаем значение ключа как число без знака
 							result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(value.c_str(), value.length(), result.GetAllocator()).Move(), result.GetAllocator());
 						}
@@ -1467,7 +1467,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -1712,7 +1712,7 @@ void anyks::Cef::dump(const json & dump) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -1753,7 +1753,7 @@ void anyks::Cef::header(const string & header) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(header), log_t::flag_t::CRITICAL, "Header not passed");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(header), log_t::flag_t::CRITICAL, "Header not passed");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -1777,7 +1777,7 @@ const anyks::Cef::event_t & anyks::Cef::event() const noexcept {
  */
 void anyks::Cef::event(const event_t & event) noexcept {
 	// Выполняем установку данных события
-	this->_event = std::forward <const event_t> (event);
+	this->_event = event;
 }
 /**
  * format Метод установки формата даты
@@ -1833,13 +1833,13 @@ anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -1856,9 +1856,9 @@ anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
  * events Метод получения списка событий
  * @return список полученных событий
  */
-std::unordered_map <string, string> anyks::Cef::events() const noexcept {
+unordered_map <string, string> anyks::Cef::events() const noexcept {
 	// Результат работы функции
-	std::unordered_map <string, string> result;
+	unordered_map <string, string> result;
 	/**
 	 * Выполняем отлов ошибок
 	 */
@@ -1878,7 +1878,7 @@ std::unordered_map <string, string> anyks::Cef::events() const noexcept {
 	/**
 	 * Если возникает ошибка
 	 */
-	} catch(const std::exception & error) {
+	} catch(const exception & error) {
 		/**
 		 * Если включён режим отладки
 		 */
@@ -1900,9 +1900,9 @@ std::unordered_map <string, string> anyks::Cef::events() const noexcept {
  * extensions Метод извлечения списка расширений
  * @return список установленных расширений
  */
-std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
+unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 	// Результат работы функции
-	std::unordered_map <string, string> result;
+	unordered_map <string, string> result;
 	// Если список расширений запомнен
 	if(!this->_extensions.empty()){
 		/**
@@ -2040,7 +2040,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное значения расширения
 										result.emplace(extension.first, value);
 									}
@@ -2073,7 +2073,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное значения расширения
 										result.emplace(extension.first, value);
 									}
@@ -2106,7 +2106,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное значения расширения
 										result.emplace(extension.first, value);
 									}
@@ -2133,7 +2133,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Устанавливаем значение ключа
 										result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 									}
@@ -2160,7 +2160,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Устанавливаем значение ключа
 										result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 									}
@@ -2185,11 +2185,11 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 									// Если формат даты установлен
 									if(!this->_format.empty()){
 										// Создаём объект потока
-										std::stringstream transTime;
+										stringstream transTime;
 										// Создаем структуру времени
-										std::tm * tm = ::localtime(&date);
+										tm * tm = ::localtime(&date);
 										// Выполняем извлечение даты
-										transTime << std::put_time(tm, this->_format.c_str());
+										transTime << put_time(tm, this->_format.c_str());
 										// Устанавливаем значение ключа
 										result.emplace(extension.first, transTime.str());
 									// Устанавливаем значение ключа
@@ -2218,7 +2218,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 						/**
 						 * Если возникает ошибка
 						 */
-						} catch(const std::exception &) {
+						} catch(const exception &) {
 							// Устанавливаем значение ключа как число без знака
 							result.emplace(extension.first, value);
 						}
@@ -2233,7 +2233,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 						/**
 						 * Если возникает ошибка
 						 */
-						} catch(const std::exception &) {
+						} catch(const exception &) {
 							// Устанавливаем значение ключа как число без знака
 							result.emplace(extension.first, value);
 						}
@@ -2246,13 +2246,13 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 						// Устанавливаем значение ключа как булевое отрицательное значение
 						result.emplace(extension.first, "false");
 					// Устанавливаем значение ключа как оно есть
-					else result.emplace(extension.first, std::move(value));
+					else result.emplace(extension.first, ::move(value));
 				}
 			}
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -2348,7 +2348,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
 					/**
 					* Если режим отладки не включён
 					*/
@@ -2398,7 +2398,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2432,7 +2432,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2466,7 +2466,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2497,7 +2497,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2529,7 +2529,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное расширение в базу
 										this->extension(key, vector <char> (value.begin(), value.end()));
 									}
@@ -2540,7 +2540,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2572,7 +2572,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное расширение в базу
 										this->extension(key, vector <char> (value.begin(), value.end()));
 									}
@@ -2583,7 +2583,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2615,7 +2615,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное расширение в базу
 										this->extension(key, vector <char> (value.begin(), value.end()));
 									}
@@ -2626,7 +2626,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2658,7 +2658,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное расширение в базу
 										this->extension(key, vector <char> (value.begin(), value.end()));
 									}
@@ -2669,7 +2669,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2701,7 +2701,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное расширение в базу
 										this->extension(key, vector <char> (value.begin(), value.end()));
 									}
@@ -2712,7 +2712,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2739,7 +2739,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2775,7 +2775,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если возникает ошибка
 									 */
-									} catch(const std::exception &) {
+									} catch(const exception &) {
 										// Добавляем полученное расширение в базу
 										this->extension(key, vector <char> (value.begin(), value.end()));
 									}
@@ -2795,7 +2795,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2821,7 +2821,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
 					/**
 					* Если режим отладки не включён
 					*/
@@ -2835,13 +2835,13 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -2867,7 +2867,7 @@ void anyks::Cef::extension(const string & key, const vector <char> & value) noex
  * Оператор вывода данные контейнера в качестве строки
  * @return данные контейнера в качестве строки
  */
-anyks::Cef::operator std::string() const noexcept {
+anyks::Cef::operator string() const noexcept {
 	// Выводим данные контейнера
 	return this->cef();
 }
@@ -2907,7 +2907,7 @@ bool anyks::Cef::operator != (const cef_t & cef) const noexcept {
 			/**
 			 * Если возникает ошибка
 			 */
-			} catch(const std::exception & error) {
+			} catch(const exception & error) {
 				/**
 				 * Если включён режим отладки
 				 */
@@ -2963,7 +2963,7 @@ bool anyks::Cef::operator == (const cef_t & cef) const noexcept {
 			/**
 			 * Если возникает ошибка
 			 */
-			} catch(const std::exception & error) {
+			} catch(const exception & error) {
 				/**
 				 * Если включён режим отладки
 				 */
@@ -3006,7 +3006,7 @@ anyks::Cef & anyks::Cef::operator = (const cef_t & cef) noexcept {
 	/**
 	 * Если возникает ошибка
 	 */
-	} catch(const std::exception & error) {
+	} catch(const exception & error) {
 		/**
 		 * Если включён режим отладки
 		 */

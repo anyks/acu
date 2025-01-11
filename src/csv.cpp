@@ -91,7 +91,7 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 					// Если мы достигли конца строки
 					if((i + 1) == size)
 						// Выполняем сборку результатов
-						result.push_back(std::move(text));
+						result.push_back(::move(text));
 				// Если символ не является кавычками, но является разделителем или концом строки
 				} else if(!quote && (((delim != '0') && (buffer[i] == delim)) || ((i + 1) == size))) {
 					// Если мы достигли конца строки
@@ -99,7 +99,7 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 						// Добавляем символ в строку
 						text.append(1, buffer[i]);
 					// Выполняем сборку результатов
-					result.push_back(std::move(text));
+					result.push_back(::move(text));
 					// Очищаем результирующую строку
 					text.clear();
 				// Если символ не является кавычками, но является произвольным разделителем или концом строки
@@ -111,7 +111,7 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 						// Добавляем символ в строку
 						text.append(1, buffer[i]);
 					// Выполняем сборку результатов
-					result.push_back(std::move(text));
+					result.push_back(::move(text));
 					// Очищаем результирующую строку
 					text.clear();
 				// Добавляем символ как он есть
@@ -120,17 +120,17 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 			// Если результат получен
 			if(!result.empty())
 				// Формируем итоговый результат
-				this->_mapping.push_back(std::move(result));
+				this->_mapping.push_back(::move(result));
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -146,7 +146,7 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -228,7 +228,7 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, function <void 
 					// Если мы достигли конца строки
 					if((i + 1) == size)
 						// Выполняем сборку результатов
-						result.push_back(std::move(text));
+						result.push_back(::move(text));
 				// Если символ не является кавычками, но является разделителем или концом строки
 				} else if(!quote && (((delim != '0') && (buffer[i] == delim)) || ((i + 1) == size))) {
 					// Если мы достигли конца строки
@@ -236,7 +236,7 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, function <void 
 						// Добавляем символ в строку
 						text.append(1, buffer[i]);
 					// Выполняем сборку результатов
-					result.push_back(std::move(text));
+					result.push_back(::move(text));
 					// Очищаем результирующую строку
 					text.clear();
 				// Если символ не является кавычками, но является произвольным разделителем или концом строки
@@ -248,7 +248,7 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, function <void 
 						// Добавляем символ в строку
 						text.append(1, buffer[i]);
 					// Выполняем сборку результатов
-					result.push_back(std::move(text));
+					result.push_back(::move(text));
 					// Очищаем результирующую строку
 					text.clear();
 				// Добавляем символ как он есть
@@ -257,17 +257,17 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, function <void 
 			// Если результат получен
 			if(!result.empty())
 				// Формируем итоговый результат
-				callback(std::move(result));
+				callback(::move(result));
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -283,7 +283,7 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, function <void 
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -324,7 +324,7 @@ void anyks::CSV::parse(const string & text) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -383,13 +383,13 @@ void anyks::CSV::parse(const string & text, const char delim) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -405,7 +405,7 @@ void anyks::CSV::parse(const string & text, const char delim) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, delim), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, delim), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -498,13 +498,13 @@ string anyks::CSV::row(const size_t index, const char delim) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(index, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(index, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -520,7 +520,7 @@ string anyks::CSV::row(const size_t index, const char delim) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(index, delim), log_t::flag_t::CRITICAL, "Object contains no data");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(index, delim), log_t::flag_t::CRITICAL, "Object contains no data");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -565,13 +565,13 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::ios_base::failure & error) {
+		} catch(const ios_base::failure & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -582,13 +582,13 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -604,7 +604,7 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for writing was not set");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for writing was not set");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -630,7 +630,7 @@ void anyks::CSV::read(const string & filename) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename), log_t::flag_t::CRITICAL, "File address for reading was not set");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename), log_t::flag_t::CRITICAL, "File address for reading was not set");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -660,7 +660,7 @@ void anyks::CSV::read(const string & filename, const char delim) noexcept {
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -693,7 +693,7 @@ void anyks::CSV::read(const string & filename, function <void (const vector <str
 		 */
 		#if defined(DEBUG_MODE)
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -749,7 +749,7 @@ anyks::json anyks::CSV::dump() const noexcept {
 								/**
 								 * Если возникает ошибка
 								 */
-								} catch(const std::exception &) {
+								} catch(const exception &) {
 									// Добавляем полученное значение в массив
 									result[key.c_str()].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 								}
@@ -764,7 +764,7 @@ anyks::json anyks::CSV::dump() const noexcept {
 								/**
 								 * Если возникает ошибка
 								 */
-								} catch(const std::exception &) {
+								} catch(const exception &) {
 									// Добавляем полученное значение в массив
 									result[key.c_str()].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 								}
@@ -815,7 +815,7 @@ anyks::json anyks::CSV::dump() const noexcept {
 							/**
 							 * Если возникает ошибка
 							 */
-							} catch(const std::exception &) {
+							} catch(const exception &) {
 								// Добавляем полученное значение в массив
 								result[i].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 							}
@@ -830,7 +830,7 @@ anyks::json anyks::CSV::dump() const noexcept {
 							/**
 							 * Если возникает ошибка
 							 */
-							} catch(const std::exception &) {
+							} catch(const exception &) {
 								// Добавляем полученное значение в массив
 								result[i].PushBack(Value(item.c_str(), item.length(), result.GetAllocator()).Move(), result.GetAllocator());
 							}
@@ -855,7 +855,7 @@ anyks::json anyks::CSV::dump() const noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -960,7 +960,7 @@ void anyks::CSV::dump(const json & dump) noexcept {
 	/**
 	 * Если возникает ошибка
 	 */
-	} catch(const std::exception & error) {
+	} catch(const exception & error) {
 		/**
 		 * Если включён режим отладки
 		 */
@@ -988,7 +988,7 @@ const vector <vector <string>> & anyks::CSV::get() const noexcept {
  * Оператор вывода данные контейнера в качестве строки
  * @return данные контейнера в качестве строки
  */
-anyks::CSV::operator std::string() const noexcept {
+anyks::CSV::operator string() const noexcept {
 	// Создаём результьрующий буфер
 	StringBuffer data;
 	// Выполняем очистку результирующего буфера

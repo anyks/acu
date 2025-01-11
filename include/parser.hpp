@@ -72,6 +72,15 @@
  */
 namespace anyks {
 	/**
+	 * Подписываемся на стандартное пространство имён
+	 */
+	using namespace std;
+	using namespace awh;
+	/**
+	 * Подписываемся на пространство имён rapidjson
+	 */
+	using namespace rapidjson;
+	/**
 	 * Parser Класс парсера
 	 */
 	typedef class ACUSHARED_EXPORT Parser {
@@ -86,12 +95,12 @@ namespace anyks {
 			syslog_t _syslog;
 		private:
 			// Мютекс для блокировки потока
-			std::recursive_mutex _mtx;
+			recursive_mutex _mtx;
 		private:
 			// Объект фреймворка
-			const awh::fmk_t * _fmk;
+			const fmk_t * _fmk;
 			// Объект работы с логами
-			const awh::log_t * _log;
+			const log_t * _log;
 		public:
 			/**
 			 * clearPatterns Метод сброса списка добавленных шаблонов GROK
@@ -102,52 +111,52 @@ namespace anyks {
 			 * patterns Метод добавления списка поддерживаемых шаблонов
 			 * @param patterns список поддерживаемых шаблонов
 			 */
-			void patterns(const rapidjson::Document & patterns) noexcept;
+			void patterns(const Document & patterns) noexcept;
 			/**
 			 * pattern Метод добавления шаблона GROK
 			 * @param key название переменной
 			 * @param val регуляреное выражение соответствующее переменной
 			 */
-			void pattern(const std::string & key, const std::string & val) noexcept;
+			void pattern(const string & key, const string & val) noexcept;
 		public:
 			/**
 			 * yaml Метод конвертации текста в формате YAML в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			rapidjson::Document yaml(const std::string & text) noexcept;
+			Document yaml(const string & text) noexcept;
 			/**
 			 * yaml Метод конвертации объекта JSON в текст в формате YAML
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
-			std::string yaml(const rapidjson::Document & data) noexcept;
+			string yaml(const Document & data) noexcept;
 		public:
 			/**
 			 * ini Метод конвертации текста в формате INI в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			rapidjson::Document ini(const std::string & text) noexcept;
+			Document ini(const string & text) noexcept;
 			/**
 			 * ini Метод конвертации объекта JSON в текст в формате INI
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
-			std::string ini(const rapidjson::Document & data) noexcept;
+			string ini(const Document & data) noexcept;
 		public:
 			/**
 			 * syslog Метод конвертации текста в формате SysLog в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			rapidjson::Document syslog(const std::string & text) noexcept;
+			Document syslog(const string & text) noexcept;
 			/**
 			 * syslog Метод конвертации объекта JSON в текст в формате SysLog
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
-			std::string syslog(const rapidjson::Document & data) noexcept;
+			string syslog(const Document & data) noexcept;
 		public:
 			/**
 			 * grok Метод конвертации текста в формате GROK в объект JSON
@@ -155,7 +164,7 @@ namespace anyks {
 			 * @param pattern регулярное выражение в формате GROK
 			 * @return        объект в формате JSON
 			 */
-			rapidjson::Document grok(const std::string & text, const std::string & pattern) noexcept;
+			Document grok(const string & text, const string & pattern) noexcept;
 		public:
 			/**
 			 * csv Метод конвертации текста в формате CSV в объект JSON
@@ -163,7 +172,7 @@ namespace anyks {
 			 * @param header флаг формирования заголовков
 			 * @return       объект в формате JSON
 			 */
-			rapidjson::Document csv(const std::string & text, const bool header = true) noexcept;
+			Document csv(const string & text, const bool header = true) noexcept;
 			/**
 			 * csv Метод конвертации объекта JSON в текст в формате CSV
 			 * @param data   данные в объекте JSON
@@ -171,35 +180,35 @@ namespace anyks {
 			 * @param delim  используемый разделитель
 			 * @return       текст после конвертации
 			 */
-			std::string csv(const rapidjson::Document & data, const bool header = true, const char delim = ';') noexcept;
+			string csv(const Document & data, const bool header = true, const char delim = ';') noexcept;
 		public:
 			/**
 			 * xml Метод конвертации текста в формате XML в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			rapidjson::Document xml(const std::string & text) noexcept;
+			Document xml(const string & text) noexcept;
 			/**
 			 * xml Метод конвертации объекта JSON в текст в формате XML
 			 * @param data     данные в объекте JSON
 			 * @param prettify флаг генерации читаемого формата
 			 * @return         текст после конвертации
 			 */
-			std::string xml(const rapidjson::Document & data, const bool prettify = false) noexcept;
+			string xml(const Document & data, const bool prettify = false) noexcept;
 		public:
 			/**
 			 * json Метод конвертации текста в формате JSON в объект JSON
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
-			rapidjson::Document json(const std::string & text) noexcept;
+			Document json(const string & text) noexcept;
 			/**
 			 * json Метод конвертации объекта JSON в текст в формате JSON
 			 * @param data     данные в объекте JSON
 			 * @param prettify флаг генерации читаемого формата
 			 * @return         текст после конвертации
 			 */
-			std::string json(const rapidjson::Document & data, const bool prettify = false) noexcept;
+			string json(const Document & data, const bool prettify = false) noexcept;
 		public:
 			/**
 			 * cef Метод конвертации текста в формате CEF в объект JSON
@@ -207,21 +216,21 @@ namespace anyks {
 			 * @param mode режим парсинга
 			 * @return     объект в формате JSON
 			 */
-			rapidjson::Document cef(const std::string & text, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
+			Document cef(const string & text, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
 			/**
 			 * cef Метод конвертации объекта JSON в текст в формате CEF
 			 * @param data данные в объекте JSON
 			 * @param mode режим парсинга
 			 * @return     текст после конвертации
 			 */
-			std::string cef(const rapidjson::Document & data, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
+			string cef(const Document & data, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
 		public:
 			/**
 			 * Parser Конструктор
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
-			Parser(const awh::fmk_t * fmk, const awh::log_t * log) noexcept :
+			Parser(const fmk_t * fmk, const log_t * log) noexcept :
 			 _cef(fmk, log), _csv(fmk, log), _grok(fmk, log),
 			 _syslog(fmk, log), _fmk(fmk), _log(log) {}
 			/**

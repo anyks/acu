@@ -25,7 +25,7 @@ using namespace rapidjson;
  */
 void anyks::Parser::clearPatterns() noexcept {
 	// Выполняем блокировку потока
-	const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+	const lock_guard <recursive_mutex> lock(this->_mtx);
 	// Выполняем удаление списка добавленных шаблонов GROK
 	this->_grok.clearPatterns();
 }
@@ -36,7 +36,7 @@ void anyks::Parser::clearPatterns() noexcept {
  */
 void anyks::Parser::pattern(const string & key, const string & val) noexcept {
 	// Выполняем блокировку потока
-	const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+	const lock_guard <recursive_mutex> lock(this->_mtx);
 	// Выполняем добавление шаблона GROK
 	this->_grok.pattern(key, val);
 }
@@ -46,7 +46,7 @@ void anyks::Parser::pattern(const string & key, const string & val) noexcept {
  */
 void anyks::Parser::patterns(const Document & patterns) noexcept {
 	// Выполняем блокировку потока
-	const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+	const lock_guard <recursive_mutex> lock(this->_mtx);
 	// Выполняем добавление списка шаблонов
 	this->_grok.patterns(patterns);
 }
@@ -61,7 +61,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -292,7 +292,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::WARNING, "Method is undefined");
+						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::WARNING, "Method is undefined");
 					/**
 					* Если режим отладки не включён
 					*/
@@ -311,7 +311,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -322,13 +322,13 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -352,7 +352,7 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 	// Если данные переданы
 	if((data.IsObject() && !data.ObjectEmpty()) || (data.IsArray() && !data.Empty())){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -501,7 +501,7 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 					parseFn(node, m.name, m.value);
 			}
 			// Создаём поток для конвертации ноды YAML
-			std::stringstream stream;
+			stringstream stream;
 			// Записываем ноду YAML в поток
 			stream << node;
 			// Выполняем формирование результата
@@ -526,7 +526,7 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -556,7 +556,7 @@ Document anyks::Parser::ini(const string & text) noexcept {
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -584,7 +584,7 @@ Document anyks::Parser::ini(const string & text) noexcept {
 						/**
 						 * Если возникает ошибка
 						 */
-						} catch(const std::exception &) {
+						} catch(const exception &) {
 							// Выполняем установку полученного значения
 							result[i->first.c_str()].AddMember(Value(j->first.c_str(), j->first.length(), result.GetAllocator()).Move(), Value(j->second.c_str(), j->second.length(), result.GetAllocator()).Move(), result.GetAllocator());
 						}
@@ -599,7 +599,7 @@ Document anyks::Parser::ini(const string & text) noexcept {
 						/**
 						 * Если возникает ошибка
 						 */
-						} catch(const std::exception &) {
+						} catch(const exception &) {
 							// Выполняем установку полученного значения
 							result[i->first.c_str()].AddMember(Value(j->first.c_str(), j->first.length(), result.GetAllocator()).Move(), Value(j->second.c_str(), j->second.length(), result.GetAllocator()).Move(), result.GetAllocator());
 						}
@@ -619,13 +619,13 @@ Document anyks::Parser::ini(const string & text) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -649,7 +649,7 @@ string anyks::Parser::ini(const Document & data) noexcept {
 	// Если данные переданы
 	if(data.IsObject()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -707,7 +707,7 @@ string anyks::Parser::ini(const Document & data) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -737,7 +737,7 @@ Document anyks::Parser::syslog(const string & text) noexcept {
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -751,13 +751,13 @@ Document anyks::Parser::syslog(const string & text) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -779,7 +779,7 @@ string anyks::Parser::syslog(const Document & data) noexcept {
 	// Если данные переданы
 	if(data.IsObject()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -793,7 +793,7 @@ string anyks::Parser::syslog(const Document & data) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -824,7 +824,7 @@ Document anyks::Parser::grok(const string & text, const string & pattern) noexce
 	// Если текст и шаблон переданы
 	if(!text.empty() && !pattern.empty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -842,13 +842,13 @@ Document anyks::Parser::grok(const string & text, const string & pattern) noexce
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, pattern), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, pattern), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -873,7 +873,7 @@ Document anyks::Parser::csv(const string & text, const bool header) noexcept {
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -889,13 +889,13 @@ Document anyks::Parser::csv(const string & text, const bool header) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, header), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, header), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -921,7 +921,7 @@ string anyks::Parser::csv(const Document & data, const bool header, const char d
 	// Если данные переданы
 	if((data.IsObject() && !data.ObjectEmpty()) || (data.IsArray() && !data.Empty())){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -942,7 +942,7 @@ string anyks::Parser::csv(const Document & data, const bool header, const char d
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -972,7 +972,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -992,7 +992,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, "Document not parsed successfully");
+						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, "Document not parsed successfully");
 					/**
 					* Если режим отладки не включён
 					*/
@@ -1106,7 +1106,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 													/**
 													 * Если возникает ошибка
 													 */
-													} catch(const std::exception &) {
+													} catch(const exception &) {
 														// Если элемент не является массивом
 														if(root[reinterpret_cast <const char *> (node->name)].IsObject())
 															// Выполняем формирования списка параметров
@@ -1139,7 +1139,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 													/**
 													 * Если возникает ошибка
 													 */
-													} catch(const std::exception &) {
+													} catch(const exception &) {
 														// Если элемент не является массивом
 														if(root[reinterpret_cast <const char *> (node->name)].IsObject())
 															// Выполняем формирования списка параметров
@@ -1258,7 +1258,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 													/**
 													 * Если возникает ошибка
 													 */
-													} catch(const std::exception &) {
+													} catch(const exception &) {
 														// Если элемент не является массивом
 														if(root[reinterpret_cast <const char *> (node->name)].IsObject())
 															// Выполняем формирования списка параметров
@@ -1291,7 +1291,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 													/**
 													 * Если возникает ошибка
 													 */
-													} catch(const std::exception &) {
+													} catch(const exception &) {
 														// Если элемент не является массивом
 														if(root[reinterpret_cast <const char *> (node->name)].IsObject())
 															// Выполняем формирования списка параметров
@@ -1413,7 +1413,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 											/**
 											 * Если возникает ошибка
 											 */
-											} catch(const std::exception &) {
+											} catch(const exception &) {
 												// Если элемент не является массивом
 												if(root[reinterpret_cast <const char *> (node->name)].IsObject()){
 													// Если у ноды есть параметры
@@ -1462,7 +1462,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 											/**
 											 * Если возникает ошибка
 											 */
-											} catch(const std::exception &) {
+											} catch(const exception &) {
 												// Если элемент не является массивом
 												if(root[reinterpret_cast <const char *> (node->name)].IsObject()){
 													// Если у ноды есть параметры
@@ -1603,7 +1603,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 												 * Если возникает ошибка
 												 */
 									
-												} catch(const std::exception &) {
+												} catch(const exception &) {
 													// Если элемент не является массивом
 													if(root[reinterpret_cast <const char *> (node->name)].IsObject())
 														// Выполняем формирования списка параметров
@@ -1636,7 +1636,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 												/**
 												 * Если возникает ошибка
 												 */
-												} catch(const std::exception &) {
+												} catch(const exception &) {
 													// Если элемент не является массивом
 													if(root[reinterpret_cast <const char *> (node->name)].IsObject())
 														// Выполняем формирования списка параметров
@@ -1728,7 +1728,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 								/**
 								 * Если возникает ошибка
 								 */
-								} catch(const std::exception &) {
+								} catch(const exception &) {
 									// Выполняем формирования списка параметров
 									result[reinterpret_cast <const char *> (node->name)].AddMember(Value(reinterpret_cast <const char *> (attribute->name), result.GetAllocator()).Move(), Value(reinterpret_cast <const char *> (value), result.GetAllocator()).Move(), result.GetAllocator());
 								}
@@ -1743,7 +1743,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 								/**
 								 * Если возникает ошибка
 								 */
-								} catch(const std::exception &) {
+								} catch(const exception &) {
 									// Выполняем формирования списка параметров
 									result[reinterpret_cast <const char *> (node->name)].AddMember(Value(reinterpret_cast <const char *> (attribute->name), result.GetAllocator()).Move(), Value(reinterpret_cast <const char *> (value), result.GetAllocator()).Move(), result.GetAllocator());
 								}
@@ -1843,7 +1843,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 								/**
 								 * Если возникает ошибка
 								 */
-								} catch(const std::exception &) {
+								} catch(const exception &) {
 									// Если элемент не является массивом
 									if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
 										// Если у ноды есть параметры
@@ -1892,7 +1892,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 								/**
 								 * Если возникает ошибка
 								 */
-								} catch(const std::exception &) {
+								} catch(const exception &) {
 									// Если элемент не является массивом
 									if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
 										// Если у ноды есть параметры
@@ -1974,7 +1974,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 					 */
 					#if defined(DEBUG_MODE)
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::WARNING, "Data received is not as expected");
+						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::WARNING, "Data received is not as expected");
 					/**
 					* Если режим отладки не включён
 					*/
@@ -1996,7 +1996,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 				 */
 				#if defined(DEBUG_MODE)
 					// Выводим сообщение об ошибке
-					this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::WARNING, "Data received is not as expected");
+					this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::WARNING, "Data received is not as expected");
 				/**
 				* Если режим отладки не включён
 				*/
@@ -2008,13 +2008,13 @@ Document anyks::Parser::xml(const string & text) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -2039,7 +2039,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 	// Если данные переданы
 	if((data.IsObject() && !data.ObjectEmpty()) || (data.IsArray() && !data.Empty())){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -3115,7 +3115,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -3145,7 +3145,7 @@ Document anyks::Parser::json(const string & text) noexcept {
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -3157,7 +3157,7 @@ Document anyks::Parser::json(const string & text) noexcept {
 				 */
 				#if defined(DEBUG_MODE)
 					// Выводим сообщение об ошибке
-					this->_log->debug("Parsing JSON: (offset %d): %s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, result.GetErrorOffset(), GetParseError_En(result.GetParseError()));
+					this->_log->debug("Parsing JSON: (offset %d): %s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, result.GetErrorOffset(), GetParseError_En(result.GetParseError()));
 				/**
 				* Если режим отладки не включён
 				*/
@@ -3169,13 +3169,13 @@ Document anyks::Parser::json(const string & text) noexcept {
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -3198,7 +3198,7 @@ string anyks::Parser::json(const Document & data, const bool prettify) noexcept 
 	// Если данные переданы
 	if((data.IsObject() && !data.ObjectEmpty()) || (data.IsArray() && !data.Empty())){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -3225,7 +3225,7 @@ string anyks::Parser::json(const Document & data, const bool prettify) noexcept 
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
@@ -3256,7 +3256,7 @@ Document anyks::Parser::cef(const string & text, const cef_t::mode_t mode) noexc
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -3272,13 +3272,13 @@ Document anyks::Parser::cef(const string & text, const cef_t::mode_t mode) noexc
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, static_cast <uint16_t> (mode)), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, static_cast <uint16_t> (mode)), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -3301,7 +3301,7 @@ string anyks::Parser::cef(const Document & data, const cef_t::mode_t mode) noexc
 	// Если данные переданы
 	if(data.IsObject() && !data.ObjectEmpty()){
 		// Выполняем блокировку потока
-		const std::lock_guard <std::recursive_mutex> lock(this->_mtx);
+		const lock_guard <recursive_mutex> lock(this->_mtx);
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -3317,7 +3317,7 @@ string anyks::Parser::cef(const Document & data, const cef_t::mode_t mode) noexc
 		/**
 		 * Если возникает ошибка
 		 */
-		} catch(const std::exception & error) {
+		} catch(const exception & error) {
 			/**
 			 * Если включён режим отладки
 			 */

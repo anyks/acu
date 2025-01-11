@@ -71,7 +71,7 @@ void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t 
 			// Выполняем чтение запрошенного файла
 			const auto & buffer = this->_fs.read(filename);
 			// Выполняем добавление файла в кэш
-			this->_cache.emplace(filename, std::make_pair(13, buffer));
+			this->_cache.emplace(filename, make_pair(13, buffer));
 			// Отправляем сообщение клиенту
 			this->_awh.send(sid, bid, code, mess, buffer, {
 				{"Accept-Ranges", "bytes"},
@@ -241,7 +241,7 @@ void anyks::Server::handshake(const int32_t sid, const uint64_t bid, const serve
  * @param url     адрес входящего запроса
  * @param headers заголовки запроса
  */
-void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const std::unordered_multimap <string, string> & headers) noexcept {
+void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const unordered_multimap <string, string> & headers) noexcept {
 	// Если выполняем поиска заголовка Origin
 	auto i = headers.find("origin");
 	// Если заголовок не получен
@@ -261,7 +261,7 @@ void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::we
  * @param entity  тело запроса
  * @param headers заголовки запроса
  */
-void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const std::unordered_multimap <string, string> & headers) noexcept {
+void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const unordered_multimap <string, string> & headers) noexcept {
 	/**
 	 * Выполняем перехват ошибок
 	 */
@@ -426,7 +426,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							/**
 							 * Если возникает ошибка
 							 */
-							} catch(const std::exception &) {
+							} catch(const exception &) {
 								/* Ничего не делаем */
 							}
 						}
@@ -449,7 +449,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						// Получаем хэш буфера данных
 						const uint64_t etag = CityHash64(buffer.data(), buffer.size());
 						// Выполняем добавление файла в кэш
-						this->_cache.emplace(filename, std::make_pair(etag, buffer));
+						this->_cache.emplace(filename, make_pair(etag, buffer));
 						// Выполняем поиск заголовка проверки ETag
 						auto j = headers.find("if-none-match");
 						// Если заголовок с хештегом найден
@@ -477,7 +477,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							/**
 							 * Если возникает ошибка
 							 */
-							} catch(const std::exception &) {
+							} catch(const exception &) {
 								/* Ничего не делаем */
 							}
 						}
@@ -534,7 +534,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						 */
 						#if defined(DEBUG_MODE)
 							// Выводим сообщение об ошибке
-							this->_log->debug("Request JSON: (offset %d): %s", __PRETTY_FUNCTION__, std::make_tuple(sid, bid, static_cast <uint16_t> (method), url, entity.size(), headers.size()), log_t::flag_t::CRITICAL, request.GetErrorOffset(), GetParseError_En(request.GetParseError()));
+							this->_log->debug("Request JSON: (offset %d): %s", __PRETTY_FUNCTION__, make_tuple(sid, bid, static_cast <uint16_t> (method), url, entity.size(), headers.size()), log_t::flag_t::CRITICAL, request.GetErrorOffset(), GetParseError_En(request.GetParseError()));
 						/**
 						* Если режим отладки не включён
 						*/
@@ -593,7 +593,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Выполняем копирование полученных данных
 									patterns.CopyFrom(request["patterns"], patterns.GetAllocator());
 									// Выполняем добавление поддерживаемых шаблонов
-									parser.patterns(std::move(patterns));
+									parser.patterns(::move(patterns));
 								}
 								// Если регулярное выражение передано
 								if(request.HasMember("express") && request["express"].IsString())
@@ -977,7 +977,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 	/**
 	 * Если возникает ошибка
 	 */
-	} catch(const std::exception & error) {
+	} catch(const exception & error) {
 		// Выпоолняем генерацию ошибки запроса
 		this->error(sid, bid, 403, error.what());
 	}
@@ -1108,7 +1108,7 @@ void anyks::Server::config(const json & config) noexcept {
 					// Устанавливаем тип сокета unix-сокет
 					this->_core.family(awh::scheme_t::family_t::NIX);
 					// Выполняем инициализацию сервера для unix-сокета
-					this->_awh.init(config["net"]["unixSocket"].GetString(), std::move(compressors));
+					this->_awh.init(config["net"]["unixSocket"].GetString(), ::move(compressors));
 				// Если подключение к серверу производится по хосту и порту
 				} else {
 					// Хост сервера
@@ -1217,11 +1217,11 @@ void anyks::Server::config(const json & config) noexcept {
 								break;
 							}
 							// Выполняем установку параметров SSL-шифрования
-							this->_core.ssl(std::move(ssl));
+							this->_core.ssl(::move(ssl));
 						}
 					}
 					// Выполняем инициализацию сервера
-					this->_awh.init(port, std::move(host), std::move(compressors));
+					this->_awh.init(port, ::move(host), ::move(compressors));
 				}
 				// Если ваш сервер требует аутентификации
 				if(config["net"].HasMember("authentication") && config["net"]["authentication"].IsObject()){
@@ -1427,7 +1427,7 @@ void anyks::Server::config(const json & config) noexcept {
 	/**
 	 * Если возникает ошибка
 	 */
-	} catch(const std::exception & error) {
+	} catch(const exception & error) {
 		/**
 		 * Если включён режим отладки
 		 */
@@ -1450,7 +1450,7 @@ void anyks::Server::stop() noexcept {
 	// Очищаем кэш запросов
 	this->_cache.clear();
 	// Выполняем очищение выделенной ранее памяти
-	std::unordered_map <string, pair <uint64_t, vector <char>>> ().swap(this->_cache);
+	unordered_map <string, pair <uint64_t, vector <char>>> ().swap(this->_cache);
 	// Запрещаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::DISABLED);
 	// Выполняем остановку сервера
@@ -1463,9 +1463,9 @@ void anyks::Server::start() noexcept {
 	// Разрешаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::ENABLED);
 	// Устанавливаем функцию обработки сигналов завершения работы приложения
-	this->_core.callback <void (const int)> ("crash", std::bind(&server_t::crash, this, _1));
+	this->_core.callback <void (const int)> ("crash", bind(&server_t::crash, this, _1));
 	// Устанавливаем функцию обратного вызова на запуск системы
-	this->_core.callback <void (const awh::core_t::status_t)> ("status", std::bind(static_cast <void (server_t::*)(const awh::core_t::status_t)> (&server_t::active), this, _1));
+	this->_core.callback <void (const awh::core_t::status_t)> ("status", bind(static_cast <void (server_t::*)(const awh::core_t::status_t)> (&server_t::active), this, _1));
 	// Выполняем запуск сервера
 	this->_awh.start();
 }
@@ -1480,19 +1480,19 @@ anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
 	// Выполняем установку идентификатора клиента
 	this->_awh.ident(AWH_SHORT_NAME, AWH_NAME, AWH_VERSION);
 	// Устанавливаем функцию извлечения пароля пользователя для авторизации
-	this->_awh.callback <string (const uint64_t, const string &)> ("extractPassword", std::bind(&server_t::password, this, _1, _2));
+	this->_awh.callback <string (const uint64_t, const string &)> ("extractPassword", bind(&server_t::password, this, _1, _2));
 	// Устанавливаем функцию проверки авторизации прользователя
-	this->_awh.callback <bool (const uint64_t, const string &, const string &)> ("checkPassword", std::bind(&server_t::auth, this, _1, _2, _3));
+	this->_awh.callback <bool (const uint64_t, const string &, const string &)> ("checkPassword", bind(&server_t::auth, this, _1, _2, _3));
 	// Установливаем функцию обратного вызова на событие активации клиента на сервере
-	this->_awh.callback <bool (const string &, const string &, const uint32_t)> ("accept", std::bind(&server_t::accept, this, _1, _2, _3));
+	this->_awh.callback <bool (const string &, const string &, const uint32_t)> ("accept", bind(&server_t::accept, this, _1, _2, _3));
 	// Устанавливаем функцию обратного вызова при выполнении удачного рукопожатия
-	this->_awh.callback <void (const int32_t, const uint64_t, const server::web_t::agent_t)> ("handshake", std::bind(&server_t::handshake, this, _1, _2, _3));
+	this->_awh.callback <void (const int32_t, const uint64_t, const server::web_t::agent_t)> ("handshake", bind(&server_t::handshake, this, _1, _2, _3));
 	// Установливаем функцию обратного вызова на событие запуска или остановки подключения
-	this->_awh.callback <void (const uint64_t, const server::web_t::mode_t)> ("active", std::bind(static_cast <void (server_t::*)(const uint64_t, const server::web_t::mode_t)> (&server_t::active), this, _1, _2));
+	this->_awh.callback <void (const uint64_t, const server::web_t::mode_t)> ("active", bind(static_cast <void (server_t::*)(const uint64_t, const server::web_t::mode_t)> (&server_t::active), this, _1, _2));
 	// Устанавливаем функцию обратного вызова на получение входящих сообщений запросов
-	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const std::unordered_multimap <string, string> &)> ("headers", std::bind(&server_t::headers, this, _1, _2, _3, _4, _5));
+	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const unordered_multimap <string, string> &)> ("headers", bind(&server_t::headers, this, _1, _2, _3, _4, _5));
 	// Установливаем функцию обратного вызова на событие получения полного запроса клиента
-	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const std::unordered_multimap <string, string> &)> ("complete", std::bind(&server_t::complete, this, _1, _2, _3, _4, _5, _6));
+	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const unordered_multimap <string, string> &)> ("complete", bind(&server_t::complete, this, _1, _2, _3, _4, _5, _6));
 }
 /**
  * ~Server деструктор

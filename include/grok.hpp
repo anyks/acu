@@ -50,9 +50,18 @@
  */
 namespace anyks {
 	/**
+	 * Подписываемся на стандартное пространство имён
+	 */
+	using namespace std;
+	using namespace awh;
+	/**
+	 * Подписываемся на пространство имён rapidjson
+	 */
+	using namespace rapidjson;
+	/**
 	 * Активируем пространство имён json
 	 */
-	using json = rapidjson::Document;
+	using json = Document;
 	/**
 	 * Grok Класс модуля GROK
 	 */
@@ -61,7 +70,7 @@ namespace anyks {
 			/**
 			 * Статус определения разделителя
 			 */
-			enum class ss_t : std::uint8_t {
+			enum class ss_t : uint8_t {
 				NONE   = 0x00, // Статус не установлен
 				FIRST  = 0x01, // Статус начальный
 				SECOND = 0x02  // Статус конечный
@@ -69,7 +78,7 @@ namespace anyks {
 			/**
 			 * Тип выполняемого события
 			 */
-			enum class event_t : std::uint8_t {
+			enum class event_t : uint8_t {
 				NONE     = 0x00, // Событие не установленно
 				INTERNAL = 0x01, // Внутреннее событие
 				EXTERNAL = 0x02  // Внешнее событие
@@ -87,7 +96,7 @@ namespace anyks {
 					regex_t reg;
 				public:
 					// Регулярное выражение в текстовом виде
-					std::string expression;
+					string expression;
 				public:
 					/**
 					 * Express Конструктор
@@ -108,17 +117,17 @@ namespace anyks {
 			 * Mutex структура рабочих мютексов
 			 */
 			typedef struct Mutex {
-				std::mutex cache;    // Мютекс контроля кэша
-				std::mutex mapping;  // Мютекс контроля собранных соответствий
-				std::mutex patterns; // Мютекс контроля собранных шаблонов
+				mutex cache;    // Мютекс контроля кэша
+				mutex mapping;  // Мютекс контроля собранных соответствий
+				mutex patterns; // Мютекс контроля собранных шаблонов
 			} mtx_t;
 			/**
 			 * Let Класс работы с блочными переменными
 			 */
 			typedef struct Let {
-				std::size_t pos;   // Начальная позиция переменной
-				std::size_t size;  // Размер переменной
-				std::size_t delim; // Позиция разделителя
+				size_t pos;   // Начальная позиция переменной
+				size_t size;  // Размер переменной
+				size_t delim; // Позиция разделителя
 				/**
 				 * Let Конструктор
 				 */
@@ -135,15 +144,15 @@ namespace anyks {
 					friend class Grok;
 				private:
 					// Мютекс для блокировки потока
-					std::mutex _mtx;
+					mutex _mtx;
 				private:
 					// Список имён переменных
-					std::vector <std::string> _names;
+					vector <string> _names;
 					// Список шаблонов переменных
-					std::unordered_multimap <std::string, regex_t> _patterns;
+					unordered_multimap <string, regex_t> _patterns;
 				private:
 					// Объект работы с логами
-					const awh::log_t * _log;
+					const log_t * _log;
 				public:
 					/**
 					 * reset Метод сброса параметров объекта
@@ -154,7 +163,7 @@ namespace anyks {
 					 * count Метод получения количество добавленных переменных
 					 * @return количество добавленных переменных
 					 */
-					std::uint8_t count() const noexcept;
+					uint8_t count() const noexcept;
 				public:
 					/**
 					 * get Метод извлечения названия переменной которой соответствует текст
@@ -162,20 +171,20 @@ namespace anyks {
 					 * @param index индекс запрашиваемой переменной
 					 * @return      название переменной, которой соответствует текст
 					 */
-					std::string get(const std::string & text, const std::uint8_t index) noexcept;
+					string get(const string & text, const uint8_t index) noexcept;
 				public:
 					/**
 					 * push Метод добавления переменной
 					 * @param name    название переменной
 					 * @param pattern шаблон регулярного выражения переменной
 					 */
-					void push(const std::string & name, const std::string & pattern) noexcept;
+					void push(const string & name, const string & pattern) noexcept;
 				public:
 					/**
 					 * Variables конструктор
 					 * @param log объект для работы с логами
 					 */
-					Variables(const awh::log_t * log) noexcept : _log(log) {}
+					Variables(const log_t * log) noexcept : _log(log) {}
 					/**
 					 * ~Variables деструктор
 					 */
@@ -191,12 +200,12 @@ namespace anyks {
 				// Регулярные выражения
 				express_t express;
 				// Схема соответствий ключей
-				std::unordered_map <std::string, std::string> mapping;
+				unordered_map <string, string> mapping;
 				/**
 				 * Cache конструктор
 				 * @param log объект для работы с логами
 				 */
-				Cache(const awh::log_t * log) noexcept : vars(log) {}
+				Cache(const log_t * log) noexcept : vars(log) {}
 			} cache_t;
 		private:
 			// Мютекс для блокировки потока
@@ -206,20 +215,20 @@ namespace anyks {
 			regex_t _reg;
 		private:
 			// Список именованных групп
-			std::map <std::uint64_t, std::string> _nameGroups;
+			map <uint64_t, string> _nameGroups;
 		private:
 			// Список внутренних шаблонов для работы
-			std::unordered_map <std::string, std::string> _patternsInternal;
+			unordered_map <string, string> _patternsInternal;
 			// Список внешних шаблонов для работы
-			std::unordered_map <std::string, std::string> _patternsExternal;
+			unordered_map <string, string> _patternsExternal;
 		private:
 			// Объект кэша работы модуля
-			std::map <std::uint64_t, std::unique_ptr <cache_t>> _cache;
+			map <uint64_t, unique_ptr <cache_t>> _cache;
 		private:
 			// Объект фреймворка
-			const awh::fmk_t * _fmk;
+			const fmk_t * _fmk;
 			// Объект работы с логами
-			const awh::log_t * _log;
+			const log_t * _log;
 		public:
 			/**
 			 * clear Метод очистки параметров модуля
@@ -229,7 +238,7 @@ namespace anyks {
 			 * reset Метод сброса собранных данных
 			 * @param cid идентификатор записи в кэше
 			 */
-			void reset(const std::uint64_t cid) noexcept;
+			void reset(const uint64_t cid) noexcept;
 		public:
 			/**
 			 * clearPatterns Метод очистки списка добавленных шаблонов
@@ -240,20 +249,20 @@ namespace anyks {
 			 * removePattern Метод удаления добавленного шаблона
 			 * @param name название шаблона для удаления
 			 */
-			void removePattern(const std::string & name) noexcept;
+			void removePattern(const string & name) noexcept;
 		private:
 			/**
 			 * variable Метод извлечения первой блоковой переменной в тексте
 			 * @param text текст из которого следует извлечь переменные
 			 * @return     первая блоковая переменная
 			 */
-			let_t variable(const std::string & text) const noexcept;
+			let_t variable(const string & text) const noexcept;
 		private:
 			/**
 			 * removeBrackets Метод удаления скобок
 			 * @param text текст в котором следует удалить скобки
 			 */
-			void removeBrackets(std::string & text) const noexcept;
+			void removeBrackets(string & text) const noexcept;
 		private:
 			/**
 			 * bracket Метод поиска скобки для замены
@@ -261,7 +270,7 @@ namespace anyks {
 			 * @param pos  начальная позиция для поиска
 			 * @return     позиция найденной скобки
 			 */
-			ssize_t bracket(const std::string & text, const std::size_t pos = 0) const noexcept;
+			ssize_t bracket(const string & text, const size_t pos = 0) const noexcept;
 		private:
 			/**
 			 * prepare Метод обработки полученной переменной Grok
@@ -269,7 +278,7 @@ namespace anyks {
 			 * @param lets разрешить обработку блочных переменных
 			 * @return     список извлечённых переменных
 			 */
-			std::vector <std::pair <std::string, std::string>> prepare(std::string & text, const bool lets = true) const noexcept;
+			vector <pair <string, string>> prepare(string & text, const bool lets = true) const noexcept;
 		public:
 			/**
 			 * patterns Метод добавления списка поддерживаемых шаблонов
@@ -281,7 +290,7 @@ namespace anyks {
 			 * @param key название переменной
 			 * @param val регуляреное выражение соответствующее переменной
 			 */
-			void pattern(const std::string & key, const std::string & val) noexcept;
+			void pattern(const string & key, const string & val) noexcept;
 		private:
 			/**
 			 * pattern Метод добавления шаблона
@@ -289,7 +298,7 @@ namespace anyks {
 			 * @param val   регуляреное выражение соответствующее переменной
 			 * @param event тип выполняемого события
 			 */
-			void pattern(const std::string & key, const std::string & val, const event_t event) noexcept;
+			void pattern(const string & key, const string & val, const event_t event) noexcept;
 		private:
 			/**
 			 * generatePattern Метод генерации шаблона
@@ -297,14 +306,14 @@ namespace anyks {
 			 * @param val значение шиблок (Регулярное выражение или Grok-шаблон)
 			 * @return    сгенерированный шаблон
 			 */
-			std::string generatePattern(const std::string & key, const std::string & val) noexcept;
+			string generatePattern(const string & key, const string & val) noexcept;
 		public:
 			/**
 			 * build Метод сборки регулярного выражения
 			 * @param text текст регулярного выражения для сборки
 			 * @return     идентификатор записи в кэше
 			 */
-			std::uint64_t build(std::string & text) const noexcept;
+			uint64_t build(string & text) const noexcept;
 		public:
 			/**
 			 * parse Метод выполнения парсинга текста
@@ -312,14 +321,14 @@ namespace anyks {
 			 * @param cid  идентификатор записи в кэше
 			 * @return     результат выполнения регулярного выражения
 			 */
-			bool parse(const std::string & text, const std::uint64_t cid) noexcept;
+			bool parse(const string & text, const uint64_t cid) noexcept;
 		public:
 			/**
 			 * dump Метод извлечения данных в виде JSON
 			 * @param cid идентификатор записи в кэше
 			 * @return    json объект дампа данных
 			 */
-			json dump(const std::uint64_t cid) const noexcept;
+			json dump(const uint64_t cid) const noexcept;
 		public:
 			/**
 			 * get Метод извлечения записи по ключу
@@ -327,14 +336,14 @@ namespace anyks {
 			 * @param cid идентификатор записи в кэше
 			 * @return    значение записи ключа
 			 */
-			std::string get(const std::string & key, const std::uint64_t cid) const noexcept;
+			string get(const string & key, const uint64_t cid) const noexcept;
 		public:
 			/**
 			 * Grok Конструктор
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
-			Grok(const awh::fmk_t * fmk, const awh::log_t * log) noexcept;
+			Grok(const fmk_t * fmk, const log_t * log) noexcept;
 			/**
 			 * ~Grok Деструктор
 			 */

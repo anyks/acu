@@ -40,16 +40,25 @@
  */
 namespace anyks {
 	/**
+	 * Подписываемся на стандартное пространство имён
+	 */
+	using namespace std;
+	using namespace awh;
+	/**
+	 * Подписываемся на пространство имён rapidjson
+	 */
+	using namespace rapidjson;
+	/**
 	 * Активируем пространство имён json
 	 */
-	using json = rapidjson::Document;
+	using json = Document;
 	/**
 	 * Server Класс сервера
 	 */
 	typedef class ACUSHARED_EXPORT Server {
 		private:
 			// Тип рабочего формата данных
-			enum class type_t : std::uint8_t {
+			enum class type_t : uint8_t {
 				TEXT        = 0x00, // Тип формата - текстовый
 				XML         = 0x01, // Тип формата - XML
 				INI         = 0x02, // Тип формата - INI
@@ -78,8 +87,8 @@ namespace anyks {
 			 * Bandwidth Структура параметров пропускной способности сети
 			 */
 			typedef struct Bandwidth {
-				std::string read;  // Ширина канала на чтение
-				std::string write; // Ширина канала на запись
+				string read;  // Ширина канала на чтение
+				string write; // Ширина канала на запись
 				/**
 				 * Bandwidth Конструктор
 				 */
@@ -87,64 +96,64 @@ namespace anyks {
 			} bandwidth_t;
 		private:
 			// Объект работы с файловой системой
-			awh::fs_t _fs;
+			fs_t _fs;
 			// Объект работы с URI параметрами
-			awh::uri_t _uri;
+			uri_t _uri;
 			// Объект работы с хэшированием
-			awh::hash_t _hash;
+			hash_t _hash;
 		private:
 			// Адрес корневого каталога с сайтом
-			std::string _root;
+			string _root;
 			// Адрес файла по умолчанию
-			std::string _index;
+			string _index;
 			// Адрес сайта которому разрешён доступ к ресурсу
-			std::string _origin;
+			string _origin;
 			// Адрес хранения favicon.ico
-			std::string _favicon;
+			string _favicon;
 		private:
 			// Объект работы с HTTP протоколом
-			awh::client::http_t _http;
+			client::http_t _http;
 		private:
 			// Максимальное количество запросов на одного пользователя в сутки
-			std::uint16_t _maxRequests;
+			uint16_t _maxRequests;
 		private:
 			// Объект сетевого ядра сервера
-			awh::server::core_t _core;
+			server::core_t _core;
 			// Объект WEB-сервера
-			awh::server::awh_t _awh;
+			server::awh_t _awh;
 		private:
 			// Объект ограничения скорости сети доступа к серверу
 			bandwidth_t _bandwidth;
 		private:
 			// Чёрный список для IP-адресов 
-			std::unordered_set <std::string> _ipBlack;
+			unordered_set <string> _ipBlack;
 			// Белый список для IP-адресов
-			std::unordered_set <std::string> _ipWhite;
+			unordered_set <string> _ipWhite;
 		private:
 			// Чёрный список для MAC адресов
-			std::unordered_set <std::string> _macBlack;
+			unordered_set <string> _macBlack;
 			// Белый список для MAC адресов
-			std::unordered_set <std::string> _macWhite;
+			unordered_set <string> _macWhite;
 		private:
 			// Список пользователей для авторизации клиента
-			std::unordered_map <std::string, std::string> _users;
+			unordered_map <string, string> _users;
 		private:
 			// Каунтеры запросов клиентов
-			std::unordered_map <std::string, std::pair <std::uint16_t, std::time_t>> _counts;
+			unordered_map <string, pair <uint16_t, time_t>> _counts;
 		private:
 			// Кэш контента содержимого сайта
-			std::unordered_map <std::string, std::pair <std::uint64_t, std::vector <char>>> _cache;
+			unordered_map <string, pair <uint64_t, vector <char>>> _cache;
 		private:
 			// Объект фреймворка
-			const awh::fmk_t * _fmk;
+			const fmk_t * _fmk;
 			// Объект работы с логами
-			const awh::log_t * _log;
+			const log_t * _log;
 		private:
 			/**
 			 * crash Метод обработки вызова крашей в приложении
 			 * @param sig номер сигнала операционной системы
 			 */
-			void crash(const std::int32_t sig) noexcept;
+			void crash(const int32_t sig) noexcept;
 			/**
 			 * error Метод генерации ошибки
 			 * @param sid  идентификатор потока
@@ -152,7 +161,7 @@ namespace anyks {
 			 * @param code код ответа сервера
 			 * @param mess сообщение ответа клиенту
 			 */
-			void error(const std::int32_t sid, const std::uint64_t bid, const std::uint16_t code, const std::string & mess) noexcept;
+			void error(const int32_t sid, const uint64_t bid, const uint16_t code, const string & mess) noexcept;
 		private:
 			/**
 			 * password Метод извлечения пароля (для авторизации методом Digest)
@@ -160,7 +169,7 @@ namespace anyks {
 			 * @param login логин пользователя
 			 * @return      пароль пользователя хранящийся в базе данных
 			 */
-			std::string password(const std::uint64_t bid, const std::string & login) noexcept;
+			string password(const uint64_t bid, const string & login) noexcept;
 			/**
 			 * auth Метод проверки авторизации пользователя (для авторизации методом Basic)
 			 * @param bid      идентификатор брокера (клиента)
@@ -168,7 +177,7 @@ namespace anyks {
 			 * @param password пароль пользователя (от клиента)
 			 * @return         результат авторизации
 			 */
-			bool auth(const std::uint64_t bid, const std::string & login, const std::string & password) noexcept;
+			bool auth(const uint64_t bid, const string & login, const string & password) noexcept;
 		private:
 			/**
 			 * accept Метод активации клиента на сервере
@@ -177,19 +186,19 @@ namespace anyks {
 			 * @param port порт подключения
 			 * @return     результат проверки
 			 */
-			bool accept(const std::string & ip, const std::string & mac, const std::uint32_t port) noexcept;
+			bool accept(const string & ip, const string & mac, const uint32_t port) noexcept;
 		private:
 			/**
 			 * active Метод вывода статуса работы сетевого ядра
 			 * @param status флаг запуска сетевого ядра
 			 */
-			void active(const awh::core_t::status_t status) noexcept;
+			void active(const core_t::status_t status) noexcept;
 			/**
 			 * active Метод идентификации активности на Web сервере
 			 * @param bid  идентификатор брокера (клиента)
 			 * @param mode режим события подключения
 			 */
-			void active(const std::uint64_t bid, const awh::server::web_t::mode_t mode) noexcept;
+			void active(const uint64_t bid, const server::web_t::mode_t mode) noexcept;
 		private:
 			/**
 			 * handshake Метод получения удачного запроса
@@ -197,7 +206,7 @@ namespace anyks {
 			 * @param bid   идентификатор брокера
 			 * @param agent идентификатор агента клиента
 			 */
-			void handshake(const std::int32_t sid, const std::uint64_t bid, const awh::server::web_t::agent_t agent) noexcept;
+			void handshake(const int32_t sid, const uint64_t bid, const server::web_t::agent_t agent) noexcept;
 			/**
 			 * request Метод вывода входящего запроса
 			 * @param sid     идентификатор входящего потока
@@ -206,7 +215,7 @@ namespace anyks {
 			 * @param url     адрес входящего запроса
 			 * @param headers заголовки запроса
 			 */
-			void headers(const std::int32_t sid, const std::uint64_t bid, const awh::web_t::method_t method, const awh::uri_t::url_t & url, const std::unordered_multimap <std::string, std::string> & headers) noexcept;
+			void headers(const int32_t sid, const uint64_t bid, const web_t::method_t method, const uri_t::url_t & url, const unordered_multimap <string, string> & headers) noexcept;
 			/**
 			 * complete Метод завершения получения запроса клиента
 			 * @param sid     идентификатор потока
@@ -216,7 +225,7 @@ namespace anyks {
 			 * @param entity  тело запроса
 			 * @param headers заголовки запроса
 			 */
-			void complete(const std::int32_t sid, const std::uint64_t bid, const awh::web_t::method_t method, const awh::uri_t::url_t & url, const std::vector <char> & entity, const std::unordered_multimap <std::string, std::string> & headers) noexcept;
+			void complete(const int32_t sid, const uint64_t bid, const web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const unordered_multimap <string, string> & headers) noexcept;
 		public:
 			/**
 			 * config Метод установки конфигурационных параметров в формате JSON
@@ -238,7 +247,7 @@ namespace anyks {
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
-			Server(const awh::fmk_t * fmk, const awh::log_t * log) noexcept;
+			Server(const fmk_t * fmk, const log_t * log) noexcept;
 			/**
 			 * ~Server деструктор
 			 */
