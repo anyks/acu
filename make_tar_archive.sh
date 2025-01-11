@@ -24,7 +24,6 @@ cd "$ROOT/build" || exit 1
 # Выполняем сборку приложения
 cmake \
 	-DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_BUILD_IDN=YES \
 	.. || exit 1
 
 cmake --build . || exit 1
