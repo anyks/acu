@@ -25,7 +25,9 @@
 #include <sys/fs.hpp>
 #include <sys/hash.hpp>
 
-// Подключаем пространство имён
+/**
+ * Подписываемся на пространство имён
+ */
 using namespace anyks;
 
 /**

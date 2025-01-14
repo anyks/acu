@@ -17,7 +17,9 @@
 #include <env.hpp>
 #include <server.hpp>
 
-// Подключаем пространство имён
+/**
+ * Подписываемся на пространство имён
+ */
 using namespace anyks;
 
 /**

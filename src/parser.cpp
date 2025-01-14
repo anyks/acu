@@ -14,10 +14,13 @@
 // Подключаем заголовочный файл
 #include <parser.hpp>
 
-// Объявляем пространство имен
-using namespace std;
+/**
+ * Подписываемся на стандартное пространство имён
+ */
 using namespace awh;
-// Подписываемся на пространство имён rapidjson
+/**
+ * Подписываемся на пространство имён rapidjson
+ */
 using namespace rapidjson;
 
 /**

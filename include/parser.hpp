@@ -74,7 +74,6 @@ namespace anyks {
 	/**
 	 * Подписываемся на стандартное пространство имён
 	 */
-	using namespace std;
 	using namespace awh;
 	/**
 	 * Подписываемся на пространство имён rapidjson
