@@ -18,7 +18,7 @@
 #include <server.hpp>
 
 /**
- * Подписываемся на пространство имён
+ * Подписываемся на пространство имён anyks
  */
 using namespace anyks;
 
