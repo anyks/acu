@@ -1526,13 +1526,9 @@ void anyks::Cef::dump(const json & dump) noexcept {
 				// Устанавливаем заголовок события
 				this->_header = dump["header"].GetString();
 			// Если версия события передана
-			if(dump.HasMember("version") && dump["version"].IsDouble())
+			if(dump.HasMember("version") && dump["version"].IsNumber())
 				// Устанавливаем версию события
 				this->_version = dump["version"].GetDouble();
-			// Если версия события передана
-			else if(dump.HasMember("version") && dump["version"].IsUint())
-				// Устанавливаем версию события
-				this->_version = static_cast <double> (dump["version"].GetUint());
 			// Если данные события переданы
 			if(dump.HasMember("event") && dump["event"].IsObject() && !dump["event"].ObjectEmpty()){
 				// Если название события передано
@@ -1686,15 +1682,15 @@ void anyks::Cef::dump(const json & dump) noexcept {
 									// Выполняем добавление расширение
 									this->extension(m.name.GetString(), std::to_string(m.value.GetInt64()));
 								break;
-								// Если тип ключа является FLOAT
-								case static_cast <uint8_t> (type_t::FLOAT):
-									// Выполняем добавление расширение
-									this->extension(m.name.GetString(), this->_fmk->noexp(m.value.GetFloat(), true));
-								break;
 								// Если тип ключа является DOUBLE
 								case static_cast <uint8_t> (type_t::DOUBLE):
 									// Выполняем добавление расширение
 									this->extension(m.name.GetString(), this->_fmk->noexp(m.value.GetDouble(), true));
+								break;
+								// Если тип ключа является FLOAT
+								case static_cast <uint8_t> (type_t::FLOAT):
+									// Выполняем добавление расширение
+									this->extension(m.name.GetString(), this->_fmk->noexp(m.value.GetFloat(), true));
 								break;
 								// Если тип ключа является TIMESTAMP
 								case static_cast <uint8_t> (type_t::TIMESTAMP):

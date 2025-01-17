@@ -1853,18 +1853,18 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 							auto i = this->_sd.find(m.name.GetString());
 							// Если объект структурированных данных уже создан
 							if(i != this->_sd.end()){
-								// Если параметр является числом с плавающей точкой
-								if(item.value.IsDouble())
-									// Выполняем установку полученного числа
-									i->second.emplace(item.name.GetString(), this->_fmk->noexp(item.value.GetDouble(), true));
 								// Если параметр является числом с отрицательным значением
-								else if(item.value.IsInt64())
+								if(item.value.IsInt64())
 									// Выполняем установку полученного числа
 									i->second.emplace(item.name.GetString(), std::to_string(item.value.GetInt64()));
 								// Если параметр является числом с положительным значением
 								else if(item.value.IsUint64())
 									// Выполняем установку полученного числа
 									i->second.emplace(item.name.GetString(), std::to_string(item.value.GetUint64()));
+								// Если параметр является числом с плавающей точкой
+								else if(item.value.IsNumber())
+									// Выполняем установку полученного числа
+									i->second.emplace(item.name.GetString(), this->_fmk->noexp(item.value.GetDouble(), true));
 								// Если параметр является булевым значением
 								else if(item.value.IsBool())
 									// Выполняем установку булевого значения
@@ -1875,18 +1875,18 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 									i->second.emplace(item.name.GetString(), item.value.GetString());
 							// Если объект структурированных данных ещё не создан
 							} else {
-								// Если параметр является числом с плавающей точкой
-								if(item.value.IsDouble())
-									// Выполняем установку полученного числа
-									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), this->_fmk->noexp(item.value.GetDouble(), true)}});
 								// Если параметр является числом с отрицательным значением
-								else if(item.value.IsInt64())
+								if(item.value.IsInt64())
 									// Выполняем установку полученного числа
 									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), std::to_string(item.value.GetInt64())}});
 								// Если параметр является числом с положительным значением
 								else if(item.value.IsUint64())
 									// Выполняем установку полученного числа
 									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), std::to_string(item.value.GetUint64())}});
+								// Если параметр является числом с плавающей точкой
+								else if(item.value.IsNumber())
+									// Выполняем установку полученного числа
+									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), this->_fmk->noexp(item.value.GetDouble(), true)}});
 								// Если параметр является булевым значением
 								else if(item.value.IsBool())
 									// Выполняем установку булевого значения

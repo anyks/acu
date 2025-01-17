@@ -910,10 +910,6 @@ void anyks::CSV::dump(const json & dump) noexcept {
 						if(item.IsString())
 							// Выполняем добавление всех записей
 							this->_mapping.at(i + 1).push_back(item.GetString());
-						// Если запись является числом с плавающей точкой
-						else if(item.IsDouble())
-							// Добавляем полученное значение
-							this->_mapping.at(i + 1).push_back(this->_fmk->noexp(item.GetDouble(), true));
 						// Если запись является числом отрицательным
 						else if(item.IsInt64())
 							// Добавляем полученное значение
@@ -922,6 +918,10 @@ void anyks::CSV::dump(const json & dump) noexcept {
 						else if(item.IsUint64())
 							// Добавляем полученное значение
 							this->_mapping.at(i + 1).push_back(std::to_string(item.GetUint64()));
+						// Если запись является числом с плавающей точкой
+						else if(item.IsNumber())
+							// Добавляем полученное значение
+							this->_mapping.at(i + 1).push_back(this->_fmk->noexp(item.GetDouble(), true));
 						// Если запись является булевым значением
 						else if(item.IsBool())
 							// Выполняем добавление всех записей
@@ -941,10 +941,6 @@ void anyks::CSV::dump(const json & dump) noexcept {
 					if(item.IsString())
 						// Выполняем добавление всех записей
 						this->_mapping.back().push_back(item.GetString());
-					// Если запись является числом
-					else if(item.IsDouble())
-						// Добавляем полученное значение
-						this->_mapping.back().push_back(this->_fmk->noexp(item.GetDouble(), true));
 					// Если запись является числом отрицательным
 					else if(item.IsInt64())
 						// Добавляем полученное значение
@@ -953,6 +949,10 @@ void anyks::CSV::dump(const json & dump) noexcept {
 					else if(item.IsUint64())
 						// Добавляем полученное значение
 						this->_mapping.back().push_back(std::to_string(item.GetUint64()));
+					// Если запись является числом
+					else if(item.IsNumber())
+						// Добавляем полученное значение
+						this->_mapping.back().push_back(this->_fmk->noexp(item.GetDouble(), true));
 					// Если запись является булевым значением
 					else if(item.IsBool())
 						// Выполняем добавление всех записей

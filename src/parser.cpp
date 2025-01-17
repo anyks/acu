@@ -414,16 +414,6 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 					else if(name.IsString())
 						// Выполняем добавление значения в ноду
 						node[name.GetString()] = value.GetUint64();
-				// Если значение является числом с плавающей точкой
-				} else if(value.IsFloat()) {
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetFloat();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetFloat();
 				// Если значение является числом с плавающей точкой двойной точности
 				} else if(value.IsDouble()) {
 					// Если название ячейки является числом
@@ -434,6 +424,16 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 					else if(name.IsString())
 						// Выполняем добавление значения в ноду
 						node[name.GetString()] = value.GetDouble();
+				// Если значение является числом с плавающей точкой
+				} else if(value.IsFloat()) {
+					// Если название ячейки является числом
+					if(name.IsUint64())
+						// Выполняем добавление значения в ноду
+						node[name.GetUint64()] = value.GetFloat();
+					// Если название ячейки является строкой
+					else if(name.IsString())
+						// Выполняем добавление значения в ноду
+						node[name.GetString()] = value.GetFloat();
 				// Если значение является булевым
 				} else if(value.IsBool()) {
 					// Если название ячейки является числом
@@ -685,14 +685,14 @@ string anyks::Parser::ini(const Document & data) noexcept {
 							else if(i.value.IsUint64())
 								// Устанавливаем значение в виде числа
 								file[m.name.GetString()].set <uint64_t> (i.name.GetString(), i.value.GetUint64());
-							// Если значение является числом с плавающей точкой
-							else if(i.value.IsFloat())
-								// Устанавливаем значение в виде числа
-								file[m.name.GetString()].set <float> (i.name.GetString(), i.value.GetFloat());
 							// Если значение является числом с плавающей точкой двойной точности
 							else if(i.value.IsDouble())
 								// Устанавливаем значение в виде числа
 								file[m.name.GetString()].set <double> (i.name.GetString(), i.value.GetDouble());
+							// Если значение является числом с плавающей точкой
+							else if(i.value.IsFloat())
+								// Устанавливаем значение в виде числа
+								file[m.name.GetString()].set <float> (i.name.GetString(), i.value.GetFloat());
 							// Если значение является булевым значением
 							else if(i.value.IsBool())
 								// Устанавливаем значение в виде булевого значения
@@ -2312,33 +2312,6 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 							if(prettify)
 								// Выполняем добавление переноса строк
 								result.append(1, '\n');
-						// Если значение является числом с правающей точкой
-						} else if(v.IsFloat()) {
-							// Если количество отступов больше нуля
-							if(prettify && (tabs > 0)){
-								// Выполняем установку количества отступов
-								for(uint16_t i = 0; i < (tabs + (flag ? 1 : 0)); i++)
-									// Выполняем добавление отступов
-									result.append(1, '\t');
-							}
-							// Выполняем открытие тега
-							result.append(1, '<');
-							// Выполняем формирование результата
-							result.append(key);
-							// Выполняем закрытие тега
-							result.append(1, '>');
-							// Выполняем установку полученного числа
-							result.append(this->_fmk->noexp(v.GetFloat(), true));
-							// Выполняем закрытие тега
-							result.append("</");
-							// Выполняем установку тега
-							result.append(key);
-							// Выполняем закрытие тега
-							result.append(1, '>');
-							// Если разрешено выполнять разложение XML-объекта
-							if(prettify)
-								// Выполняем добавление переноса строк
-								result.append(1, '\n');
 						// Если значение является числом с правающей точкой двойной точности
 						} else if(v.IsDouble()) {
 							// Если количество отступов больше нуля
@@ -2356,6 +2329,33 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 							result.append(1, '>');
 							// Выполняем установку полученного числа
 							result.append(this->_fmk->noexp(v.GetDouble(), true));
+							// Выполняем закрытие тега
+							result.append("</");
+							// Выполняем установку тега
+							result.append(key);
+							// Выполняем закрытие тега
+							result.append(1, '>');
+							// Если разрешено выполнять разложение XML-объекта
+							if(prettify)
+								// Выполняем добавление переноса строк
+								result.append(1, '\n');
+						// Если значение является числом с правающей точкой
+						} else if(v.IsFloat()) {
+							// Если количество отступов больше нуля
+							if(prettify && (tabs > 0)){
+								// Выполняем установку количества отступов
+								for(uint16_t i = 0; i < (tabs + (flag ? 1 : 0)); i++)
+									// Выполняем добавление отступов
+									result.append(1, '\t');
+							}
+							// Выполняем открытие тега
+							result.append(1, '<');
+							// Выполняем формирование результата
+							result.append(key);
+							// Выполняем закрытие тега
+							result.append(1, '>');
+							// Выполняем установку полученного числа
+							result.append(this->_fmk->noexp(v.GetFloat(), true));
 							// Выполняем закрытие тега
 							result.append("</");
 							// Выполняем установку тега
@@ -2577,16 +2577,16 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 										item = std::to_string(m.value.GetUint64());
 										// Продолжаем дальше
 										continue;
-									// Если значение является числом с плавающей точкой
-									} else if(m.value.IsFloat()) {
-										// Выполняем получение установленного числа
-										item = this->_fmk->noexp(m.value.GetFloat(), true);
-										// Продолжаем дальше
-										continue;
 									// Если значение является числом с плавающей точкой двойной точности
 									} else if(m.value.IsDouble()) {
 										// Выполняем получение установленного числа
 										item = this->_fmk->noexp(m.value.GetDouble(), true);
+										// Продолжаем дальше
+										continue;
+									// Если значение является числом с плавающей точкой
+									} else if(m.value.IsFloat()) {
+										// Выполняем получение установленного числа
+										item = this->_fmk->noexp(m.value.GetFloat(), true);
 										// Продолжаем дальше
 										continue;
 									// Если значение является строкой
@@ -2658,18 +2658,6 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 								result.append(std::to_string(m.value.GetUint64()));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
-							// Если значение является числом с правающей точкой
-							} else if(m.value.IsFloat()) {
-								// Выполняем добавление разделителя параметра
-								result.append(1, ' ');
-								// Выполняем добавление ключа записи
-								result.append(key);
-								// Выполняем добавление знака присвоения
-								result.append("=\"");
-								// Выполняем установку полученного числа
-								result.append(this->_fmk->noexp(m.value.GetFloat(), true));
-								// Выполняем добавление экранирование параметра
-								result.append(1, '"');
 							// Если значение является числом с правающей точкой двойной точности
 							} else if(m.value.IsDouble()) {
 								// Выполняем добавление разделителя параметра
@@ -2680,6 +2668,18 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 								result.append("=\"");
 								// Выполняем установку полученного числа
 								result.append(this->_fmk->noexp(m.value.GetDouble(), true));
+								// Выполняем добавление экранирование параметра
+								result.append(1, '"');
+							// Если значение является числом с правающей точкой
+							} else if(m.value.IsFloat()) {
+								// Выполняем добавление разделителя параметра
+								result.append(1, ' ');
+								// Выполняем добавление ключа записи
+								result.append(key);
+								// Выполняем добавление знака присвоения
+								result.append("=\"");
+								// Выполняем установку полученного числа
+								result.append(this->_fmk->noexp(m.value.GetFloat(), true));
 								// Выполняем добавление экранирование параметра
 								result.append(1, '"');
 							// Если значение является строкой
@@ -2887,33 +2887,6 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 					if(prettify)
 						// Выполняем добавление переноса строк
 						result.append(1, '\n');
-				// Если значение является числом с плавающей точкой
-				} else if(value.IsFloat()) {
-					// Если количество отступов больше нуля
-					if(prettify && (tabs > 0)){
-						// Выполняем установку количества отступов
-						for(uint16_t i = 0; i < tabs; i++)
-							// Выполняем добавление отступов
-							result.append(1, '\t');
-					}
-					// Выполняем открытие тега
-					result.append(1, '<');
-					// Выполняем формирование результата
-					result.append(key);
-					// Выполняем закрытие тега
-					result.append(1, '>');
-					// Добавляем полученное число
-					result.append(this->_fmk->noexp(value.GetFloat(), true));
-					// Выполняем закрытие тега
-					result.append("</");
-					// Выполняем установку тега
-					result.append(key);
-					// Выполняем закрытие тега
-					result.append(1, '>');
-					// Если разрешено выполнять разложение XML-объекта
-					if(prettify)
-						// Выполняем добавление переноса строк
-						result.append(1, '\n');
 				// Если значение является числом с плавающей точкой двойной точности
 				} else if(value.IsDouble()) {
 					// Если количество отступов больше нуля
@@ -2931,6 +2904,33 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 					result.append(1, '>');
 					// Добавляем полученное число
 					result.append(this->_fmk->noexp(value.GetDouble(), true));
+					// Выполняем закрытие тега
+					result.append("</");
+					// Выполняем установку тега
+					result.append(key);
+					// Выполняем закрытие тега
+					result.append(1, '>');
+					// Если разрешено выполнять разложение XML-объекта
+					if(prettify)
+						// Выполняем добавление переноса строк
+						result.append(1, '\n');
+				// Если значение является числом с плавающей точкой
+				} else if(value.IsFloat()) {
+					// Если количество отступов больше нуля
+					if(prettify && (tabs > 0)){
+						// Выполняем установку количества отступов
+						for(uint16_t i = 0; i < tabs; i++)
+							// Выполняем добавление отступов
+							result.append(1, '\t');
+					}
+					// Выполняем открытие тега
+					result.append(1, '<');
+					// Выполняем формирование результата
+					result.append(key);
+					// Выполняем закрытие тега
+					result.append(1, '>');
+					// Добавляем полученное число
+					result.append(this->_fmk->noexp(value.GetFloat(), true));
 					// Выполняем закрытие тега
 					result.append("</");
 					// Выполняем установку тега
