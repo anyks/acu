@@ -82,7 +82,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 			 * @param name название ключа куда добавляется содержимое ноды
 			 * @param node объект текущей ноды
 			 */
-			parseFn = [&parseFn, this](Document & root, const Value & name, const YAML::Node & node) -> void {
+			parseFn = [&parseFn, this](Document & root, const Value & name, const YAML::Node & node) noexcept -> void {
 				// Определяем тип полученной ноды
 				switch(node.Type()){
 					// Если объект определён как не существующий
@@ -373,7 +373,7 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 			 * @param name  название ключа куда добавляется содержимое ноды
 			 * @param value объект текущей ноды
 			 */
-			parseFn = [&parseFn, this](YAML::Node & node, const Value & name, const Value & value) -> void {
+			parseFn = [&parseFn, this](YAML::Node & node, const Value & name, const Value & value) noexcept -> void {
 				// Если значение является отрицательным 32-х битным числом
 				if(value.IsInt()){
 					// Если название ячейки является числом
@@ -1023,7 +1023,7 @@ Document anyks::Parser::xml(const string & text) noexcept {
 					 * @param node      объект текущей ноды
 					 * @param allocator аллокатор для копирования
 					 */
-					parseFn = [&parseFn, this](Value & root, xmlNodePtr node, Document::AllocatorType & allocator) -> void {
+					parseFn = [&parseFn, this](Value & root, xmlNodePtr node, Document::AllocatorType & allocator) noexcept -> void {
 						// Если переданная нода существует
 						while(node != nullptr){
 							// Если нода передана не системная
