@@ -1605,7 +1605,6 @@ Document anyks::Parser::xml(const string & text) noexcept {
 												/**
 												 * Если возникает ошибка
 												 */
-									
 												} catch(const exception &) {
 													// Если элемент не является массивом
 													if(root[reinterpret_cast <const char *> (node->name)].IsObject())
@@ -2534,7 +2533,7 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 						for(auto & m : value.GetObj()){
 							// Получаем ключ записи
 							const string & key = (this->_fmk->is(m.name.GetString(), fmk_t::check_t::NUMBER) ? this->_fmk->format("Item%s", m.name.GetString()) : m.name.GetString());
-							// Если ключом является устанавливаемое значение							
+							// Если ключом является устанавливаемое значение
 							if((pos = key.rfind("value")) != string::npos){
 								// Если значение ещё не установлено
 								if(item.empty() || (pos > count)){

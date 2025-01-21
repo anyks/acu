@@ -103,7 +103,7 @@ string anyks::Grok::Variables::get(const string & text, const uint8_t index) noe
 								// Выводим название переменной
 								return name;
 						}
-					}	
+					}
 				}
 			}
 		/**

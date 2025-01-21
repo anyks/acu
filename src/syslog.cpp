@@ -246,7 +246,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 														pos = (i + 1);
 														// Увеличиваем значение статуса
 														status++;
-													}								
+													}
 												// Если мы перебрали все оставшиеся символы
 												} else if(i == (syslog.length() - 1))
 													// Устанавливаем полученное сообщение
