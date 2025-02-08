@@ -724,8 +724,6 @@ string anyks::Cef::cef() const noexcept {
 							case static_cast <uint8_t> (type_t::IP): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Если количество байт в буфере 4
 									if(extension.second.size() == 4){
 										// Формируем число из бинарного буфера
@@ -733,7 +731,7 @@ string anyks::Cef::cef() const noexcept {
 										// Копируем в бинарный буфер данные IP адреса
 										::memcpy(&value, extension.second.data(), extension.second.size());
 										// Устанавливаем данные адреса в объект сети
-										net.v4(value);
+										this->_net.v4(value);
 									// Если количество байт в буфере 16
 									} else if(extension.second.size() == 16){
 										// Формируем бинарный буфер данных
@@ -741,14 +739,14 @@ string anyks::Cef::cef() const noexcept {
 										// Копируем в бинарный буфер данные IP адреса
 										::memcpy(buffer.data(), extension.second.data(), extension.second.size());
 										// Устанавливаем данные адреса в объект сети
-										net.v6(buffer);
+										this->_net.v6(buffer);
 									}
 									// Добавляем ключ расширения
 									result.append(extension.first);
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(net);
+									result.append(this->_net);
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else {
 									// Добавляем ключ расширения
@@ -763,20 +761,18 @@ string anyks::Cef::cef() const noexcept {
 							case static_cast <uint8_t> (type_t::MAC): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Формируем число из бинарного буфера
 									uint64_t value = 0;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(&value, extension.second.data(), extension.second.size());
 									// Устанавливаем данные адреса в объект сети
-									net.mac(value);
+									this->_net.mac(value);
 									// Добавляем ключ расширения
 									result.append(extension.first);
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(net);
+									result.append(this->_net);
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else {
 									// Добавляем ключ расширения
@@ -791,20 +787,18 @@ string anyks::Cef::cef() const noexcept {
 							case static_cast <uint8_t> (type_t::IPV4): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Формируем число из бинарного буфера
 									uint32_t value = 0;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(&value, extension.second.data(), extension.second.size());
 									// Устанавливаем данные адреса в объект сети
-									net.v4(value);
+									this->_net.v4(value);
 									// Добавляем ключ расширения
 									result.append(extension.first);
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(net);
+									result.append(this->_net);
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else {
 									// Добавляем ключ расширения
@@ -819,20 +813,18 @@ string anyks::Cef::cef() const noexcept {
 							case static_cast <uint8_t> (type_t::IPV6): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Формируем бинарный буфер данных
 									array <uint64_t, 2> buffer;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(buffer.data(), extension.second.data(), extension.second.size());
 									// Устанавливаем данные адреса в объект сети
-									net.v6(buffer);
+									this->_net.v6(buffer);
 									// Добавляем ключ расширения
 									result.append(extension.first);
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(net);
+									result.append(this->_net);
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else {
 									// Добавляем ключ расширения
@@ -1149,8 +1141,6 @@ anyks::json anyks::Cef::dump() const noexcept {
 							case static_cast <uint8_t> (type_t::IP): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Если количество байт в буфере 4
 									if(extension.second.size() == 4){
 										// Формируем число из бинарного буфера
@@ -1158,7 +1148,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 										// Копируем в бинарный буфер данные IP адреса
 										::memcpy(&value, extension.second.data(), extension.second.size());
 										// Устанавливаем данные адреса в объект сети
-										net.v4(value);
+										this->_net.v4(value);
 									// Если количество байт в буфере 16
 									} else if(extension.second.size() == 16){
 										// Формируем бинарный буфер данных
@@ -1166,10 +1156,10 @@ anyks::json anyks::Cef::dump() const noexcept {
 										// Копируем в бинарный буфер данные IP адреса
 										::memcpy(buffer.data(), extension.second.data(), extension.second.size());
 										// Устанавливаем данные адреса в объект сети
-										net.v6(buffer);
+										this->_net.v6(buffer);
 									}
 									// Получаем IP-адрес
-									const string & addr = net;
+									const string & addr = this->_net;
 									// Устанавливаем значение ключа
 									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(addr.c_str(), addr.length(), result.GetAllocator()).Move(), result.GetAllocator());
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1183,12 +1173,10 @@ anyks::json anyks::Cef::dump() const noexcept {
 									uint64_t value = 0;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(&value, extension.second.data(), extension.second.size());
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Устанавливаем данные адреса в объект сети
-									net.mac(value);
+									this->_net.mac(value);
 									// Получаем IP-адрес
-									const string & addr = net;
+									const string & addr = this->_net;
 									// Устанавливаем значение ключа
 									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(addr.c_str(), addr.length(), result.GetAllocator()).Move(), result.GetAllocator());
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1202,12 +1190,10 @@ anyks::json anyks::Cef::dump() const noexcept {
 									uint32_t value = 0;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(&value, extension.second.data(), extension.second.size());
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Устанавливаем данные адреса в объект сети
-									net.v4(value);
+									this->_net.v4(value);
 									// Получаем IP-адрес
-									const string & addr = net;
+									const string & addr = this->_net;
 									// Устанавливаем значение ключа
 									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(addr.c_str(), addr.length(), result.GetAllocator()).Move(), result.GetAllocator());
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1221,12 +1207,10 @@ anyks::json anyks::Cef::dump() const noexcept {
 									array <uint64_t, 2> buffer;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(buffer.data(), extension.second.data(), extension.second.size());
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Устанавливаем данные адреса в объект сети
-									net.v6(buffer);
+									this->_net.v6(buffer);
 									// Получаем IP-адрес
-									const string & addr = net;
+									const string & addr = this->_net;
 									// Устанавливаем значение ключа
 									result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(addr.c_str(), addr.length(), result.GetAllocator()).Move(), result.GetAllocator());
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -1937,8 +1921,6 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							case static_cast <uint8_t> (type_t::IP): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Если количество байт в буфере 4
 									if(extension.second.size() == 4){
 										// Формируем число из бинарного буфера
@@ -1946,7 +1928,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 										// Копируем в бинарный буфер данные IP адреса
 										::memcpy(&value, extension.second.data(), extension.second.size());
 										// Устанавливаем данные адреса в объект сети
-										net.v4(value);
+										this->_net.v4(value);
 									// Если количество байт в буфере 16
 									} else if(extension.second.size() == 16){
 										// Формируем бинарный буфер данных
@@ -1954,10 +1936,10 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 										// Копируем в бинарный буфер данные IP адреса
 										::memcpy(buffer.data(), extension.second.data(), extension.second.size());
 										// Устанавливаем данные адреса в объект сети
-										net.v6(buffer);
+										this->_net.v6(buffer);
 									}
 									// Устанавливаем значение ключа
-									result.emplace(extension.first, net);
+									result.emplace(extension.first, this->_net);
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 							} break;
@@ -1965,16 +1947,14 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							case static_cast <uint8_t> (type_t::MAC): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Формируем число из бинарного буфера
 									uint64_t value = 0;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(&value, extension.second.data(), extension.second.size());
 									// Устанавливаем данные адреса в объект сети
-									net.mac(value);
+									this->_net.mac(value);
 									// Устанавливаем значение ключа
-									result.emplace(extension.first, net);
+									result.emplace(extension.first, this->_net);
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 							} break;
@@ -1982,16 +1962,14 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							case static_cast <uint8_t> (type_t::IPV4): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Формируем число из бинарного буфера
 									uint32_t value = 0;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(&value, extension.second.data(), extension.second.size());
 									// Устанавливаем данные адреса в объект сети
-									net.v4(value);
+									this->_net.v4(value);
 									// Устанавливаем значение ключа
-									result.emplace(extension.first, net);
+									result.emplace(extension.first, this->_net);
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 							} break;
@@ -1999,16 +1977,14 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 							case static_cast <uint8_t> (type_t::IPV6): {
 								// Если включён строгий режим парсинга
 								if(this->_mode == mode_t::STRONG){
-									// Создаём объект сети
-									net_t net(this->_log);
 									// Формируем бинарный буфер данных
 									array <uint64_t, 2> buffer;
 									// Копируем в бинарный буфер данные IP адреса
 									::memcpy(buffer.data(), extension.second.data(), extension.second.size());
 									// Устанавливаем данные адреса в объект сети
-									net.v6(buffer);
+									this->_net.v6(buffer);
 									// Устанавливаем значение ключа
-									result.emplace(extension.first, net);
+									result.emplace(extension.first, this->_net);
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 							} break;
@@ -2366,16 +2342,14 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						case static_cast <uint8_t> (type_t::IP): {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
 								// Выполняем парсинг сетевого адреса
-								if(net.parse(value)){
+								if(this->_net.parse(value)){
 									// Выполняем определение типа IP адреса
-									switch(static_cast <uint8_t> (net.type())){
+									switch(static_cast <uint8_t> (this->_net.type())){
 										// Если IP адрес определён как IPv4
 										case static_cast <uint8_t> (net_t::type_t::IPV4): {
 											// Извлекаем данные IP адреса
-											const uint32_t data = net.v4();
+											const uint32_t data = this->_net.v4();
 											// Добавляем полученное расширение в базу
 											this->extension(key, vector <char> (
 												reinterpret_cast <const char *> (&data),
@@ -2385,7 +2359,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 										// Если IP адрес определён как IPv6
 										case static_cast <uint8_t> (net_t::type_t::IPV6): {
 											// Извлекаем данные IP адреса
-											const auto & data = net.v6();
+											const auto & data = this->_net.v6();
 											// Добавляем полученное расширение в базу
 											this->extension(key, vector <char> (data.begin(), data.end()));
 										} break;
@@ -2413,12 +2387,10 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						case static_cast <uint8_t> (type_t::MAC): {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
 								// Выполняем парсинг аппаратного адреса
-								if(net.parse(value, net_t::type_t::MAC)){
+								if(this->_net.parse(value, net_t::type_t::MAC)){
 									// Извлекаем данные MAC адреса
-									const uint64_t data = net.mac();
+									const uint64_t data = this->_net.mac();
 									// Добавляем полученное расширение в базу
 									this->extension(key, vector <char> (
 										reinterpret_cast <const char *> (&data),
@@ -2447,12 +2419,10 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						case static_cast <uint8_t> (type_t::IPV4): {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
 								// Выполняем парсинг сетевого адреса
-								if(net.parse(value, net_t::type_t::IPV4)){
+								if(this->_net.parse(value, net_t::type_t::IPV4)){
 									// Извлекаем данные IP адреса
-									const uint32_t data = net.v4();
+									const uint32_t data = this->_net.v4();
 									// Добавляем полученное расширение в базу
 									this->extension(key, vector <char> (
 										reinterpret_cast <const char *> (&data),
@@ -2481,12 +2451,10 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 						case static_cast <uint8_t> (type_t::IPV6): {
 							// Если включён строгий режим парсинга
 							if(this->_mode == mode_t::STRONG){
-								// Создаём объект сети
-								net_t net(this->_log);
 								// Выполняем парсинг сетевого адреса
-								if(net.parse(value, net_t::type_t::IPV6)){
+								if(this->_net.parse(value, net_t::type_t::IPV6)){
 									// Извлекаем данные IP адреса
-									const auto & data = net.v6();
+									const auto & data = this->_net.v6();
 									// Добавляем полученное расширение в базу
 									this->extension(key, vector <char> (data.begin(), data.end()));
 								// Выводим сообщение об ошибке
@@ -3053,7 +3021,8 @@ anyks::Cef & anyks::Cef::operator = (const string & cef) noexcept {
  * @param log объект для работы с логами
  */
 anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
- _mode(mode_t::STRONG), _version(1.2), _header{""}, _format{FORMAT}, _fmk(fmk), _log(log) {
+ _mode(mode_t::STRONG), _version(1.2), _header{""},
+ _format{FORMAT}, _net(log), _fmk(fmk), _log(log) {
 	/**
 	 * Формируем схему расширений для SEFv0
 	 */
