@@ -3,66 +3,32 @@
 # Получаем корневую дирректорию
 readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 
+# Устанавливаем каталог с скриптами
+readonly SCRIPTS="$ROOT/sh"
+
+# Каталог для установки собранных библиотек
+readonly PREFIX="$ROOT/third_party"
+
 # Получаем версию OS
 OS=$(uname -a | awk '{print $1}')
-
-# Флаг активации модуля IDN
-IDN="no"
-
-# Флаг активации режима отладки
-DEBUG="no"
 
 if [[ $OS =~ "MINGW64" ]]; then
 	OS="Windows"
 fi
 
-if [ -n "$1" ]; then
-	if [ $1 = "--clean" ] || [ $1 = "--reset" ]; then
-
-		# Очистка подпроекта
-		clean_submodule(){
-			cd "$ROOT/submodules/$1" || exit 1
-			git clean -dfx
-			git stash
-			cd "$ROOT" || exit 1
-		}
-
-		# Очистка директории
-		clean_directory(){
-			git clean -dfx "$1"
-		}
-
-		clean_submodule "yaml"
-		clean_submodule "libxml2"
-
-		if [ $1 = "--reset" ]; then
-			clean_submodule "awh"
-			"$ROOT/submodules/awh/build_third_party.sh" --clean
-		else
-			rm -rf "$ROOT/submodules/awh/build"
-			rm -f "$ROOT/submodules/awh/.stamp_done"
-		fi
-
-		# Удаляем сборочную директорию
-		rm -rf "$ROOT/third_party"
-
-		printf "\n****************************************"
-		printf "\n************   Success!!!   ************"
-		printf "\n****************************************"
-		printf "\n\n\n"
-
-		exit 0
-	elif [ $1 != "--update" ]; then
-		printf "Usage: config [options]\n"
-		printf " --clean - Cleaning all submodules and build directory\n"
-
-		exit 1
-	fi
+# Тип архитектуры
+ARCHITECTURE=""
+# Получаем тип архитектуры
+if [ $OS = "FreeBSD" ]; then # FreeBSD
+	ARCHITECTURE=$(sysctl -a | egrep -i 'hw.machine|hw.model|hw.ncpu' | grep hw.machine: | awk '{print $2}')
+else # Linux
+	ARCHITECTURE=$(arch)
 fi
 
-# Каталог для установки собранных библиотек
-PREFIX="$ROOT/third_party"
-export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
+# Выполняем корректировку типа процессора
+if [ $ARCHITECTURE = "arm64" ] || [ $ARCHITECTURE = "aarch64" ]; then
+	ARCHITECTURE="arm"
+fi
 
 # Устанавливаем флаги глобального использования
 # export CPPFLAGS=""
@@ -71,6 +37,9 @@ export CFLAGS="-I$PREFIX/include -fPIC"
 
 export LDFLAGS="-L$PREFIX/lib"
 export LD_LIBRARY_PATH="$PREFIX/lib"
+
+# Инициализируем каталоги установки
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
 
 # Создаём каталоги
 mkdir -p "$PREFIX/bin"
@@ -81,11 +50,8 @@ mkdir -p "$PREFIX/include"
 if [ $OS = "Darwin" ]; then
 	# Устанавливаем количество ядер системы
 	numproc=$(sysctl -n hw.logicalcpu)
-	# Если версия MacOS X не установлена
-	if [ ! -n "$MACOSX_DEPLOYMENT_TARGET" ]; then
-		# Устанавливаем версию операционной системы
-		export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion)
-	fi
+	# Устанавливаем версию операционной системы
+	export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion)
 elif [ $OS = "FreeBSD" ]; then
 	# Устанавливаем количество ядер системы
 	numproc=$(sysctl -n hw.ncpu)
@@ -94,15 +60,18 @@ else
 	numproc=$(nproc)
 fi
 
-if [ $OS = "Darwin" ]; then # MacOS
-	INSTALL_CMD="ditto -v"
-elif [ $OS = "FreeBSD" ]; then # FreeBSD
-	INSTALL_CMD="install -m 0644"
-elif [ $OS = "Windows" ]; then # Windows
-	INSTALL_CMD="install -D -m 0644"
-else # Linux
-	INSTALL_CMD="install -D -m 0644"
-fi
+# Очистка директории
+clean_directory(){
+	git clean -dfx "$1"
+}
+
+# Очистка подпроекта
+clean_submodule(){
+	cd "$ROOT/submodules/$1" || exit 1
+	git clean -dfx
+	git checkout .
+	cd "$ROOT" || exit 1
+}
 
 # Применяем патчи
 apply_patch(){
@@ -115,224 +84,119 @@ apply_patch(){
 	fi
 }
 
-if [[ $CMD != "--update" ]]; then
+# Если необходимо обновить или удалить зависимости
+if [ -n "$1" ]; then
+	# Если необходимо удалить или очистить модуль
+	if [ $1 = "--clean" ]; then
+		# Производим перебор всех скриптов зависимостей
+		for i in $(ls $SCRIPTS | grep .sh$);
+		do
+			source $SCRIPTS/$i --clean || exit 1
+		done
+
+		# Удаляем каталог зависимостей
+		rm -rf "$ROOT/third_party"
+
+		printf "\n****************************************"
+		printf "\n************   Success!!!   ************"
+		printf "\n****************************************"
+		printf "\n\n\n"
+
+		exit 0
+	# Если необходимо полностью сбросить проект
+	elif [ $1 = "--reset" ]; then
+		# Производим перебор всех скриптов зависимостей
+		for i in $(ls $SCRIPTS | grep .sh$);
+		do
+			source $SCRIPTS/$i --reset || exit 1
+		done
+
+		# Удаляем каталог зависимостей
+		rm -rf "$ROOT/third_party"
+
+		printf "\n****************************************"
+		printf "\n************   Success!!!   ************"
+		printf "\n****************************************"
+		printf "\n\n\n"
+
+		exit 0
+	# Если необходимо обновить зависимости
+	elif [ $1 = "--update" ]; then
+		# Производим перебор всех скриптов зависимостей
+		for i in $(ls $SCRIPTS | grep .sh$);
+		do
+			source $SCRIPTS/$i --update || exit 1
+		done
+
+		# Переименовываем расширение библиотек для Windows
+		if [ $OS = "Windows" ]; then # Windows
+			for i in $(ls "$PREFIX/lib" | grep .a$);
+			do
+				mv "$PREFIX/lib/$i" "$PREFIX/lib/$(basename "$i" .a).lib"
+			done
+		fi
+
+		printf "\n****************************************"
+		printf "\n************   Success!!!   ************"
+		printf "\n****************************************"
+		printf "\n\n\n"
+	# Если команда не распознана
+	else
+		printf "Usage: config [options]\n"
+		printf " --clean - Cleaning all submodules and build directory\n"
+
+		exit 1
+	fi
+# Если необходимо собрать зависимости
+else
 	# Выполняем синхронизацию сабмодулей
 	git submodule sync
 	# Инициализируем подпроекты
 	git submodule update --init --recursive
-fi
 
-# Сборка AWH
-src="$ROOT/submodules/awh"
-if [ ! -f "$src/.stamp_done" ]; then
-	printf "\n****** ANYKS AWH ******\n"
-	cd "$src" || exit 1
-
-	# Версия AWH
-	VER="4.3.0"
-
-	# Переключаемся на main
-	git checkout main
-	# Выполняем удаление предыдущей закаченной версии
-	git tag -d v${VER}
-	# Закачиваем все теги
-	git fetch --all --tags
-	# Удаляем старую ветку
-	git branch -D v${VER}-branch
-	# Выполняем переключение на указанную версию
-	git checkout -b v${VER}-branch v${VER}
-
-	if [[ $CMD = "--update" ]]; then
-		# Выполняем обновление репозитория
-		git pull origin main
+	# Если файл зависимостей не найден
+	if [ ! -f "$ROOT/Requirements.txt" ]; then
+		# Производим перебор всех скриптов зависимостей
+		for i in $(ls $SCRIPTS | grep .sh$);
+		do
+			source $SCRIPTS/$i --build || exit 1
+		done
+	# Если зависимости найдены
 	else
-		# Выполняем конфигурацию проекта
-		if [[ $OS = "Windows" ]]; then
-			# Выполняем сборку зависимостей
-			./build_third_party.sh
-		else
-			# Выполняем сборку зависимостей
-			./build_third_party.sh --idn
-		fi
+		# Перебираем все зависимости из файла зависимостей
+		while read i; do
+			# Получаем название модуля
+			name=$(echo "$i" | awk '{print $1;}')
+			# Получаем название флага
+			flag=$(echo "$i" | awk '{print $2;}')
+			# Получаем название ветки или тега
+			type=$(echo "$i" | awk '{print $3;}')
+			# Если указан флаг ветки
+			if [ $flag = "--branch" ]; then
+				source $SCRIPTS/*_$name.sh --build --b$type || exit 1
+			# Если указан флаг тега
+			elif [ $flag = "--tag" ]; then
+				source $SCRIPTS/*_$name.sh --build --t$type || exit 1
+			# Если указан коммит
+			elif [ $flag = "--commit" ]; then
+				source $SCRIPTS/*_$name.sh --build --c$type || exit 1
+			# Если указана версия модуля
+			elif [ $flag = "--version" ]; then
+				source $SCRIPTS/*_$name.sh --build --v$type || exit 1
+			fi
+		done <"$ROOT/Requirements.txt"
 	fi
 
-	# Создаём каталог сборки
-	mkdir -p "build" || exit 1
-	# Переходим в каталог
-	cd "build" || exit 1
-
-	# Удаляем старый файл кэша
-	rm -rf "$src/build/CMakeCache.txt"
-
-	# Выполняем конфигурацию проекта
-	if [[ $OS = "Windows" ]]; then
-		cmake \
-		 -DCMAKE_BUILD_IDN="ON" \
-		 -DCMAKE_BUILD_TYPE=Release \
-		 -DCMAKE_SYSTEM_NAME=Windows \
-		 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-		 -G "MSYS Makefiles" \
-		 .. || exit 1
-	else
-		cmake \
-		 -DCMAKE_BUILD_IDN="ON" \
-		 -DCMAKE_BUILD_TYPE=Release \
-		 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-		 .. || exit 1
+	# Переименовываем расширение библиотек для Windows
+	if [ $OS = "Windows" ]; then # Windows
+		for i in $(ls "$PREFIX/lib" | grep .a$);
+		do
+			mv "$PREFIX/lib/$i" "$PREFIX/lib/$(basename "$i" .a).lib"
+		done
 	fi
 
-	# Выполняем сборку на всех логических ядрах
-	make -j"$numproc" || exit 1
-	# Выполняем установку проекта
-	make install || exit 1
-
-	# Помечаем флагом, что сборка и установка произведена
-	touch "$src/.stamp_done"
-	cd "$ROOT" || exit 1
+	printf "\n****************************************"
+	printf "\n************   Success!!!   ************"
+	printf "\n****************************************"
+	printf "\n\n\n"
 fi
-
-# Сборка YAML
-src="$ROOT/submodules/yaml"
-if [ ! -f "$src/.stamp_done" ]; then
-	printf "\n****** YAML ******\n"
-	cd "$src" || exit 1
-
-	# Версия YAML
-	VER="0.8.0"
-
-	# Переключаемся на master
-	git checkout master
-	# Выполняем удаление предыдущей закаченной версии
-	git tag -d v${VER}
-	# Закачиваем все теги
-	git fetch --all --tags
-	# Удаляем старую ветку
-	git branch -D v${VER}-branch
-	# Выполняем переключение на указанную версию
-	git checkout -b v${VER}-branch ${VER}
-
-	if [[ $CMD = "--update" ]]; then
-		# Выполняем обновление репозитория
-		git pull origin master
-	fi
-
-	# Создаём каталог сборки
-	mkdir -p "build" || exit 1
-	# Переходим в каталог
-	cd "build" || exit 1
-
-	# Удаляем старый файл кэша
-	rm -rf "$src/build/CMakeCache.txt"
-
-	# Выполняем конфигурацию проекта
-	if [[ $OS = "Windows" ]]; then
-		cmake \
-		 -DCMAKE_BUILD_TYPE=Release \
-		 -DCMAKE_SYSTEM_NAME=Windows \
-		 -DYAML_CPP_BUILD_TOOLS=OFF \
-		 -DYAML_BUILD_SHARED_LIBS=OFF \
-		 -DYAML_CPP_BUILD_CONTRIB=OFF \
-		 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-		 -G "MSYS Makefiles" \
-		 .. || exit 1
-	else
-		cmake \
-		 -DCMAKE_BUILD_TYPE=Release \
-		 -DYAML_CPP_BUILD_TOOLS=OFF \
-		 -DYAML_BUILD_SHARED_LIBS=OFF \
-		 -DYAML_CPP_BUILD_CONTRIB=OFF \
-		 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-		 .. || exit 1
-	fi
-
-	# Выполняем сборку на всех логических ядрах
-	make -j"$numproc" || exit 1
-	# Выполняем установку проекта
-	make install || exit 1
-
-	# Помечаем флагом, что сборка и установка произведена
-	touch "$src/.stamp_done"
-	cd "$ROOT" || exit 1
-fi
-
-# Сборка LibXML2
-src="$ROOT/submodules/libxml2"
-if [ ! -f "$src/.stamp_done" ]; then
- 	printf "\n****** GNU LibXML2 ******\n"
- 	cd "$src" || exit 1
-
-	# Версия LibXML2
-	VER="2.13.5"
-
-	# Выполняем удаление предыдущей закаченной версии
-	git tag -d v${VER}
-	# Закачиваем все изменения
-	git fetch --all
-	# Закачиваем все теги
-	git fetch --all --tags
-	# Выполняем жесткое переключение на master
-	git reset --hard origin/master
-	# Переключаемся на master
-	git checkout master
-	# Выполняем обновление данных
-	git pull origin master
-	# Удаляем старую ветку
-	git branch -D v${VER}-branch
-	# Выполняем переключение на указанную версию
-	git checkout -b v${VER}-branch v${VER}
-
-	# Создаём каталог сборки
-	mkdir -p "build" || exit 1
-	# Переходим в каталог
-	cd "build" || exit 1
-
-	# Удаляем старый файл кэша
-	rm -rf "$src/build/CMakeCache.txt"
-
-	# Выполняем конфигурацию проекта
-	if [[ $OS = "Windows" ]]; then
-		cmake \
-		 -DBUILD_SHARED_LIBS="OFF" \
-		 -DLIBXML2_WITH_LZMA="OFF" \
-		 -DLIBXML2_WITH_ZLIB="OFF" \
-		 -DLIBXML2_WITH_ICONV="OFF" \
-		 -DLIBXML2_WITH_PYTHON="OFF" \
-		 -DCMAKE_BUILD_TYPE=Release \
-		 -DCMAKE_SYSTEM_NAME=Windows \
-		 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-		 -G "MSYS Makefiles" \
-		 .. || exit 1
-	else
-		cmake \
-		 -DBUILD_SHARED_LIBS="OFF" \
-		 -DLIBXML2_WITH_LZMA="OFF" \
-		 -DLIBXML2_WITH_ZLIB="OFF" \
-		 -DLIBXML2_WITH_ICONV="OFF" \
-		 -DLIBXML2_WITH_PYTHON="OFF" \
-		 -DCMAKE_BUILD_TYPE=Release \
-		 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-		 .. || exit 1
-	fi
-
-	# Выполняем сборку на всех логических ядрах
-	make -j"$numproc" || exit 1
-	# Выполняем установку проекта
-	make install || exit 1
-
-	# Помечаем флагом, что сборка и установка произведена
-	touch "$src/.stamp_done"
-	cd "$ROOT" || exit 1
-fi
-
-# Переименовываем расширение библиотек для Windows
-if [ $OS = "Windows" ]; then # Windows
-	for i in $(ls "$PREFIX/lib" | grep .a$);
-	do
-		mv "$PREFIX/lib/$i" "$PREFIX/lib/$(basename "$i" .a).lib"
-	done
-fi
-
-printf "\n****************************************"
-printf "\n************   Success!!!   ************"
-printf "\n****************************************"
-printf "\n\n\n"

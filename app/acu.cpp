@@ -40,6 +40,7 @@ static void help(const string & name) noexcept {
 		// Формируем строку справки
 		const string msg = "\r\n\x1B[32m\x1B[1musage:\x1B[0m %s [-V | --version] [-H | --info] [<args>]\r\n\r\n\r\n"
 		"\x1B[34m\x1B[1m[FLAGS]\x1B[0m\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert notation: \x1B[1m[-notation | --notation]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for generating headers when parsing CSV files: \x1B[1m[-header | --header]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for generating a readable file format (XML or JSON): \x1B[1m[-prettify | --prettify]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Display application version: \x1B[1m[-version | --version | -V]\x1B[0m\r\n\r\n"
@@ -1710,6 +1711,243 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				}
 			// Выводим сообщение, что файл или каталог не указан
 			} else log.print("Address of the file or directory for conversion is not specified", log_t::flag_t::CRITICAL);
+		// Если указаны форматы системы счисления
+		} else if(env.isNumber(false, "from") && env.isNumber(false, "to") && env.isBoolean(false, "notation")) {
+			// Получаем систему счисления в которую необходимо выполнить конвертацию
+			const uint8_t to = env.get <uint8_t> (false, "to");
+			// Получаем систему счисления из которой необходимо выполнить конвертацию
+			const uint8_t from = env.get <uint8_t> (false, "from");
+			// Если данные прочитаны из потока
+			if(!text.empty()){
+				// Если система счиления из которой производится конвертация не указана
+				if((from == 0) && (to == 2)){
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
+						// Определяем размер числа
+						const size_t size = fmk.size(text.c_str(), text.size());
+						// Создаём бинарный буфер
+						uint8_t * buffer = new uint8_t[size];
+						// Копируем в буфер наши данные
+						::memcpy(buffer, text.c_str(), text.size());
+						// Выполняем конвертацию полученного текста
+						cout << fmk.itoa(buffer, size, to) << endl;
+						// Удаляем выделенную память
+						delete [] buffer;
+					/**
+					 * Если возникает ошибка
+					 */
+					} catch(const exception & error) {
+						// Выводим сообщение об ошибке
+						log.print("%s", log_t::flag_t::CRITICAL, error.what());
+					}
+				// Если система счисления из которой производится конвертация является десятичная
+				} else if((from == 10) && ((to > 1) && (to < 37))) {
+					// Текст передан в виде числа
+					if(fmk.is(text, fmk_t::check_t::NUMBER)){
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Получаем число
+							const uint64_t num = static_cast <uint64_t> (text.front() == '-' ? (::stoll(text) * -1) : ::stoull(text));
+							// Определяем размер числа
+							const size_t size = fmk.size(num);
+							// Если число помещается в один байт
+							if(size == 1)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint8_t> (num), to) << endl;
+							// Если число помещается в два байта
+							else if(size == 2)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint16_t> (num), to) << endl;
+							// Если число помещается в четыре байта
+							else if(size <= 4)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint32_t> (num), to) << endl;
+							// Если число помещается в 8 байт
+							else if(size <= 8)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint64_t> (num), to) << endl;
+							// Выводим сообщение об ошибке
+							else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const exception &) {
+							// Выводим сообщение об ошибке
+							log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+						}
+					// Текст передан в виде числа с плавающей точкой
+					} else if(fmk.is(text, fmk_t::check_t::DECIMAL)) {
+						/**
+						 * Выполняем отлов ошибок
+						 */
+						try {
+							// Получаем переданное число
+							const uint64_t num = static_cast <uint64_t> (text.front() == '-' ? ::round(::stod(text) * -1) : ::round(::stod(text)));
+							// Определяем размер числа
+							const size_t size = fmk.size(num);
+							// Если число помещается в один байт
+							if(size == 1)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint8_t> (num), to) << endl;
+							// Если число помещается в два байта
+							else if(size == 2)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint16_t> (num), to) << endl;
+							// Если число помещается в четыре байта
+							else if(size <= 4)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint32_t> (num), to) << endl;
+							// Если число помещается в 8 байт
+							else if(size <= 8)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint64_t> (num), to) << endl;
+							// Выводим сообщение об ошибке
+							else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+						/**
+						 * Если возникает ошибка
+						 */
+						} catch(const exception &) {
+							// Выводим сообщение об ошибке
+							log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+						}
+					// Если текст передан не в виде числа, то выводим сообщение об ошибке
+					} else log.print("Data to be converted must be in the form of a number", log_t::flag_t::CRITICAL);
+				// Если система счисления в которую производится конвертация является десятичная
+				} else if((to < 37) && ((from > 1) && (from < 37))) {
+					// Если система счисления является двоичной
+					if(from == 2){
+						// Размер бинарного буфера
+						size_t size = 0;
+						// Получаем количество байт
+						const size_t count = (text.length() % 8);
+						// Если количество байт умещается в буфер
+						if(count == 0)
+							// Получам размер бинарного буфера
+							size = (text.length() / 8);
+						// Получам размер бинарного буфера
+						else size = ((text.length() + (8 - count)) / 8);
+						// Определяем размер бинарного буфера
+						switch(size){
+							// Если размер бинарного буфера состоит из одного байта
+							case 1: {
+								// Если нам необходимо получить число
+								if(to > 0)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(fmk.atoi <uint8_t> (text, from), to) << endl;
+								// Если нам необходимо получить текст
+								else {
+									// Создаём контейнер для хранения данных
+									uint8_t buffer = 0;
+									// Выполняем извлечение текста
+									fmk.atoi(text, from, &buffer, sizeof(buffer));
+									// Выводим полученный текст
+									cout << string(reinterpret_cast <const char *> (&buffer), sizeof(buffer)) << endl;
+								}
+							} break;
+							// Если размер бинарного буфера состоит из двух байтов
+							case 2: {
+								// Если нам необходимо получить число
+								if(to > 0)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(fmk.atoi <uint16_t> (text, from), to) << endl;
+								// Если нам необходимо получить текст
+								else {
+									// Создаём контейнер для хранения данных
+									uint16_t buffer = 0;
+									// Выполняем извлечение текста
+									fmk.atoi(text, from, &buffer, sizeof(buffer));
+									// Выводим полученный текст
+									cout << string(reinterpret_cast <const char *> (&buffer), sizeof(buffer)) << endl;
+								}
+							} break;
+							// Если размер бинарного буфера состоит из четырёх байт
+							case 4: {
+								// Если нам необходимо получить число
+								if(to > 0)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(fmk.atoi <uint32_t> (text, from), to) << endl;
+								// Если нам необходимо получить текст
+								else {
+									// Создаём контейнер для хранения данных
+									uint32_t buffer = 0;
+									// Выполняем извлечение текста
+									fmk.atoi(text, from, &buffer, sizeof(buffer));
+									// Выводим полученный текст
+									cout << string(reinterpret_cast <const char *> (&buffer), sizeof(buffer)) << endl;
+								}
+							} break;
+							// Если размер бинарного буфера состоит из восьми байт
+							case 8: {
+								// Если нам необходимо получить число
+								if(to > 0)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(fmk.atoi <uint64_t> (text, from), to) << endl;
+								// Если нам необходимо получить текст
+								else {
+									// Создаём контейнер для хранения данных
+									uint64_t buffer = 0;
+									// Выполняем извлечение текста
+									fmk.atoi(text, from, &buffer, sizeof(buffer));
+									// Выводим полученный текст
+									cout << string(reinterpret_cast <const char *> (&buffer), sizeof(buffer)) << endl;
+								}
+							} break;
+							// Если размер буфера слишком большой
+							default: {
+								/**
+								 * Выполняем отлов ошибок
+								 */
+								try {
+									// Создаём бинарный буфер
+									uint8_t * buffer = new uint8_t[size];
+									// Выполняем извлечение текста
+									fmk.atoi(text, from, buffer, size);
+									// Выводим полученный текст
+									cout << string(reinterpret_cast <const char *> (buffer), size) << endl;
+									// Удаляем выделенную память
+									delete [] buffer;
+								/**
+								 * Если возникает ошибка
+								 */
+								} catch(const exception &) {
+									// Выводим сообщение об ошибке
+									log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+								}
+							}
+						}
+					// Если система счисления выше двоичной
+					} else {
+						// Получаем число в десятичной системе счисления
+						const uint64_t num = fmk.atoi <uint64_t> (text, from);
+						// Определяем размер числа
+						const size_t size = fmk.size(num);
+						// Если число помещается в один байт
+						if(size == 1)
+							// Выполняем конвертацию системы счисления
+							cout << fmk.itoa(static_cast <int8_t> (num), to) << endl;
+						// Если число помещается в два байта
+						else if(size == 2)
+							// Выполняем конвертацию системы счисления
+							cout << fmk.itoa(static_cast <int16_t> (num), to) << endl;
+						// Если число помещается в четыре байта
+						else if(size <= 4)
+							// Выполняем конвертацию системы счисления
+							cout << fmk.itoa(static_cast <int32_t> (num), to) << endl;
+						// Если число помещается в 8 байт
+						else if(size <= 8)
+							// Выполняем конвертацию системы счисления
+							cout << fmk.itoa(static_cast <int64_t> (num), to) << endl;
+						// Выводим сообщение об ошибке
+						else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+					}
+				// Выводим сообщение, что параметры для конвертации указаны неправильно
+				} else log.print("Parameters for converting the number system are specified incorrectly", log_t::flag_t::CRITICAL);
+			// Выводим сообщение, что значение для конвертации не указанно
+			} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
 		}
 		// Выводим удачное завершение работы
 		return EXIT_SUCCESS;
