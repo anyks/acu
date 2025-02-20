@@ -595,6 +595,215 @@
 						}
 					</script>
 				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Генерация даты</strong></div>
+					<div class="card-body" id="code-editor-17"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-17'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "1740083987116" | acu -date -formatDate "%a, %d %b %Y %H:%M:%S %Z"`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация секунд в минуты</strong></div>
+					<div class="card-body" id="code-editor-18"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-18'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "120" | acu -seconds -from s -to m`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация секунд в часы</strong></div>
+					<div class="card-body" id="code-editor-19"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-19'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "16200" | acu -seconds -from s -to h`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация секунд в дни</strong></div>
+					<div class="card-body" id="code-editor-20"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-20'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "1555200" | acu -seconds -from s -to d`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация секунд в недели</strong></div>
+					<div class="card-body" id="code-editor-21"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-21'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "1555200" | acu -seconds -from s -to w`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация секунд в месяцы</strong></div>
+					<div class="card-body" id="code-editor-22"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-22'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "7884000" | acu -seconds -from s -to M`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация секунд в годы</strong></div>
+					<div class="card-body" id="code-editor-23"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-23'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "7884000" | acu -seconds -from s -to y`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация байт в килобайты</strong></div>
+					<div class="card-body" id="code-editor-24"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-24'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "4096" | acu -bytes -from b -to Kb`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация байт в мегабайты</strong></div>
+					<div class="card-body" id="code-editor-25"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-25'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "4096" | acu -bytes -from b -to Mb`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация байт в гигабайты</strong></div>
+					<div class="card-body" id="code-editor-26"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-26'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "34896609280" | acu -bytes -from b -to Gb`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация байт в терабайты</strong></div>
+					<div class="card-body" id="code-editor-27"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-27'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "3188583720550.4" | acu -bytes -from b -to Tb`);
+						}
+					</script>
+				</div>
 			</main>
 			<!-- Контент КОНЕЦ -->
 			<!-- Подвал НАЧАЛО -->

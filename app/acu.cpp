@@ -40,6 +40,9 @@ static void help(const string & name) noexcept {
 		// Формируем строку справки
 		const string msg = "\r\n\x1B[32m\x1B[1musage:\x1B[0m %s [-V | --version] [-H | --info] [<args>]\r\n\r\n\r\n"
 		"\x1B[34m\x1B[1m[FLAGS]\x1B[0m\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert date: \x1B[1m[-date | --date]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert bytes: \x1B[1m[-bytes | --bytes]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert seconds: \x1B[1m[-seconds | --seconds]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert notation: \x1B[1m[-notation | --notation]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for generating headers when parsing CSV files: \x1B[1m[-header | --header]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for generating a readable file format (XML or JSON): \x1B[1m[-prettify | --prettify]\x1B[0m\r\n\r\n"
@@ -62,6 +65,7 @@ static void help(const string & name) noexcept {
 		"\x1B[33m\x1B[1m+\x1B[0m Separator for parsing CSV files (default: \";\"): \x1B[1m[-delim <value> | --delim=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Address of the file or directory with files to convert: \x1B[1m[-src <value> | --src=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Address of the file in JSON format with GROK templates: \x1B[1m[-patterns <value> | --patterns=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Date format for generating date from UnixTimeStamp: \x1B[1m[-formatDate <value> | --formatDate=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Address of the file with the regular expression in GROK format: \x1B[1m[-express <value> | --express=<value>]\x1B[0m\r\n\r\n";
 		// Выводим сообщение справки
 		printf(msg.c_str(), name.c_str());
@@ -311,7 +315,8 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Выполняем установку уровня логирования из конфигурационного файла
 			log.level(static_cast <log_t::level_t> (env.get <uint32_t> (true, "logLevel")));
 		// Если указанны форматы конвертирования
-		if(env.isString(false, "from") && env.isString(false, "to")){
+		if(env.isString(false, "from") && env.isString(false, "to") &&
+		  !env.isBoolean(false, "date") && !env.isBoolean(false, "bytes") && !env.isBoolean(false, "seconds")){
 			// Регулярное выражение в формате GROK
 			string express = "";
 			// Выполняем инициализацию объекта парсера
@@ -1711,6 +1716,122 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				}
 			// Выводим сообщение, что файл или каталог не указан
 			} else log.print("Address of the file or directory for conversion is not specified", log_t::flag_t::CRITICAL);
+		// Если указаны форматы конвертации даты
+		} else if(env.isBoolean(false, "date")) {
+			// Если данные прочитаны из потока
+			if(!text.empty()){
+				// Количество количество секунд для конвертации
+				time_t seconds = 0;
+				// Если текст передан в виде секнд
+				if(fmk.is(text, fmk_t::check_t::NUMBER) || fmk.is(text, fmk_t::check_t::DECIMAL)){
+					// Выполняем конвертацию полученных секунд
+					seconds = (env.isString(false, "from") ? fmk.seconds(text + env.get <string> (false, "from")) : static_cast <time_t> (::stoull(text)));
+					// Если количество символов 13 значит число пришло в миллисекундах
+					if(!env.isString(false, "from") && (text.length() == 13))
+						// Переводим миллисекунды в секунды
+						seconds /= 1000;
+				// Если количество секунд передано в виде текста
+				} else seconds = fmk.seconds(text);
+				// Если количество секунд передано
+				if(seconds > 0){
+					// Если формат не передан
+					if(!env.isString(false, "formatDate"))
+						// Формируем дату
+						cout << fmk.time2str(seconds) << endl;
+					// Формируем дату с указанным форматом
+					else cout << fmk.time2str(seconds, env.get <string> (false, "formatDate")) << endl;
+				// Выводим полученный результат
+				} else cout << fmk.time2str(::time(nullptr)) << endl;
+			// Выводим сообщение, что значение для конвертации не указанно
+			} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
+		// Если указаны форматы конвертации секунд
+		} else if(env.isString(false, "to") && env.isBoolean(false, "seconds")) {
+			// Получаем единицу измерения времени в которую следует произвести конвертацию
+			const string & to = env.get <string> (false, "to");
+			// Если данные прочитаны из потока
+			if(!text.empty() && !to.empty()){
+				// Количество количество секунд для конвертации
+				time_t seconds = 0;
+				// Если текст передан в виде секнд
+				if(fmk.is(text, fmk_t::check_t::NUMBER) || fmk.is(text, fmk_t::check_t::DECIMAL))
+					// Выполняем конвертацию полученных секунд
+					seconds = (env.isString(false, "from") ? fmk.seconds(text + env.get <string> (false, "from")) : static_cast <time_t> (::stoull(text)));
+				// Если количество секунд передано в виде текста
+				else seconds = fmk.seconds(text);
+				// Если количество секунд передано
+				if(seconds > 0){
+					// Если сконвертировать полученные секунды необходимо в секунды
+					if(to.front() == 's')
+						// Выводим полученный результат
+						cout << std::to_string(seconds) << endl;
+					// Если сконвертировать полученные секунды необходимо в минуты
+					else if(to.front() == 'm')
+						// Выводим полученный результат
+						cout << fmk.noexp(static_cast <double> (seconds) / 60., static_cast <uint8_t> (1)) << endl;
+					// Если сконвертировать полученные секунды необходимо в часы
+					else if(to.front() == 'h')
+						// Выводим полученный результат
+						cout << fmk.noexp(static_cast <double> (seconds) / 3600., static_cast <uint8_t> (1)) << endl;
+					// Если сконвертировать полученные секунды необходимо в дни
+					else if(to.front() == 'd')
+						// Выводим полученный результат
+						cout << fmk.noexp(static_cast <double> (seconds) / 86400., static_cast <uint8_t> (1)) << endl;
+					// Если сконвертировать полученные секунды необходимо в недели
+					else if(to.front() == 'w')
+						// Выводим полученный результат
+						cout << fmk.noexp(static_cast <double> (seconds) / 604800., static_cast <uint8_t> (1)) << endl;
+					// Если сконвертировать полученные секунды необходимо в месяцы
+					else if(to.front() == 'M')
+						// Выводим полученный результат
+						cout << fmk.noexp(static_cast <double> (seconds) / 2628000., static_cast <uint8_t> (1)) << endl;
+					// Если сконвертировать полученные секунды необходимо в годы
+					else if(to.front() == 'y')
+						// Выводим полученный результат
+						cout << fmk.noexp(static_cast <double> (seconds) / 31536000., static_cast <uint8_t> (1)) << endl;
+				// Выводим полученный результат
+				} else cout << "0" << endl;
+			// Выводим сообщение, что значение для конвертации не указанно
+			} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
+		// Если указаны форматы конвертации байт
+		} else if(env.isString(false, "to") && env.isBoolean(false, "bytes")) {
+			// Получаем единицу измерения байт в которую следует произвести конвертацию
+			const string & to = env.get <string> (false, "to");
+			// Если данные прочитаны из потока
+			if(!text.empty() && !to.empty()){
+				// Количество байт для конвертации
+				double number = 0.;
+				// Если текст передан в виде байт
+				if(fmk.is(text, fmk_t::check_t::NUMBER) || fmk.is(text, fmk_t::check_t::DECIMAL))
+					// Выполняем конвертацию полученных байт
+					number = (env.isString(false, "from") ? fmk.bytes(text + env.get <string> (false, "from")) : ::stod(text));
+				// Если количество байт передано в виде текста
+				else number = fmk.bytes(text);
+				// Если количество байт передано
+				if(number > 0.){
+					// Если сконвертировать полученные байты необходимо в килобайтах
+					if(fmk.compare("Kb", to))
+						// Выводим полученный результат
+						cout << fmk.noexp(number / 1024.) << endl;
+					// Если сконвертировать полученные байты необходимо в мегабайтах
+					else if(fmk.compare("Mb", to))
+						// Выводим полученный результат
+						cout << fmk.noexp(number / 1048576.) << endl;
+					// Если сконвертировать полученные байты необходимо в гигабайтах
+					else if(fmk.compare("Gb", to))
+						// Выводим полученный результат
+						cout << fmk.noexp(number / 1073741824.) << endl;
+					// Если сконвертировать полученные байты необходимо в терабайтах
+					else if(fmk.compare("Tb", to))
+						// Выводим полученный результат
+						cout << fmk.noexp(number / 1099511627776.) << endl;
+					// Если сконвертировать полученные байты необходимо в байты
+					else if(fmk.compare("b", to) || fmk.compare("bytes", to))
+						// Выводим полученный результат
+						cout << fmk.noexp(number) << endl;
+				// Выводим полученный результат
+				} else cout << "0" << endl;
+			// Выводим сообщение, что значение для конвертации не указанно
+			} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
 		// Если указаны форматы системы счисления
 		} else if(env.isNumber(false, "from") && env.isNumber(false, "to") && env.isBoolean(false, "notation")) {
 			// Получаем систему счисления в которую необходимо выполнить конвертацию
