@@ -18,7 +18,7 @@
 		<script src="js/general/mode/javascript.js"></script>
 		<script src="js/general/jquery.min.js"></script>
 		<script src="js/main/jquery.main.js"></script>
-		<script src="js/main/bootstrap.min.js"></script>
+		<!-- <script src="js/main/bootstrap.min.js"></script> -->
 		<script src="js/main/bootstrap.bundle.min.js"></script>
 		<link rel="shortcut icon" href="img/favicon.ico" type="image/vnd.microsoft.icon">
 		<meta name="author" content="@forman">
@@ -133,6 +133,18 @@
 										<li class="nav-item">
 											<a class="nav-link" aria-current="true" href="#hashing">Хеширование</a>
 										</li>
+										<li class="nav-item">
+											<a class="nav-link" aria-current="true" href="#notation">Система счисления</a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link" aria-current="true" href="#bytes">Байты</a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link" aria-current="true" href="#seconds">Секунды</a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link" aria-current="true" href="#date">Дата</a>
+										</li>
 									</ul>
 								</div>
 								<!-- Блок табов КОНЕЦ -->
@@ -235,7 +247,7 @@
 													<!-- Блок выбора форматов КОНЕЦ -->
 													<div class="card-body" id="code-editor-to-containers"></div>
 													<!-- Блок спиннера загрузки НАЧАЛО -->
-													<div class="spinner-border text-success hidden" role="status" id="spinner">
+													<div class="spinner-border text-success hidden" role="status" id="spinner-containers">
 														<span class="visually-hidden">Loading...</span>
 													</div>
 													<!-- Блок спиннера загрузки КОНЕЦ -->
@@ -327,7 +339,388 @@
 													<!-- Блок выбора форматов КОНЕЦ -->
 													<div class="card-body" id="code-editor-to-hashing"></div>
 													<!-- Блок спиннера загрузки НАЧАЛО -->
-													<div class="spinner-border text-success hidden" role="status" id="spinner">
+													<div class="spinner-border text-success hidden" role="status" id="spinner-hashing">
+														<span class="visually-hidden">Loading...</span>
+													</div>
+													<!-- Блок спиннера загрузки КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+									</div>
+									<!-- Блоки текстовых полей КОНЕЦ -->
+								</div>
+								<!-- Блок работы с контейнерами КОНЕЦ -->
+								<!-- Блок работы с контейнерами НАЧАЛО -->
+								<div class="card-body hidden" id="notation">
+									<!-- Кнопка отправки запроса НАЧАЛО -->
+									<div class="button d-grid gap-2 d-md-flex justify-content-md-end">
+										<button type="button" class="btn btn-success" id="submit-notation">Преобразовать</button>
+									</div>
+									<!-- Кнопка отправки запроса КОНЕЦ -->
+									<!-- Блоки текстовых полей НАЧАЛО -->
+									<div class="row row-cols-1 row-cols-md-2 mb-2">
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="from-notation">
+														<li class="nav-item">
+															<a class="nav-link" href="#notation-0">TEXT</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#notation-2">BIN</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#notation-8">OCT</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#notation-10">DEC</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#notation-16">HEX</a>
+														</li>
+														<li class="nav-item dropdown dropend">
+															<a class="nav-link dropdown-toggle" href="#" id="dropdown-from-notation" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+																OTHER
+															</a>
+															<ul class="dropdown-menu" aria-labelledby="dropdown-from-notation">
+																<li><a class="dropdown-item" href="#notation-2">2</a></li>
+																<li><a class="dropdown-item" href="#notation-3">3</a></li>
+																<li><a class="dropdown-item" href="#notation-4">4</a></li>
+																<li><a class="dropdown-item" href="#notation-5">5</a></li>
+																<li><a class="dropdown-item" href="#notation-6">6</a></li>
+																<li><a class="dropdown-item" href="#notation-7">7</a></li>
+																<li><a class="dropdown-item" href="#notation-8">8</a></li>
+																<li><a class="dropdown-item" href="#notation-9">9</a></li>
+																<li><a class="dropdown-item" href="#notation-10">10</a></li>
+																<li><a class="dropdown-item" href="#notation-11">11</a></li>
+																<li><a class="dropdown-item" href="#notation-12">12</a></li>
+																<li><a class="dropdown-item" href="#notation-13">13</a></li>
+																<li><a class="dropdown-item" href="#notation-14">14</a></li>
+																<li><a class="dropdown-item" href="#notation-15">15</a></li>
+																<li><a class="dropdown-item" href="#notation-16">16</a></li>
+																<li><a class="dropdown-item" href="#notation-17">17</a></li>
+																<li><a class="dropdown-item" href="#notation-18">18</a></li>
+																<li><a class="dropdown-item" href="#notation-19">19</a></li>
+																<li><a class="dropdown-item" href="#notation-20">20</a></li>
+																<li><a class="dropdown-item" href="#notation-21">21</a></li>
+																<li><a class="dropdown-item" href="#notation-22">22</a></li>
+																<li><a class="dropdown-item" href="#notation-23">23</a></li>
+																<li><a class="dropdown-item" href="#notation-24">24</a></li>
+																<li><a class="dropdown-item" href="#notation-25">25</a></li>
+																<li><a class="dropdown-item" href="#notation-26">26</a></li>
+																<li><a class="dropdown-item" href="#notation-27">27</a></li>
+																<li><a class="dropdown-item" href="#notation-28">28</a></li>
+																<li><a class="dropdown-item" href="#notation-29">29</a></li>
+																<li><a class="dropdown-item" href="#notation-30">30</a></li>
+																<li><a class="dropdown-item" href="#notation-31">31</a></li>
+																<li><a class="dropdown-item" href="#notation-32">32</a></li>
+																<li><a class="dropdown-item" href="#notation-33">33</a></li>
+																<li><a class="dropdown-item" href="#notation-34">34</a></li>
+																<li><a class="dropdown-item" href="#notation-35">35</a></li>
+																<li><a class="dropdown-item" href="#notation-36">36</a></li>
+															</ul>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<!-- Блок выбора системы счисления КОНЕЦ -->
+													<div class="card-body" id="code-editor-from-notation"></div>
+													<!-- Кнопка очистки поля НАЧАЛО -->
+													<button type="button" class="btn-close hidden" aria-label="Close"></button>
+													<!-- Кнопка очистки поля КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="to-notation">
+														<li class="nav-item">
+															<a class="nav-link disabled" href="#notation-0">TEXT</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#notation-2">BIN</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#notation-8">OCT</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#notation-10">DEC</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#notation-16">HEX</a>
+														</li>
+														<li class="nav-item dropdown dropstart">
+															<a class="nav-link dropdown-toggle" href="#" id="dropdown-to-notation" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+																OTHER
+															</a>
+															<ul class="dropdown-menu" aria-labelledby="dropdown-to-notation">
+																<li><a class="dropdown-item" href="#notation-2">2</a></li>
+																<li><a class="dropdown-item" href="#notation-3">3</a></li>
+																<li><a class="dropdown-item" href="#notation-4">4</a></li>
+																<li><a class="dropdown-item" href="#notation-5">5</a></li>
+																<li><a class="dropdown-item" href="#notation-6">6</a></li>
+																<li><a class="dropdown-item" href="#notation-7">7</a></li>
+																<li><a class="dropdown-item" href="#notation-8">8</a></li>
+																<li><a class="dropdown-item" href="#notation-9">9</a></li>
+																<li><a class="dropdown-item" href="#notation-10">10</a></li>
+																<li><a class="dropdown-item" href="#notation-11">11</a></li>
+																<li><a class="dropdown-item" href="#notation-12">12</a></li>
+																<li><a class="dropdown-item" href="#notation-13">13</a></li>
+																<li><a class="dropdown-item" href="#notation-14">14</a></li>
+																<li><a class="dropdown-item" href="#notation-15">15</a></li>
+																<li><a class="dropdown-item" href="#notation-16">16</a></li>
+																<li><a class="dropdown-item" href="#notation-17">17</a></li>
+																<li><a class="dropdown-item" href="#notation-18">18</a></li>
+																<li><a class="dropdown-item" href="#notation-19">19</a></li>
+																<li><a class="dropdown-item" href="#notation-20">20</a></li>
+																<li><a class="dropdown-item" href="#notation-21">21</a></li>
+																<li><a class="dropdown-item" href="#notation-22">22</a></li>
+																<li><a class="dropdown-item" href="#notation-23">23</a></li>
+																<li><a class="dropdown-item" href="#notation-24">24</a></li>
+																<li><a class="dropdown-item" href="#notation-25">25</a></li>
+																<li><a class="dropdown-item" href="#notation-26">26</a></li>
+																<li><a class="dropdown-item" href="#notation-27">27</a></li>
+																<li><a class="dropdown-item" href="#notation-28">28</a></li>
+																<li><a class="dropdown-item" href="#notation-29">29</a></li>
+																<li><a class="dropdown-item" href="#notation-30">30</a></li>
+																<li><a class="dropdown-item" href="#notation-31">31</a></li>
+																<li><a class="dropdown-item" href="#notation-32">32</a></li>
+																<li><a class="dropdown-item" href="#notation-33">33</a></li>
+																<li><a class="dropdown-item" href="#notation-34">34</a></li>
+																<li><a class="dropdown-item" href="#notation-35">35</a></li>
+																<li><a class="dropdown-item" href="#notation-36">36</a></li>
+															</ul>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-to-notation"></div>
+													<!-- Блок спиннера загрузки НАЧАЛО -->
+													<div class="spinner-border text-success hidden" role="status" id="spinner-notation">
+														<span class="visually-hidden">Loading...</span>
+													</div>
+													<!-- Блок спиннера загрузки КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+									</div>
+									<!-- Блоки текстовых полей КОНЕЦ -->
+								</div>
+								<!-- Блок работы с контейнерами КОНЕЦ -->
+								<!-- Блок работы с контейнерами НАЧАЛО -->
+								<div class="card-body hidden" id="bytes">
+									<!-- Кнопка отправки запроса НАЧАЛО -->
+									<div class="button d-grid gap-2 d-md-flex justify-content-md-end">
+										<button type="button" class="btn btn-success" id="submit-bytes">Конвертировать</button>
+									</div>
+									<!-- Кнопка отправки запроса КОНЕЦ -->
+									<!-- Блоки текстовых полей НАЧАЛО -->
+									<div class="row row-cols-1 row-cols-md-2 mb-2">
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="from-bytes">
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#bytes">BYTES</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#kb">KB</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#mb">MB</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#gb">GB</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#tb">TB</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-from-bytes"></div>
+													<!-- Кнопка очистки поля НАЧАЛО -->
+													<button type="button" class="btn-close hidden" aria-label="Close"></button>
+													<!-- Кнопка очистки поля КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="to-bytes">
+														<li class="nav-item">
+															<a class="nav-link" href="#bytes">BYTES</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#kb">KB</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#mb">MB</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#gb">GB</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#tb">TB</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-to-bytes"></div>
+													<!-- Блок спиннера загрузки НАЧАЛО -->
+													<div class="spinner-border text-success hidden" role="status" id="spinner-bytes">
+														<span class="visually-hidden">Loading...</span>
+													</div>
+													<!-- Блок спиннера загрузки КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+									</div>
+									<!-- Блоки текстовых полей КОНЕЦ -->
+								</div>
+								<!-- Блок работы с контейнерами КОНЕЦ -->
+								<!-- Блок работы с контейнерами НАЧАЛО -->
+								<div class="card-body hidden" id="seconds">
+									<!-- Кнопка отправки запроса НАЧАЛО -->
+									<div class="button d-grid gap-2 d-md-flex justify-content-md-end">
+										<button type="button" class="btn btn-success" id="submit-seconds">Конвертировать</button>
+									</div>
+									<!-- Кнопка отправки запроса КОНЕЦ -->
+									<!-- Блоки текстовых полей НАЧАЛО -->
+									<div class="row row-cols-1 row-cols-md-2 mb-2">
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="from-seconds">
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#seconds">SEC</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#minutes">MIN</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#hours">HOUR</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#days">DAY</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#weeks">WEEK</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#months">MON</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#years">YEAR</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-from-seconds"></div>
+													<!-- Кнопка очистки поля НАЧАЛО -->
+													<button type="button" class="btn-close hidden" aria-label="Close"></button>
+													<!-- Кнопка очистки поля КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="to-seconds">
+														<li class="nav-item">
+															<a class="nav-link" href="#seconds">SEC</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#minutes">MIN</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#hours">HOUR</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#days">DAY</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#weeks">WEEK</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#months">MON</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#years">YEAR</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-to-seconds"></div>
+													<!-- Блок спиннера загрузки НАЧАЛО -->
+													<div class="spinner-border text-success hidden" role="status" id="spinner-seconds">
+														<span class="visually-hidden">Loading...</span>
+													</div>
+													<!-- Блок спиннера загрузки КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+									</div>
+									<!-- Блоки текстовых полей КОНЕЦ -->
+								</div>
+								<!-- Блок работы с контейнерами КОНЕЦ -->
+								<!-- Блок работы с контейнерами НАЧАЛО -->
+								<div class="card-body hidden" id="date">
+									<!-- Кнопка отправки запроса НАЧАЛО -->
+									<div class="button d-grid gap-2 d-md-flex justify-content-md-end">
+										<button type="button" class="btn btn-success" id="submit-date">Сгенерировать</button>
+									</div>
+									<!-- Кнопка отправки запроса КОНЕЦ -->
+									<!-- Блок ввода формата даты НАЧАЛО -->
+									<div class="mb-3">
+										<!-- Текстовое поле формата даты НАЧАЛО -->
+										<input type="text" class="form-control" id="formatDate" placeholder="Формат даты и времени">
+										<!-- Текстовое поле формата даты КОНЕЦ -->
+										<!-- Кнопка очистки поля НАЧАЛО -->
+										<button type="button" class="btn-close hidden" aria-label="Close"></button>
+										<!-- Кнопка очистки поля КОНЕЦ -->
+									</div>
+									<!-- Блок ввода формата даты КОНЕЦ -->
+									<!-- Блоки текстовых полей НАЧАЛО -->
+									<div class="row row-cols-1 row-cols-md-2 mb-2">
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="from-date">
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#timestamp">TIMESTAMP</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link" href="#date">DATE</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-from-date"></div>
+													<!-- Кнопка очистки поля НАЧАЛО -->
+													<button type="button" class="btn-close hidden" aria-label="Close"></button>
+													<!-- Кнопка очистки поля КОНЕЦ -->
+												</div>
+											</div>
+										</div>
+										<div class="col">
+											<div class="mb-4 rounded-2">
+												<div class="card">
+													<!-- Блок выбора форматов НАЧАЛО -->
+													<ul class="nav nav-underline" id="to-date">
+														<li class="nav-item">
+															<a class="nav-link" href="#timestamp">TIMESTAMP</a>
+														</li>
+														<li class="nav-item">
+															<a class="nav-link active" aria-current="page" href="#date">DATE</a>
+														</li>
+													</ul>
+													<!-- Блок выбора форматов КОНЕЦ -->
+													<div class="card-body" id="code-editor-to-date"></div>
+													<!-- Блок спиннера загрузки НАЧАЛО -->
+													<div class="spinner-border text-success hidden" role="status" id="spinner-date">
 														<span class="visually-hidden">Loading...</span>
 													</div>
 													<!-- Блок спиннера загрузки КОНЕЦ -->

@@ -91,7 +91,7 @@ void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t 
 		// Выполняем формирование результата ответа
 		json answer(kObjectType);
 		// Выполняем формирование результата
-		answer.AddMember(Value("error", answer.GetAllocator()).Move(), Value(mess.c_str(), mess.length(), answer.GetAllocator()).Move(), answer.GetAllocator());
+		answer.AddMember(Value("error", answer.GetAllocator()).Move(), Value(mess, answer.GetAllocator()).Move(), answer.GetAllocator());
 		// Создаём результьрующий буфер
 		rapidjson::StringBuffer result;
 		// Выполняем создание объекта писателя
@@ -549,7 +549,8 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 					if(request.IsObject() && !request.ObjectEmpty()){
 						// Если поля указаны правильно
 						if(request.HasMember("text") && request.HasMember("from") && request.HasMember("to") &&
-						   request["text"].IsString() && request["from"].IsString() && request["to"].IsString()){
+						   request["text"].IsString() && request["from"].IsString() && request["to"].IsString() &&
+						   !request.HasMember("date") && !request.HasMember("bytes") && !request.HasMember("seconds")){
 							// Регулярное выражение в формате GROK
 							string express = "";
 							// Выполняем инициализацию объекта парсера
@@ -794,7 +795,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Выполняем декодирование полученных данных
 									const string & hash = this->_hash.decode <string> (text.data(), text.size(), hash_t::cipher_t::BASE64);
 									// Выполняем декодирование хэша BASE64
-									answer.SetString(hash.c_str(), hash.length(), answer.GetAllocator());
+									answer.SetString(hash, answer.GetAllocator());
 								} break;
 							}
 							// Если ответ парсера получен
@@ -931,7 +932,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Выполняем формирование результата ответа
 									json answer(kObjectType);
 									// Выполняем формирование результата
-									answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text.c_str(), text.length(), answer.GetAllocator()).Move(), answer.GetAllocator());
+									answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
 									// Создаём результьрующий буфер
 									rapidjson::StringBuffer result;
 									// Выполняем создание объекта писателя
@@ -952,6 +953,533 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Выходим из функции
 									return;
 								}
+							}
+						// Если указаны форматы конвертации даты
+						} else if(request.HasMember("date") && request.HasMember("text") && request["text"].IsString()) {
+							// Получаем текст для конвертации
+							string text = request["text"].GetString();
+							// Если данные для конвертации переданы
+							if(!text.empty()){
+								// Количество количество секунд для конвертации
+								time_t seconds = 0;
+								// Если текст передан в виде секнд
+								if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL)){
+									// Получаем тип название типа входящих данных
+									const string & from = (request.HasMember("from") && request["from"].IsString() ? request["from"].GetString() : "");
+									// Выполняем конвертацию полученных секунд
+									seconds = (!from.empty() ? this->_fmk->seconds(text + from) : static_cast <time_t> (::stoull(text)));
+									// Если количество символов 13 значит число пришло в миллисекундах
+									if(from.empty() && (text.length() == 13))
+										// Переводим миллисекунды в секунды
+										seconds /= 1000;
+								// Если количество секунд передано в виде текста
+								} else seconds = this->_fmk->seconds(text);
+								// Если количество секунд передано
+								if(seconds > 0){
+									// Если формат даты передан в виде строки
+									if(request.HasMember("formatDate") && request["formatDate"].IsString())
+										// Формируем дату с указанным форматом
+										text = this->_fmk->time2str(seconds, request["formatDate"].GetString());
+									// Если формат даты не передан
+									else text = this->_fmk->time2str(seconds);
+								// Выводим полученный результат
+								} else text = this->_fmk->time2str(::time(nullptr));
+								// Если текст ответа получен
+								if((result = !text.empty())){
+									// Выполняем формирование результата ответа
+									json answer(kObjectType);
+									// Выполняем формирование результата
+									answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
+									// Создаём результьрующий буфер
+									rapidjson::StringBuffer result;
+									// Выполняем создание объекта писателя
+									Writer <StringBuffer> writer(result);
+									// Передаем данные объекта JSON писателю
+									answer.Accept(writer);
+									// Выполняем получение буфера данных для отправки
+									const string & buffer = result.GetString();
+									// Отправляем сообщение клиенту
+									this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
+										{"Accept-Ranges", "bytes"},
+										{"Vary", "Accept-Encoding"},
+										{"Content-Type", "application/json"},
+										{"Access-Control-Request-Headers", "Content-Type"},
+										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+									});
+									// Выходим из функции
+									return;
+								}
+							// Если текст не передан
+							} else {
+								// Выпоолняем генерацию ошибки запроса
+								this->error(sid, bid, 400, "No value specified for conversion");
+								// Выводим удачное завершение работы
+								return;
+							}
+						// Если указаны форматы конвертации секунд
+						} else if(request.HasMember("seconds") && request.HasMember("text") &&
+						          request.HasMember("to") && request["text"].IsString() && request["to"].IsString()) {
+							// Получаем текст для конвертации
+							string text = request["text"].GetString();
+							// Получаем единицу измерения времени в которую следует произвести конвертацию
+							const string & to = request["to"].GetString();
+							// Если данные для конвертации переданы
+							if(!text.empty() && !to.empty()){
+								// Количество количество секунд для конвертации
+								time_t seconds = 0;
+								// Если текст передан в виде секнд
+								if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL)){
+									// Получаем тип название типа входящих данных
+									const string & from = (request.HasMember("from") && request["from"].IsString() ? request["from"].GetString() : "");
+									// Выполняем конвертацию полученных секунд
+									seconds = (!from.empty() ? this->_fmk->seconds(text + from) : static_cast <time_t> (::stoull(text)));
+								// Если количество секунд передано в виде текста
+								} else seconds = this->_fmk->seconds(text);
+								// Если количество секунд передано
+								if(seconds > 0){
+									// Если сконвертировать полученные секунды необходимо в секунды
+									if(to.front() == 's')
+										// Выводим полученный результат
+										text = std::to_string(seconds);
+									// Если сконвертировать полученные секунды необходимо в минуты
+									else if(to.front() == 'm')
+										// Выводим полученный результат
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 60., static_cast <uint8_t> (1));
+									// Если сконвертировать полученные секунды необходимо в часы
+									else if(to.front() == 'h')
+										// Выводим полученный результат
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 3600., static_cast <uint8_t> (1));
+									// Если сконвертировать полученные секунды необходимо в дни
+									else if(to.front() == 'd')
+										// Выводим полученный результат
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 86400., static_cast <uint8_t> (1));
+									// Если сконвертировать полученные секунды необходимо в недели
+									else if(to.front() == 'w')
+										// Выводим полученный результат
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 604800., static_cast <uint8_t> (1));
+									// Если сконвертировать полученные секунды необходимо в месяцы
+									else if(to.front() == 'M')
+										// Выводим полученный результат
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 2628000., static_cast <uint8_t> (1));
+									// Если сконвертировать полученные секунды необходимо в годы
+									else if(to.front() == 'y')
+										// Выводим полученный результат
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 31536000., static_cast <uint8_t> (1));
+								// Выводим полученный результат
+								} else text = "0";
+								// Если текст ответа получен
+								if((result = !text.empty())){
+									// Выполняем формирование результата ответа
+									json answer(kObjectType);
+									// Выполняем формирование результата
+									answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
+									// Создаём результьрующий буфер
+									rapidjson::StringBuffer result;
+									// Выполняем создание объекта писателя
+									Writer <StringBuffer> writer(result);
+									// Передаем данные объекта JSON писателю
+									answer.Accept(writer);
+									// Выполняем получение буфера данных для отправки
+									const string & buffer = result.GetString();
+									// Отправляем сообщение клиенту
+									this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
+										{"Accept-Ranges", "bytes"},
+										{"Vary", "Accept-Encoding"},
+										{"Content-Type", "application/json"},
+										{"Access-Control-Request-Headers", "Content-Type"},
+										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+									});
+									// Выходим из функции
+									return;
+								}
+							// Если текст не передан
+							} else {
+								// Выпоолняем генерацию ошибки запроса
+								this->error(sid, bid, 400, "No value specified for conversion");
+								// Выводим удачное завершение работы
+								return;
+							}
+						// Если указаны форматы конвертации байт
+						} else if(request.HasMember("bytes") && request.HasMember("text") &&
+						          request.HasMember("to") && request["text"].IsString() && request["to"].IsString()) {
+							// Получаем текст для конвертации
+							string text = request["text"].GetString();
+							// Получаем единицу измерения байт в которую следует произвести конвертацию
+							const string & to = request["to"].GetString();
+							// Если данные для конвертации переданы
+							if(!text.empty() && !to.empty()){
+								// Количество байт для конвертации
+								double number = 0.;
+								// Если текст передан в виде байт
+								if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL)){
+									// Получаем тип название типа входящих данных
+									const string & from = (request.HasMember("from") && request["from"].IsString() ? request["from"].GetString() : "");
+									// Выполняем конвертацию полученных байт
+									number = (!from.empty() ? this->_fmk->bytes(text + from) : ::stod(text));
+								// Если количество байт передано в виде текста
+								} else number = this->_fmk->bytes(text);
+								// Если количество байт передано
+								if(number > 0.){
+									// Если сконвертировать полученные байты необходимо в килобайтах
+									if(this->_fmk->compare("Kb", to))
+										// Выводим полученный результат
+										text = this->_fmk->noexp(number / 1024.);
+									// Если сконвертировать полученные байты необходимо в мегабайтах
+									else if(this->_fmk->compare("Mb", to))
+										// Выводим полученный результат
+										text = this->_fmk->noexp(number / 1048576.);
+									// Если сконвертировать полученные байты необходимо в гигабайтах
+									else if(this->_fmk->compare("Gb", to))
+										// Выводим полученный результат
+										text = this->_fmk->noexp(number / 1073741824.);
+									// Если сконвертировать полученные байты необходимо в терабайтах
+									else if(this->_fmk->compare("Tb", to))
+										// Выводим полученный результат
+										text = this->_fmk->noexp(number / 1099511627776.);
+									// Если сконвертировать полученные байты необходимо в байты
+									else if(this->_fmk->compare("b", to) || this->_fmk->compare("bytes", to))
+										// Выводим полученный результат
+										text = this->_fmk->noexp(number);
+								// Выводим полученный результат
+								} else text = "0";
+								// Если текст ответа получен
+								if((result = !text.empty())){
+									// Выполняем формирование результата ответа
+									json answer(kObjectType);
+									// Выполняем формирование результата
+									answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
+									// Создаём результьрующий буфер
+									rapidjson::StringBuffer result;
+									// Выполняем создание объекта писателя
+									Writer <StringBuffer> writer(result);
+									// Передаем данные объекта JSON писателю
+									answer.Accept(writer);
+									// Выполняем получение буфера данных для отправки
+									const string & buffer = result.GetString();
+									// Отправляем сообщение клиенту
+									this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
+										{"Accept-Ranges", "bytes"},
+										{"Vary", "Accept-Encoding"},
+										{"Content-Type", "application/json"},
+										{"Access-Control-Request-Headers", "Content-Type"},
+										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+									});
+									// Выходим из функции
+									return;
+								}
+							// Если текст не передан
+							} else {
+								// Выпоолняем генерацию ошибки запроса
+								this->error(sid, bid, 400, "No value specified for conversion");
+								// Выводим удачное завершение работы
+								return;
+							}
+						// Если указаны форматы системы счисления
+						} else if(request.HasMember("notation") && request.HasMember("text") && request.HasMember("from") &&
+						          request.HasMember("to") && request["text"].IsString() && request["from"].IsNumber() && request["to"].IsNumber()) {
+							// Получаем текст для конвертации
+							string text = request["text"].GetString();
+							// Получаем систему счисления в которую необходимо выполнить конвертацию
+							const uint8_t to = static_cast <uint8_t> (request["to"].IsUint() ? request["to"].GetUint() : request["to"].GetDouble());
+							// Получаем систему счисления из которой необходимо выполнить конвертацию
+							const uint8_t from = static_cast <uint8_t> (request["from"].IsUint() ? request["from"].GetUint() : request["from"].GetDouble());
+							// Если данные для конвертации переданы
+							if(!text.empty()){
+								// Если система счиления из которой производится конвертация не указана
+								if((from == 0) && (to == 2)){
+									/**
+									 * Выполняем отлов ошибок
+									 */
+									try {
+										// Определяем размер числа
+										const size_t size = this->_fmk->size(text.c_str(), text.size());
+										// Создаём бинарный буфер
+										uint8_t * buffer = new uint8_t[size];
+										// Копируем в буфер наши данные
+										::memcpy(buffer, text.c_str(), text.size());
+										// Выполняем конвертацию полученного текста
+										text = this->_fmk->itoa(buffer, size, to);
+										// Удаляем выделенную память
+										delete [] buffer;
+									/**
+									 * Если возникает ошибка
+									 */
+									} catch(const exception & error) {
+										// Выпоолняем генерацию ошибки запроса
+										this->error(sid, bid, 400, error.what());
+										// Выводим удачное завершение работы
+										return;
+									}
+								// Если система счисления из которой производится конвертация является десятичная
+								} else if((from == 10) && ((to > 1) && (to < 37))) {
+									// Текст передан в виде числа
+									if(this->_fmk->is(text, fmk_t::check_t::NUMBER)){
+										/**
+										 * Выполняем отлов ошибок
+										 */
+										try {
+											// Получаем число
+											const uint64_t num = static_cast <uint64_t> (text.front() == '-' ? (::stoll(text) * -1) : ::stoull(text));
+											// Определяем размер числа
+											const size_t size = this->_fmk->size(num);
+											// Если число помещается в один байт
+											if(size == 1)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint8_t> (num), to);
+											// Если число помещается в два байта
+											else if(size == 2)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint16_t> (num), to);
+											// Если число помещается в четыре байта
+											else if(size <= 4)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint32_t> (num), to);
+											// Если число помещается в 8 байт
+											else if(size <= 8)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint64_t> (num), to);
+											// Выводим сообщение об ошибке
+											else {
+												// Выпоолняем генерацию ошибки запроса
+												this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+												// Выводим удачное завершение работы
+												return;
+											}
+										/**
+										 * Если возникает ошибка
+										 */
+										} catch(const exception &) {
+											// Выпоолняем генерацию ошибки запроса
+											this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+											// Выводим удачное завершение работы
+											return;
+										}
+									// Текст передан в виде числа с плавающей точкой
+									} else if(this->_fmk->is(text, fmk_t::check_t::DECIMAL)) {
+										/**
+										 * Выполняем отлов ошибок
+										 */
+										try {
+											// Получаем переданное число
+											const uint64_t num = static_cast <uint64_t> (text.front() == '-' ? ::round(::stod(text) * -1) : ::round(::stod(text)));
+											// Определяем размер числа
+											const size_t size = this->_fmk->size(num);
+											// Если число помещается в один байт
+											if(size == 1)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint8_t> (num), to);
+											// Если число помещается в два байта
+											else if(size == 2)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint16_t> (num), to);
+											// Если число помещается в четыре байта
+											else if(size <= 4)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint32_t> (num), to);
+											// Если число помещается в 8 байт
+											else if(size <= 8)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint64_t> (num), to);
+											// Выводим сообщение об ошибке
+											else {
+												// Выпоолняем генерацию ошибки запроса
+												this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+												// Выводим удачное завершение работы
+												return;
+											}
+										/**
+										 * Если возникает ошибка
+										 */
+										} catch(const exception &) {
+											// Выпоолняем генерацию ошибки запроса
+											this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+											// Выводим удачное завершение работы
+											return;
+										}
+									// Если текст передан не в виде числа, то выводим сообщение об ошибке
+									} else {
+										// Выпоолняем генерацию ошибки запроса
+										this->error(sid, bid, 400, "Data to be converted must be in the form of a number");
+										// Выводим удачное завершение работы
+										return;
+									}
+								// Если система счисления в которую производится конвертация является десятичная
+								} else if((to < 37) && ((from > 1) && (from < 37))) {
+									// Если система счисления является двоичной
+									if(from == 2){
+										// Размер бинарного буфера
+										size_t size = 0;
+										// Получаем количество байт
+										const size_t count = (text.length() % 8);
+										// Если количество байт умещается в буфер
+										if(count == 0)
+											// Получам размер бинарного буфера
+											size = (text.length() / 8);
+										// Получам размер бинарного буфера
+										else size = ((text.length() + (8 - count)) / 8);
+										// Определяем размер бинарного буфера
+										switch(size){
+											// Если размер бинарного буфера состоит из одного байта
+											case 1: {
+												// Если нам необходимо получить число
+												if(to > 0)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(this->_fmk->atoi <uint8_t> (text, from), to);
+												// Если нам необходимо получить текст
+												else {
+													// Создаём контейнер для хранения данных
+													uint8_t buffer = 0;
+													// Выполняем извлечение текста
+													this->_fmk->atoi(text, from, &buffer, sizeof(buffer));
+													// Выводим полученный текст
+													text.assign(reinterpret_cast <const char *> (&buffer), sizeof(buffer));
+												}
+											} break;
+											// Если размер бинарного буфера состоит из двух байтов
+											case 2: {
+												// Если нам необходимо получить число
+												if(to > 0)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(this->_fmk->atoi <uint16_t> (text, from), to);
+												// Если нам необходимо получить текст
+												else {
+													// Создаём контейнер для хранения данных
+													uint16_t buffer = 0;
+													// Выполняем извлечение текста
+													this->_fmk->atoi(text, from, &buffer, sizeof(buffer));
+													// Выводим полученный текст
+													text.assign(reinterpret_cast <const char *> (&buffer), sizeof(buffer));
+												}
+											} break;
+											// Если размер бинарного буфера состоит из четырёх байт
+											case 4: {
+												// Если нам необходимо получить число
+												if(to > 0)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(this->_fmk->atoi <uint32_t> (text, from), to);
+												// Если нам необходимо получить текст
+												else {
+													// Создаём контейнер для хранения данных
+													uint32_t buffer = 0;
+													// Выполняем извлечение текста
+													this->_fmk->atoi(text, from, &buffer, sizeof(buffer));
+													// Выводим полученный текст
+													text.assign(reinterpret_cast <const char *> (&buffer), sizeof(buffer));
+												}
+											} break;
+											// Если размер бинарного буфера состоит из восьми байт
+											case 8: {
+												// Если нам необходимо получить число
+												if(to > 0)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(this->_fmk->atoi <uint64_t> (text, from), to);
+												// Если нам необходимо получить текст
+												else {
+													// Создаём контейнер для хранения данных
+													uint64_t buffer = 0;
+													// Выполняем извлечение текста
+													this->_fmk->atoi(text, from, &buffer, sizeof(buffer));
+													// Выводим полученный текст
+													text.assign(reinterpret_cast <const char *> (&buffer), sizeof(buffer));
+												}
+											} break;
+											// Если размер буфера слишком большой
+											default: {
+												/**
+												 * Выполняем отлов ошибок
+												 */
+												try {
+													// Создаём бинарный буфер
+													uint8_t * buffer = new uint8_t[size];
+													// Выполняем извлечение текста
+													this->_fmk->atoi(text, from, buffer, size);
+													// Выводим полученный текст
+													text.assign(reinterpret_cast <const char *> (buffer), size);
+													// Удаляем выделенную память
+													delete [] buffer;
+												/**
+												 * Если возникает ошибка
+												 */
+												} catch(const exception &) {
+													// Выпоолняем генерацию ошибки запроса
+													this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+													// Выводим удачное завершение работы
+													return;
+												}
+											}
+										}
+									// Если система счисления выше двоичной
+									} else {
+										// Получаем число в десятичной системе счисления
+										const uint64_t num = this->_fmk->atoi <uint64_t> (text, from);
+										// Определяем размер числа
+										const size_t size = this->_fmk->size(num);
+										// Если число помещается в один байт
+										if(size == 1)
+											// Выполняем конвертацию системы счисления
+											text = this->_fmk->itoa(static_cast <int8_t> (num), to);
+										// Если число помещается в два байта
+										else if(size == 2)
+											// Выполняем конвертацию системы счисления
+											text = this->_fmk->itoa(static_cast <int16_t> (num), to);
+										// Если число помещается в четыре байта
+										else if(size <= 4)
+											// Выполняем конвертацию системы счисления
+											text = this->_fmk->itoa(static_cast <int32_t> (num), to);
+										// Если число помещается в 8 байт
+										else if(size <= 8)
+											// Выполняем конвертацию системы счисления
+											text = this->_fmk->itoa(static_cast <int64_t> (num), to);
+										// Выводим сообщение об ошибке
+										else {
+											// Выпоолняем генерацию ошибки запроса
+											this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+											// Выводим удачное завершение работы
+											return;
+										}
+									}
+								// Выводим сообщение, что параметры для конвертации указаны неправильно
+								} else {
+									// Выпоолняем генерацию ошибки запроса
+									this->error(sid, bid, 400, "Parameters for converting the number system are specified incorrectly");
+									// Выводим удачное завершение работы
+									return;
+								}
+								// Если текст ответа получен
+								if((result = !text.empty())){
+									// Выполняем формирование результата ответа
+									json answer(kObjectType);
+									// Выполняем формирование результата
+									answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
+									// Создаём результьрующий буфер
+									rapidjson::StringBuffer result;
+									// Выполняем создание объекта писателя
+									Writer <StringBuffer> writer(result);
+									// Передаем данные объекта JSON писателю
+									answer.Accept(writer);
+									// Выполняем получение буфера данных для отправки
+									const string & buffer = result.GetString();
+									// Отправляем сообщение клиенту
+									this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
+										{"Accept-Ranges", "bytes"},
+										{"Vary", "Accept-Encoding"},
+										{"Content-Type", "application/json"},
+										{"Access-Control-Request-Headers", "Content-Type"},
+										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+									});
+									// Выходим из функции
+									return;
+								}
+							// Если текст не передан
+							} else {
+								// Выпоолняем генерацию ошибки запроса
+								this->error(sid, bid, 400, "No value specified for conversion");
+								// Выводим удачное завершение работы
+								return;
 							}
 						}
 					}

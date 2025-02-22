@@ -15,6 +15,13 @@
 #define __ACU_SERVER__
 
 /**
+ * Активируем работу со строками в RapidJSON
+ */
+#ifndef RAPIDJSON_HAS_STDSTRING
+	#define RAPIDJSON_HAS_STDSTRING true
+#endif
+
+/**
  * Стандартные модули
  */
 #include <map>

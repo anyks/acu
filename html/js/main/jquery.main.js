@@ -118,7 +118,7 @@
 					.unbind('click')
 					.bind('click', function(){
 						// Включаем индикатор загрузки
-						$("#spinner").removeClass("hidden");
+						$("#spinner-hashing").removeClass("hidden");
 						/**
 						 * Формируем функцию выполнения запроса на удалённый сервер
 						 */
@@ -196,7 +196,7 @@
 							}
 						})();
 						// Выключаем индикатор загрузки
-						$("#spinner").addClass("hidden");
+						$("#spinner-hashing").addClass("hidden");
 						// Запрещаем дальнейшие действия для ссылки
 						return false;
 					});
@@ -359,7 +359,7 @@
 		.unbind('click')
 		.bind('click', function(){
 			// Включаем индикатор загрузки
-			$("#spinner").removeClass("hidden");
+			$("#spinner-containers").removeClass("hidden");
 			/**
 			 * Формируем функцию выполнения запроса на удалённый сервер
 			 */
@@ -467,7 +467,7 @@
 				}
 			})();
 			// Выключаем индикатор загрузки
-			$("#spinner").addClass("hidden");
+			$("#spinner-containers").addClass("hidden");
 			// Запрещаем дальнейшие действия для ссылки
 			return false;
 		});
