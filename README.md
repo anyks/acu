@@ -226,6 +226,99 @@ $ acu -from json -to xml -src ./input -dest ./result -prettify
 
 ---
 
+### Converting numbers from decimal to binary
+```bash
+$ echo "3369" | acu -notation -from 10 -to 2
+```
+
+### Converting numbers from Arabic to Roman numerals
+```bash
+$ echo "3369" | acu -notation -from 10 -to 1
+```
+
+### Converting numbers from binary to decimal
+```bash
+$ echo "0000110100101001" | acu -notation -from 2 -to 10
+```
+
+### Convert text to binary
+```bash
+$ echo "Hello World" | acu -notation -from 0 -to 2
+```
+
+### Converting from binary to text
+```bash
+$ echo "0110010001101100011100100110111101010111001000000110111101101100011011000110010101001000" | acu -notation -from 2 -to 0
+```
+
+---
+
+### Generate date from timestamp
+```bash
+$ echo "1740268539834" | acu -date -from timestamp -to date -formatDate "%a, %d %b %Y %H:%M:%S %Z"
+```
+
+### Generate timestamp from date
+```bash
+$ echo "Sun, 23 Feb 2025 02:55:39 MSK" | acu -date -to timestamp -from date -formatDate "%a, %d %b %Y %H:%M:%S %Z"
+```
+
+---
+
+### Convert seconds to minutes
+```bash
+$ echo "120" | acu -seconds -from s -to m
+```
+
+### Convert seconds to hours
+```bash
+$ echo "16200" | acu -seconds -from s -to h
+```
+
+### Convert seconds to days
+```bash
+$ echo "1555200" | acu -seconds -from s -to d
+```
+
+### Convert Seconds to Weeks
+```bash
+$ echo "1555200" | acu -seconds -from s -to w
+```
+
+### Convert seconds to months
+```bash
+$ echo "7884000" | acu -seconds -from s -to M
+```
+
+### Convert seconds to years
+```bash
+$ echo "7884000" | acu -seconds -from s -to y
+```
+
+---
+
+### Convert bytes to kilobytes
+```bash
+$ echo "4096" | acu -bytes -from b -to Kb
+```
+
+### Convert bytes to megabytes
+```bash
+$ echo "4096" | acu -bytes -from b -to Mb
+```
+
+### Convert bytes to gigabytes
+```bash
+$ echo "34896609280" | acu -bytes -from b -to Gb
+```
+
+### Convert bytes to terabytes
+```bash
+$ echo "3188583720550.4" | acu -bytes -from b -to Tb
+```
+
+---
+
 ## Creating installation packages
 
 ### Creating a tar.gz archive
