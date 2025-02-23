@@ -124,7 +124,11 @@
 	padding:   5px 10px;
 }
 #body #container #content .wrap .block .card > .dropdown {padding: 5px;}
-#body #container #content .wrap .block .card .dropdown > .dropdown-menu {font-size: small;}
+#body #container #content .wrap .block .card .dropdown > .dropdown-menu {
+	height:     200px;
+	font-size:  small;
+	overflow-y: auto;
+}
 #body #container #content .wrap .block .card > .btn-close,
 #body #container #content .wrap .block .card > .spinner-border {
 	position: absolute;

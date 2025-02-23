@@ -42,7 +42,7 @@ body, #body, #header, #container,
 	margin:     0 auto;
 	color:      black;
 	background: white;
-	/* z-index: 1000;*/
+	z-index:    1000;
 }
 /* компенсация высоты заголовка */
 #container .column {padding-top: 418px !important;}
@@ -53,7 +53,7 @@ body, #body, #header, #container,
 	min-width:  1024px;
 	color:      black;
 	background: white;
-	/* z-index: 1000;*/
+	z-index:    1000;
 }
 #container {
 	width:         auto;
@@ -63,7 +63,7 @@ body, #body, #header, #container,
 	overflow:      hidden;
 	float:         left; /* IE 5.01 */
 	float/**/:     none;
-	/* z-index:    999;*/
+	z-index:       999;
 }
 #container.no_left {
 	min-width:    804px;

@@ -540,12 +540,31 @@
 				</div>
 				<br>
 				<div class="card">
-					<div class="card-header"><strong>Конвертация чисел из 2-й системы счисления в 10-ю</strong></div>
+					<div class="card-header"><strong>Конвертация чисел из 10-й системы счисления в Римскую форму записи</strong></div>
 					<div class="card-body" id="code-editor-14"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
 							const cm = CodeMirror(document.getElementById('code-editor-14'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "3369" | acu -notation -from 10 -to 1`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Конвертация чисел из 2-й системы счисления в 10-ю</strong></div>
+					<div class="card-body" id="code-editor-15"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-15'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -560,11 +579,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация текста в 2-ю систему счисления</strong></div>
-					<div class="card-body" id="code-editor-15"></div>
+					<div class="card-body" id="code-editor-16"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-15'), {
+							const cm = CodeMirror(document.getElementById('code-editor-16'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -579,11 +598,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация из 2-й системы счисления в текст</strong></div>
-					<div class="card-body" id="code-editor-16"></div>
+					<div class="card-body" id="code-editor-17"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-16'), {
+							const cm = CodeMirror(document.getElementById('code-editor-17'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -598,11 +617,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Генерация даты</strong></div>
-					<div class="card-body" id="code-editor-17"></div>
+					<div class="card-body" id="code-editor-18"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-17'), {
+							const cm = CodeMirror(document.getElementById('code-editor-18'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -610,18 +629,37 @@
 								lineNumbers: false
 							});
 							// Добавляем пример работы
-							cm.setValue(`$ echo "1740083987116" | acu -date -formatDate "%a, %d %b %Y %H:%M:%S %Z"`);
+							cm.setValue(`$ echo "1740268539834" | acu -date -from timestamp -to date -formatDate "%a, %d %b %Y %H:%M:%S %Z"`);
+						}
+					</script>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Генерация даты</strong></div>
+					<div class="card-body" id="code-editor-19"></div>
+					<script>
+						{
+							// Создаём объект подсветки синтаксиса
+							const cm = CodeMirror(document.getElementById('code-editor-19'), {
+								tabSize: 4,
+								mode: 'shell',
+								theme: 'eclipse',
+								readOnly: true,
+								lineNumbers: false
+							});
+							// Добавляем пример работы
+							cm.setValue(`$ echo "Sun, 23 Feb 2025 02:55:39 MSK" | acu -date -to timestamp -from date -formatDate "%a, %d %b %Y %H:%M:%S %Z"`);
 						}
 					</script>
 				</div>
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация секунд в минуты</strong></div>
-					<div class="card-body" id="code-editor-18"></div>
+					<div class="card-body" id="code-editor-20"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-18'), {
+							const cm = CodeMirror(document.getElementById('code-editor-20'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -636,11 +674,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация секунд в часы</strong></div>
-					<div class="card-body" id="code-editor-19"></div>
+					<div class="card-body" id="code-editor-21"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-19'), {
+							const cm = CodeMirror(document.getElementById('code-editor-21'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -655,11 +693,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация секунд в дни</strong></div>
-					<div class="card-body" id="code-editor-20"></div>
+					<div class="card-body" id="code-editor-22"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-20'), {
+							const cm = CodeMirror(document.getElementById('code-editor-22'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -674,11 +712,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация секунд в недели</strong></div>
-					<div class="card-body" id="code-editor-21"></div>
+					<div class="card-body" id="code-editor-23"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-21'), {
+							const cm = CodeMirror(document.getElementById('code-editor-23'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -693,11 +731,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация секунд в месяцы</strong></div>
-					<div class="card-body" id="code-editor-22"></div>
+					<div class="card-body" id="code-editor-24"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-22'), {
+							const cm = CodeMirror(document.getElementById('code-editor-24'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -712,11 +750,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация секунд в годы</strong></div>
-					<div class="card-body" id="code-editor-23"></div>
+					<div class="card-body" id="code-editor-25"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-23'), {
+							const cm = CodeMirror(document.getElementById('code-editor-25'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -731,11 +769,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация байт в килобайты</strong></div>
-					<div class="card-body" id="code-editor-24"></div>
+					<div class="card-body" id="code-editor-26"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-24'), {
+							const cm = CodeMirror(document.getElementById('code-editor-26'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -750,11 +788,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация байт в мегабайты</strong></div>
-					<div class="card-body" id="code-editor-25"></div>
+					<div class="card-body" id="code-editor-27"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-25'), {
+							const cm = CodeMirror(document.getElementById('code-editor-27'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -769,11 +807,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация байт в гигабайты</strong></div>
-					<div class="card-body" id="code-editor-26"></div>
+					<div class="card-body" id="code-editor-28"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-26'), {
+							const cm = CodeMirror(document.getElementById('code-editor-28'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',
@@ -788,11 +826,11 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Конвертация байт в терабайты</strong></div>
-					<div class="card-body" id="code-editor-27"></div>
+					<div class="card-body" id="code-editor-29"></div>
 					<script>
 						{
 							// Создаём объект подсветки синтаксиса
-							const cm = CodeMirror(document.getElementById('code-editor-27'), {
+							const cm = CodeMirror(document.getElementById('code-editor-29'), {
 								tabSize: 4,
 								mode: 'shell',
 								theme: 'eclipse',

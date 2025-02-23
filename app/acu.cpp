@@ -1717,31 +1717,65 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Выводим сообщение, что файл или каталог не указан
 			} else log.print("Address of the file or directory for conversion is not specified", log_t::flag_t::CRITICAL);
 		// Если указаны форматы конвертации даты
-		} else if(env.isBoolean(false, "date")) {
+		} else if(env.isString(false, "from") && env.isString(false, "to") && env.isBoolean(false, "date")) {
+			// Получаем формат даты которую нужно получить на выходе
+			const string & to = env.get <string> (false, "to");
+			// Получаем формат даты которую необходимо сконвертировать
+			const string & from = env.get <string> (false, "from");
 			// Если данные прочитаны из потока
-			if(!text.empty()){
-				// Количество количество секунд для конвертации
-				time_t seconds = 0;
-				// Если текст передан в виде секнд
-				if(fmk.is(text, fmk_t::check_t::NUMBER) || fmk.is(text, fmk_t::check_t::DECIMAL)){
-					// Выполняем конвертацию полученных секунд
-					seconds = (env.isString(false, "from") ? fmk.seconds(text + env.get <string> (false, "from")) : static_cast <time_t> (::stoull(text)));
-					// Если количество символов 13 значит число пришло в миллисекундах
-					if(!env.isString(false, "from") && (text.length() == 13))
-						// Переводим миллисекунды в секунды
-						seconds /= 1000;
-				// Если количество секунд передано в виде текста
-				} else seconds = fmk.seconds(text);
-				// Если количество секунд передано
-				if(seconds > 0){
+			if(!text.empty() && !from.empty() && !to.empty()){
+				// Если мы получили на вход штамп времени
+				if(fmk.compare("timestamp", from)){
+					// Количество количество секунд для конвертации
+					time_t seconds = 0;
+					// Если текст передан в виде секнд
+					if(fmk.is(text, fmk_t::check_t::NUMBER) || fmk.is(text, fmk_t::check_t::DECIMAL)){
+						// Выполняем конвертацию полученных секунд
+						seconds = static_cast <time_t> (::stoull(text));
+						// Если количество символов 13 значит число пришло в миллисекундах
+						if(text.length() == 13)
+							// Переводим миллисекунды в секунды
+							seconds /= 1000;
+					// Если количество секунд передано в виде текста
+					} else seconds = fmk.seconds(text);
+					// Если количество секунд передано
+					if(seconds > 0){
+						// Если формат не передан
+						if(!env.isString(false, "formatDate"))
+							// Формируем дату
+							cout << fmk.time2str(seconds) << endl;
+						// Если формат даты передан
+						else {
+							// Получаем формат даты
+							const string formatDate = env.get <string> (false, "formatDate");
+							// Если формат даты передан
+							if(!formatDate.empty())
+								// Формируем дату с указанным форматом
+								cout << fmk.time2str(seconds, formatDate) << endl;
+							// Если формат даты получен пустым
+							else cout << fmk.time2str(seconds) << endl;
+						}
+					// Выводим полученный результат
+					} else cout << fmk.time2str(::time(nullptr)) << endl;
+				// Если мы получили на вход дату
+				} else if(fmk.compare("date", from)) {
 					// Если формат не передан
 					if(!env.isString(false, "formatDate"))
-						// Формируем дату
-						cout << fmk.time2str(seconds) << endl;
-					// Формируем дату с указанным форматом
-					else cout << fmk.time2str(seconds, env.get <string> (false, "formatDate")) << endl;
-				// Выводим полученный результат
-				} else cout << fmk.time2str(::time(nullptr)) << endl;
+						// Формируем штамп времени
+						cout << fmk.str2time(text) << endl;
+					// Если формат даты передан
+					else {
+						// Получаем формат даты
+						const string formatDate = env.get <string> (false, "formatDate");
+						// Если формат даты передан
+						if(!formatDate.empty())
+							// Формируем штамп временем с указанным форматом
+							cout << fmk.str2time(text, formatDate) << endl;
+						// Если формат штамп времени получен пустым
+						else cout << fmk.str2time(text) << endl;
+					}
+				// Выводим сообщение, что значение для конвертации не указанно
+				} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
 			// Выводим сообщение, что значение для конвертации не указанно
 			} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
 		// Если указаны форматы конвертации секунд
@@ -1767,27 +1801,27 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 					// Если сконвертировать полученные секунды необходимо в минуты
 					else if(to.front() == 'm')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 60., static_cast <uint8_t> (1)) << endl;
+						cout << fmk.noexp(static_cast <double> (seconds) / 60.) << endl;
 					// Если сконвертировать полученные секунды необходимо в часы
 					else if(to.front() == 'h')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 3600., static_cast <uint8_t> (1)) << endl;
+						cout << fmk.noexp(static_cast <double> (seconds) / 3600.) << endl;
 					// Если сконвертировать полученные секунды необходимо в дни
 					else if(to.front() == 'd')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 86400., static_cast <uint8_t> (1)) << endl;
+						cout << fmk.noexp(static_cast <double> (seconds) / 86400.) << endl;
 					// Если сконвертировать полученные секунды необходимо в недели
 					else if(to.front() == 'w')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 604800., static_cast <uint8_t> (1)) << endl;
+						cout << fmk.noexp(static_cast <double> (seconds) / 604800.) << endl;
 					// Если сконвертировать полученные секунды необходимо в месяцы
 					else if(to.front() == 'M')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 2628000., static_cast <uint8_t> (1)) << endl;
+						cout << fmk.noexp(static_cast <double> (seconds) / 2628000.) << endl;
 					// Если сконвертировать полученные секунды необходимо в годы
 					else if(to.front() == 'y')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 31536000., static_cast <uint8_t> (1)) << endl;
+						cout << fmk.noexp(static_cast <double> (seconds) / 31536000.) << endl;
 				// Выводим полученный результат
 				} else cout << "0" << endl;
 			// Выводим сообщение, что значение для конвертации не указанно
@@ -1864,7 +1898,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						log.print("%s", log_t::flag_t::CRITICAL, error.what());
 					}
 				// Если система счисления из которой производится конвертация является десятичная
-				} else if((from == 10) && ((to > 1) && (to < 37))) {
+				} else if((from == 10) && ((to > 0) && (to < 37))) {
 					// Текст передан в виде числа
 					if(fmk.is(text, fmk_t::check_t::NUMBER)){
 						/**
@@ -1873,26 +1907,33 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						try {
 							// Получаем число
 							const uint64_t num = static_cast <uint64_t> (text.front() == '-' ? (::stoll(text) * -1) : ::stoull(text));
-							// Определяем размер числа
-							const size_t size = fmk.size(num);
-							// Если число помещается в один байт
-							if(size == 1)
-								// Выполняем конвертацию системы счисления
-								cout << fmk.itoa(static_cast <uint8_t> (num), to) << endl;
-							// Если число помещается в два байта
-							else if(size == 2)
-								// Выполняем конвертацию системы счисления
-								cout << fmk.itoa(static_cast <uint16_t> (num), to) << endl;
-							// Если число помещается в четыре байта
-							else if(size <= 4)
-								// Выполняем конвертацию системы счисления
-								cout << fmk.itoa(static_cast <uint32_t> (num), to) << endl;
-							// Если число помещается в 8 байт
-							else if(size <= 8)
-								// Выполняем конвертацию системы счисления
-								cout << fmk.itoa(static_cast <uint64_t> (num), to) << endl;
-							// Выводим сообщение об ошибке
-							else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+							// Если необходимо сконвертировать число в Римские цифры
+							if(to == 1)
+								// Выполняем конвертирование Арабских чисел в Римские
+								cout << fmk.convert(fmk.arabic2rome(static_cast <uint32_t> (num))) << endl;
+							// Если необходимо сконвертировать число в другие системы счисления
+							else {
+								// Определяем размер числа
+								const size_t size = fmk.size(num);
+								// Если число помещается в один байт
+								if(size == 1)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(static_cast <uint8_t> (num), to) << endl;
+								// Если число помещается в два байта
+								else if(size == 2)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(static_cast <uint16_t> (num), to) << endl;
+								// Если число помещается в четыре байта
+								else if(size <= 4)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(static_cast <uint32_t> (num), to) << endl;
+								// Если число помещается в 8 байт
+								else if(size <= 8)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(static_cast <uint64_t> (num), to) << endl;
+								// Выводим сообщение об ошибке
+								else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+							}
 						/**
 						 * Если возникает ошибка
 						 */
@@ -1908,26 +1949,33 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						try {
 							// Получаем переданное число
 							const uint64_t num = static_cast <uint64_t> (text.front() == '-' ? ::round(::stod(text) * -1) : ::round(::stod(text)));
-							// Определяем размер числа
-							const size_t size = fmk.size(num);
-							// Если число помещается в один байт
-							if(size == 1)
-								// Выполняем конвертацию системы счисления
-								cout << fmk.itoa(static_cast <uint8_t> (num), to) << endl;
-							// Если число помещается в два байта
-							else if(size == 2)
-								// Выполняем конвертацию системы счисления
-								cout << fmk.itoa(static_cast <uint16_t> (num), to) << endl;
-							// Если число помещается в четыре байта
-							else if(size <= 4)
-								// Выполняем конвертацию системы счисления
-								cout << fmk.itoa(static_cast <uint32_t> (num), to) << endl;
-							// Если число помещается в 8 байт
-							else if(size <= 8)
-								// Выполняем конвертацию системы счисления
-								cout << fmk.itoa(static_cast <uint64_t> (num), to) << endl;
-							// Выводим сообщение об ошибке
-							else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+							// Если необходимо сконвертировать число в Римские цифры
+							if(to == 1)
+								// Выполняем конвертирование Арабских чисел в Римские
+								cout << fmk.convert(fmk.arabic2rome(static_cast <uint32_t> (num))) << endl;
+							// Если необходимо сконвертировать число в другие системы счисления
+							else {
+								// Определяем размер числа
+								const size_t size = fmk.size(num);
+								// Если число помещается в один байт
+								if(size == 1)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(static_cast <uint8_t> (num), to) << endl;
+								// Если число помещается в два байта
+								else if(size == 2)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(static_cast <uint16_t> (num), to) << endl;
+								// Если число помещается в четыре байта
+								else if(size <= 4)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(static_cast <uint32_t> (num), to) << endl;
+								// Если число помещается в 8 байт
+								else if(size <= 8)
+									// Выполняем конвертацию системы счисления
+									cout << fmk.itoa(static_cast <uint64_t> (num), to) << endl;
+								// Выводим сообщение об ошибке
+								else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+							}
 						/**
 						 * Если возникает ошибка
 						 */
@@ -1938,7 +1986,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 					// Если текст передан не в виде числа, то выводим сообщение об ошибке
 					} else log.print("Data to be converted must be in the form of a number", log_t::flag_t::CRITICAL);
 				// Если система счисления в которую производится конвертация является десятичная
-				} else if((to < 37) && ((from > 1) && (from < 37))) {
+				} else if((to < 37) && ((from > 0) && (from < 37))) {
 					// Если система счисления является двоичной
 					if(from == 2){
 						// Размер бинарного буфера
@@ -1955,8 +2003,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						switch(size){
 							// Если размер бинарного буфера состоит из одного байта
 							case 1: {
-								// Если нам необходимо получить число
-								if(to > 0)
+								// Если необходимо сконвертировать число в Римские цифры
+								if(to == 1)
+									// Выполняем конвертирование Арабских чисел в Римские
+									cout << fmk.convert(fmk.arabic2rome(fmk.atoi <uint32_t> (text, from))) << endl;
+								// Если необходимо сконвертировать число в другие системы счисления
+								else if(to > 1)
 									// Выполняем конвертацию системы счисления
 									cout << fmk.itoa(fmk.atoi <uint8_t> (text, from), to) << endl;
 								// Если нам необходимо получить текст
@@ -1971,8 +2023,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							} break;
 							// Если размер бинарного буфера состоит из двух байтов
 							case 2: {
-								// Если нам необходимо получить число
-								if(to > 0)
+								// Если необходимо сконвертировать число в Римские цифры
+								if(to == 1)
+									// Выполняем конвертирование Арабских чисел в Римские
+									cout << fmk.convert(fmk.arabic2rome(fmk.atoi <uint32_t> (text, from))) << endl;
+								// Если необходимо сконвертировать число в другие системы счисления
+								else if(to > 1)
 									// Выполняем конвертацию системы счисления
 									cout << fmk.itoa(fmk.atoi <uint16_t> (text, from), to) << endl;
 								// Если нам необходимо получить текст
@@ -1987,8 +2043,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							} break;
 							// Если размер бинарного буфера состоит из четырёх байт
 							case 4: {
-								// Если нам необходимо получить число
-								if(to > 0)
+								// Если необходимо сконвертировать число в Римские цифры
+								if(to == 1)
+									// Выполняем конвертирование Арабских чисел в Римские
+									cout << fmk.convert(fmk.arabic2rome(fmk.atoi <uint32_t> (text, from))) << endl;
+								// Если необходимо сконвертировать число в другие системы счисления
+								else if(to > 1)
 									// Выполняем конвертацию системы счисления
 									cout << fmk.itoa(fmk.atoi <uint32_t> (text, from), to) << endl;
 								// Если нам необходимо получить текст
@@ -2003,8 +2063,12 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							} break;
 							// Если размер бинарного буфера состоит из восьми байт
 							case 8: {
-								// Если нам необходимо получить число
-								if(to > 0)
+								// Если необходимо сконвертировать число в Римские цифры
+								if(to == 1)
+									// Выполняем конвертирование Арабских чисел в Римские
+									cout << fmk.convert(fmk.arabic2rome(fmk.atoi <uint32_t> (text, from))) << endl;
+								// Если необходимо сконвертировать число в другие системы счисления
+								else if(to > 1)
 									// Выполняем конвертацию системы счисления
 									cout << fmk.itoa(fmk.atoi <uint64_t> (text, from), to) << endl;
 								// Если нам необходимо получить текст
@@ -2040,30 +2104,64 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								}
 							}
 						}
+					// Если система числа находятся в Римской форме записи
+					} else if(from == 1) {
+						// Получаем число в десятичной системе счисления
+						const uint32_t num = fmk.rome2arabic(text);
+						// Если необходимо сконвертировать число в Римские цифры
+						if(to == 1)
+							// Выполняем конвертирование Арабских чисел в Римские
+							cout << fmk.convert(fmk.arabic2rome(static_cast <uint32_t> (num))) << endl;
+						// Если необходимо сконвертировать число в другие системы счисления
+						else {
+							// Определяем размер числа
+							const size_t size = fmk.size(num);
+							// Если число помещается в один байт
+							if(size == 1)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint8_t> (num), to) << endl;
+							// Если число помещается в два байта
+							else if(size == 2)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint16_t> (num), to) << endl;
+							// Если число помещается в четыре байта
+							else if(size <= 4)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint32_t> (num), to) << endl;
+							// Выводим сообщение об ошибке
+							else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+						}
 					// Если система счисления выше двоичной
 					} else {
 						// Получаем число в десятичной системе счисления
 						const uint64_t num = fmk.atoi <uint64_t> (text, from);
-						// Определяем размер числа
-						const size_t size = fmk.size(num);
-						// Если число помещается в один байт
-						if(size == 1)
-							// Выполняем конвертацию системы счисления
-							cout << fmk.itoa(static_cast <int8_t> (num), to) << endl;
-						// Если число помещается в два байта
-						else if(size == 2)
-							// Выполняем конвертацию системы счисления
-							cout << fmk.itoa(static_cast <int16_t> (num), to) << endl;
-						// Если число помещается в четыре байта
-						else if(size <= 4)
-							// Выполняем конвертацию системы счисления
-							cout << fmk.itoa(static_cast <int32_t> (num), to) << endl;
-						// Если число помещается в 8 байт
-						else if(size <= 8)
-							// Выполняем конвертацию системы счисления
-							cout << fmk.itoa(static_cast <int64_t> (num), to) << endl;
-						// Выводим сообщение об ошибке
-						else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+						// Если необходимо сконвертировать число в Римские цифры
+						if(to == 1)
+							// Выполняем конвертирование Арабских чисел в Римские
+							cout << fmk.convert(fmk.arabic2rome(static_cast <uint32_t> (num))) << endl;
+						// Если необходимо сконвертировать число в другие системы счисления
+						else {
+							// Определяем размер числа
+							const size_t size = fmk.size(num);
+							// Если число помещается в один байт
+							if(size == 1)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint8_t> (num), to) << endl;
+							// Если число помещается в два байта
+							else if(size == 2)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint16_t> (num), to) << endl;
+							// Если число помещается в четыре байта
+							else if(size <= 4)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint32_t> (num), to) << endl;
+							// Если число помещается в 8 байт
+							else if(size <= 8)
+								// Выполняем конвертацию системы счисления
+								cout << fmk.itoa(static_cast <uint64_t> (num), to) << endl;
+							// Выводим сообщение об ошибке
+							else log.print("Number to convert does not fit into 64 bits", log_t::flag_t::CRITICAL);
+						}
 					}
 				// Выводим сообщение, что параметры для конвертации указаны неправильно
 				} else log.print("Parameters for converting the number system are specified incorrectly", log_t::flag_t::CRITICAL);

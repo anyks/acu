@@ -955,59 +955,117 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								}
 							}
 						// Если указаны форматы конвертации даты
-						} else if(request.HasMember("date") && request.HasMember("text") && request["text"].IsString()) {
+						} else if(request.HasMember("date") && request.HasMember("text") && request.HasMember("to") &&
+						          request.HasMember("from") && request["text"].IsString() && request["to"].IsString() && request["from"].IsString()) {
 							// Получаем текст для конвертации
 							string text = request["text"].GetString();
+							// Получаем формат даты которую нужно получить на выходе
+							const string & to = request["to"].GetString();
+							// Получаем формат даты которую необходимо сконвертировать
+							const string & from = request["from"].GetString();
 							// Если данные для конвертации переданы
 							if(!text.empty()){
-								// Количество количество секунд для конвертации
-								time_t seconds = 0;
-								// Если текст передан в виде секнд
-								if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL)){
-									// Получаем тип название типа входящих данных
-									const string & from = (request.HasMember("from") && request["from"].IsString() ? request["from"].GetString() : "");
-									// Выполняем конвертацию полученных секунд
-									seconds = (!from.empty() ? this->_fmk->seconds(text + from) : static_cast <time_t> (::stoull(text)));
-									// Если количество символов 13 значит число пришло в миллисекундах
-									if(from.empty() && (text.length() == 13))
-										// Переводим миллисекунды в секунды
-										seconds /= 1000;
-								// Если количество секунд передано в виде текста
-								} else seconds = this->_fmk->seconds(text);
-								// Если количество секунд передано
-								if(seconds > 0){
+								// Если мы получили на вход штамп времени
+								if(this->_fmk->compare("timestamp", from)){
+									// Количество количество секунд для конвертации
+									time_t seconds = 0;
+									// Если текст передан в виде секнд
+									if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL)){
+										// Выполняем конвертацию полученных секунд
+										seconds = static_cast <time_t> (::stoull(text));
+										// Если количество символов 13 значит число пришло в миллисекундах
+										if(text.length() == 13)
+											// Переводим миллисекунды в секунды
+											seconds /= 1000;
+									// Если количество секунд передано в виде текста
+									} else seconds = this->_fmk->seconds(text);
+									// Если количество секунд передано
+									if(seconds > 0){
+										// Если формат даты передан в виде строки
+										if(request.HasMember("formatDate") && request["formatDate"].IsString()){
+											// Получаем формат даты
+											const string formatDate = request["formatDate"].GetString();
+											// Если формат даты передан
+											if(!formatDate.empty())
+												// Формируем дату с указанным форматом
+												text = this->_fmk->time2str(seconds, formatDate);
+											// Если формат даты не передан
+											else text = this->_fmk->time2str(seconds);
+										// Если формат даты не передан
+										} else text = this->_fmk->time2str(seconds);
+									// Выводим полученный результат
+									} else text = this->_fmk->time2str(::time(nullptr));
+									// Если текст ответа получен
+									if((result = !text.empty())){
+										// Выполняем формирование результата ответа
+										json answer(kObjectType);
+										// Выполняем формирование результата
+										answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
+										// Создаём результьрующий буфер
+										rapidjson::StringBuffer result;
+										// Выполняем создание объекта писателя
+										Writer <StringBuffer> writer(result);
+										// Передаем данные объекта JSON писателю
+										answer.Accept(writer);
+										// Выполняем получение буфера данных для отправки
+										const string & buffer = result.GetString();
+										// Отправляем сообщение клиенту
+										this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
+											{"Accept-Ranges", "bytes"},
+											{"Vary", "Accept-Encoding"},
+											{"Content-Type", "application/json"},
+											{"Access-Control-Request-Headers", "Content-Type"},
+											{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+											{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+										});
+										// Выходим из функции
+										return;
+									}
+								// Если мы получили на вход дату
+								} else if(this->_fmk->compare("date", from)) {
 									// Если формат даты передан в виде строки
-									if(request.HasMember("formatDate") && request["formatDate"].IsString())
-										// Формируем дату с указанным форматом
-										text = this->_fmk->time2str(seconds, request["formatDate"].GetString());
+									if(request.HasMember("formatDate") && request["formatDate"].IsString()){
+										// Получаем формат даты
+										const string formatDate = request["formatDate"].GetString();
+										// Если формат даты передан
+										if(!formatDate.empty())
+											// Формируем штамп временем с указанным форматом
+											text = std::to_string(this->_fmk->str2time(text, formatDate));
+										// Если формат штамп времени получен пустым
+										else text = std::to_string(this->_fmk->str2time(text));
 									// Если формат даты не передан
-									else text = this->_fmk->time2str(seconds);
-								// Выводим полученный результат
-								} else text = this->_fmk->time2str(::time(nullptr));
-								// Если текст ответа получен
-								if((result = !text.empty())){
-									// Выполняем формирование результата ответа
-									json answer(kObjectType);
-									// Выполняем формирование результата
-									answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
-									// Создаём результьрующий буфер
-									rapidjson::StringBuffer result;
-									// Выполняем создание объекта писателя
-									Writer <StringBuffer> writer(result);
-									// Передаем данные объекта JSON писателю
-									answer.Accept(writer);
-									// Выполняем получение буфера данных для отправки
-									const string & buffer = result.GetString();
-									// Отправляем сообщение клиенту
-									this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
-										{"Accept-Ranges", "bytes"},
-										{"Vary", "Accept-Encoding"},
-										{"Content-Type", "application/json"},
-										{"Access-Control-Request-Headers", "Content-Type"},
-										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
-										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
-									});
-									// Выходим из функции
+									} else text = std::to_string(this->_fmk->str2time(text));
+									// Если текст ответа получен
+									if((result = !text.empty())){
+										// Выполняем формирование результата ответа
+										json answer(kObjectType);
+										// Выполняем формирование результата
+										answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
+										// Создаём результьрующий буфер
+										rapidjson::StringBuffer result;
+										// Выполняем создание объекта писателя
+										Writer <StringBuffer> writer(result);
+										// Передаем данные объекта JSON писателю
+										answer.Accept(writer);
+										// Выполняем получение буфера данных для отправки
+										const string & buffer = result.GetString();
+										// Отправляем сообщение клиенту
+										this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
+											{"Accept-Ranges", "bytes"},
+											{"Vary", "Accept-Encoding"},
+											{"Content-Type", "application/json"},
+											{"Access-Control-Request-Headers", "Content-Type"},
+											{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+											{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+										});
+										// Выходим из функции
+										return;
+									}
+								// Если текст не передан
+								} else {
+									// Выпоолняем генерацию ошибки запроса
+									this->error(sid, bid, 400, "No value specified for conversion");
+									// Выводим удачное завершение работы
 									return;
 								}
 							// Если текст не передан
@@ -1045,27 +1103,27 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Если сконвертировать полученные секунды необходимо в минуты
 									else if(to.front() == 'm')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 60., static_cast <uint8_t> (1));
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 60.);
 									// Если сконвертировать полученные секунды необходимо в часы
 									else if(to.front() == 'h')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 3600., static_cast <uint8_t> (1));
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 3600.);
 									// Если сконвертировать полученные секунды необходимо в дни
 									else if(to.front() == 'd')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 86400., static_cast <uint8_t> (1));
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 86400.);
 									// Если сконвертировать полученные секунды необходимо в недели
 									else if(to.front() == 'w')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 604800., static_cast <uint8_t> (1));
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 604800.);
 									// Если сконвертировать полученные секунды необходимо в месяцы
 									else if(to.front() == 'M')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 2628000., static_cast <uint8_t> (1));
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 2628000.);
 									// Если сконвертировать полученные секунды необходимо в годы
 									else if(to.front() == 'y')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 31536000., static_cast <uint8_t> (1));
+										text = this->_fmk->noexp(static_cast <double> (seconds) / 31536000.);
 								// Выводим полученный результат
 								} else text = "0";
 								// Если текст ответа получен
@@ -1214,7 +1272,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										return;
 									}
 								// Если система счисления из которой производится конвертация является десятичная
-								} else if((from == 10) && ((to > 1) && (to < 37))) {
+								} else if((from == 10) && ((to > 0) && (to < 37))) {
 									// Текст передан в виде числа
 									if(this->_fmk->is(text, fmk_t::check_t::NUMBER)){
 										/**
@@ -1223,30 +1281,37 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										try {
 											// Получаем число
 											const uint64_t num = static_cast <uint64_t> (text.front() == '-' ? (::stoll(text) * -1) : ::stoull(text));
-											// Определяем размер числа
-											const size_t size = this->_fmk->size(num);
-											// Если число помещается в один байт
-											if(size == 1)
-												// Выполняем конвертацию системы счисления
-												text = this->_fmk->itoa(static_cast <uint8_t> (num), to);
-											// Если число помещается в два байта
-											else if(size == 2)
-												// Выполняем конвертацию системы счисления
-												text = this->_fmk->itoa(static_cast <uint16_t> (num), to);
-											// Если число помещается в четыре байта
-											else if(size <= 4)
-												// Выполняем конвертацию системы счисления
-												text = this->_fmk->itoa(static_cast <uint32_t> (num), to);
-											// Если число помещается в 8 байт
-											else if(size <= 8)
-												// Выполняем конвертацию системы счисления
-												text = this->_fmk->itoa(static_cast <uint64_t> (num), to);
-											// Выводим сообщение об ошибке
+											// Если необходимо сконвертировать число в Римские цифры
+											if(to == 1)
+												// Выполняем конвертирование Арабских чисел в Римские
+												text = this->_fmk->convert(this->_fmk->arabic2rome(static_cast <uint32_t> (num)));
+											// Если необходимо сконвертировать число в другие системы счисления
 											else {
-												// Выпоолняем генерацию ошибки запроса
-												this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
-												// Выводим удачное завершение работы
-												return;
+												// Определяем размер числа
+												const size_t size = this->_fmk->size(num);
+												// Если число помещается в один байт
+												if(size == 1)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(static_cast <uint8_t> (num), to);
+												// Если число помещается в два байта
+												else if(size == 2)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(static_cast <uint16_t> (num), to);
+												// Если число помещается в четыре байта
+												else if(size <= 4)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(static_cast <uint32_t> (num), to);
+												// Если число помещается в 8 байт
+												else if(size <= 8)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(static_cast <uint64_t> (num), to);
+												// Выводим сообщение об ошибке
+												else {
+													// Выпоолняем генерацию ошибки запроса
+													this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+													// Выводим удачное завершение работы
+													return;
+												}
 											}
 										/**
 										 * Если возникает ошибка
@@ -1265,30 +1330,37 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										try {
 											// Получаем переданное число
 											const uint64_t num = static_cast <uint64_t> (text.front() == '-' ? ::round(::stod(text) * -1) : ::round(::stod(text)));
-											// Определяем размер числа
-											const size_t size = this->_fmk->size(num);
-											// Если число помещается в один байт
-											if(size == 1)
-												// Выполняем конвертацию системы счисления
-												text = this->_fmk->itoa(static_cast <uint8_t> (num), to);
-											// Если число помещается в два байта
-											else if(size == 2)
-												// Выполняем конвертацию системы счисления
-												text = this->_fmk->itoa(static_cast <uint16_t> (num), to);
-											// Если число помещается в четыре байта
-											else if(size <= 4)
-												// Выполняем конвертацию системы счисления
-												text = this->_fmk->itoa(static_cast <uint32_t> (num), to);
-											// Если число помещается в 8 байт
-											else if(size <= 8)
-												// Выполняем конвертацию системы счисления
-												text = this->_fmk->itoa(static_cast <uint64_t> (num), to);
-											// Выводим сообщение об ошибке
+											// Если необходимо сконвертировать число в Римские цифры
+											if(to == 1)
+												// Выполняем конвертирование Арабских чисел в Римские
+												text = this->_fmk->convert(this->_fmk->arabic2rome(static_cast <uint32_t> (num)));
+											// Если необходимо сконвертировать число в другие системы счисления
 											else {
-												// Выпоолняем генерацию ошибки запроса
-												this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
-												// Выводим удачное завершение работы
-												return;
+												// Определяем размер числа
+												const size_t size = this->_fmk->size(num);
+												// Если число помещается в один байт
+												if(size == 1)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(static_cast <uint8_t> (num), to);
+												// Если число помещается в два байта
+												else if(size == 2)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(static_cast <uint16_t> (num), to);
+												// Если число помещается в четыре байта
+												else if(size <= 4)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(static_cast <uint32_t> (num), to);
+												// Если число помещается в 8 байт
+												else if(size <= 8)
+													// Выполняем конвертацию системы счисления
+													text = this->_fmk->itoa(static_cast <uint64_t> (num), to);
+												// Выводим сообщение об ошибке
+												else {
+													// Выпоолняем генерацию ошибки запроса
+													this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+													// Выводим удачное завершение работы
+													return;
+												}
 											}
 										/**
 										 * Если возникает ошибка
@@ -1307,7 +1379,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										return;
 									}
 								// Если система счисления в которую производится конвертация является десятичная
-								} else if((to < 37) && ((from > 1) && (from < 37))) {
+								} else if((to < 37) && ((from > 0) && (from < 37))) {
 									// Если система счисления является двоичной
 									if(from == 2){
 										// Размер бинарного буфера
@@ -1324,8 +1396,12 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										switch(size){
 											// Если размер бинарного буфера состоит из одного байта
 											case 1: {
-												// Если нам необходимо получить число
-												if(to > 0)
+												// Если необходимо сконвертировать число в Римские цифры
+												if(to == 1)
+													// Выполняем конвертирование Арабских чисел в Римские
+													text = this->_fmk->convert(this->_fmk->arabic2rome(this->_fmk->atoi <uint32_t> (text, from)));
+												// Если необходимо сконвертировать число в другие системы счисления
+												else if(to > 1)
 													// Выполняем конвертацию системы счисления
 													text = this->_fmk->itoa(this->_fmk->atoi <uint8_t> (text, from), to);
 												// Если нам необходимо получить текст
@@ -1340,8 +1416,12 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 											} break;
 											// Если размер бинарного буфера состоит из двух байтов
 											case 2: {
-												// Если нам необходимо получить число
-												if(to > 0)
+												// Если необходимо сконвертировать число в Римские цифры
+												if(to == 1)
+													// Выполняем конвертирование Арабских чисел в Римские
+													text = this->_fmk->convert(this->_fmk->arabic2rome(this->_fmk->atoi <uint32_t> (text, from)));
+												// Если необходимо сконвертировать число в другие системы счисления
+												else if(to > 1)
 													// Выполняем конвертацию системы счисления
 													text = this->_fmk->itoa(this->_fmk->atoi <uint16_t> (text, from), to);
 												// Если нам необходимо получить текст
@@ -1356,8 +1436,12 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 											} break;
 											// Если размер бинарного буфера состоит из четырёх байт
 											case 4: {
-												// Если нам необходимо получить число
-												if(to > 0)
+												// Если необходимо сконвертировать число в Римские цифры
+												if(to == 1)
+													// Выполняем конвертирование Арабских чисел в Римские
+													text = this->_fmk->convert(this->_fmk->arabic2rome(this->_fmk->atoi <uint32_t> (text, from)));
+												// Если необходимо сконвертировать число в другие системы счисления
+												else if(to > 1)
 													// Выполняем конвертацию системы счисления
 													text = this->_fmk->itoa(this->_fmk->atoi <uint32_t> (text, from), to);
 												// Если нам необходимо получить текст
@@ -1372,8 +1456,12 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 											} break;
 											// Если размер бинарного буфера состоит из восьми байт
 											case 8: {
-												// Если нам необходимо получить число
-												if(to > 0)
+												// Если необходимо сконвертировать число в Римские цифры
+												if(to == 1)
+													// Выполняем конвертирование Арабских чисел в Римские
+													text = this->_fmk->convert(this->_fmk->arabic2rome(this->_fmk->atoi <uint32_t> (text, from)));
+												// Если необходимо сконвертировать число в другие системы счисления
+												else if(to > 1)
 													// Выполняем конвертацию системы счисления
 													text = this->_fmk->itoa(this->_fmk->atoi <uint64_t> (text, from), to);
 												// Если нам необходимо получить текст
@@ -1411,34 +1499,73 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 												}
 											}
 										}
+									// Если система числа находятся в Римской форме записи
+									} else if(from == 1) {
+										// Получаем число в десятичной системе счисления
+										const uint32_t num = this->_fmk->rome2arabic(text);
+										// Если необходимо сконвертировать число в Римские цифры
+										if(to == 1)
+											// Выполняем конвертирование Арабских чисел в Римские
+											text = this->_fmk->convert(this->_fmk->arabic2rome(static_cast <uint32_t> (num)));
+										// Если необходимо сконвертировать число в другие системы счисления
+										else {
+											// Определяем размер числа
+											const size_t size = this->_fmk->size(num);
+											// Если число помещается в один байт
+											if(size == 1)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint8_t> (num), to);
+											// Если число помещается в два байта
+											else if(size == 2)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint16_t> (num), to);
+											// Если число помещается в четыре байта
+											else if(size <= 4)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint32_t> (num), to);
+											// Выводим сообщение об ошибке
+											else {
+												// Выпоолняем генерацию ошибки запроса
+												this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+												// Выводим удачное завершение работы
+												return;
+											}
+										}
 									// Если система счисления выше двоичной
 									} else {
 										// Получаем число в десятичной системе счисления
 										const uint64_t num = this->_fmk->atoi <uint64_t> (text, from);
-										// Определяем размер числа
-										const size_t size = this->_fmk->size(num);
-										// Если число помещается в один байт
-										if(size == 1)
-											// Выполняем конвертацию системы счисления
-											text = this->_fmk->itoa(static_cast <int8_t> (num), to);
-										// Если число помещается в два байта
-										else if(size == 2)
-											// Выполняем конвертацию системы счисления
-											text = this->_fmk->itoa(static_cast <int16_t> (num), to);
-										// Если число помещается в четыре байта
-										else if(size <= 4)
-											// Выполняем конвертацию системы счисления
-											text = this->_fmk->itoa(static_cast <int32_t> (num), to);
-										// Если число помещается в 8 байт
-										else if(size <= 8)
-											// Выполняем конвертацию системы счисления
-											text = this->_fmk->itoa(static_cast <int64_t> (num), to);
-										// Выводим сообщение об ошибке
+										// Если необходимо сконвертировать число в Римские цифры
+										if(to == 1)
+											// Выполняем конвертирование Арабских чисел в Римские
+											text = this->_fmk->convert(this->_fmk->arabic2rome(static_cast <uint32_t> (num)));
+										// Если необходимо сконвертировать число в другие системы счисления
 										else {
-											// Выпоолняем генерацию ошибки запроса
-											this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
-											// Выводим удачное завершение работы
-											return;
+											// Определяем размер числа
+											const size_t size = this->_fmk->size(num);
+											// Если число помещается в один байт
+											if(size == 1)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint8_t> (num), to);
+											// Если число помещается в два байта
+											else if(size == 2)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint16_t> (num), to);
+											// Если число помещается в четыре байта
+											else if(size <= 4)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint32_t> (num), to);
+											// Если число помещается в 8 байт
+											else if(size <= 8)
+												// Выполняем конвертацию системы счисления
+												text = this->_fmk->itoa(static_cast <uint64_t> (num), to);
+											// Выводим сообщение об ошибке
+											else {
+												// Выпоолняем генерацию ошибки запроса
+												this->error(sid, bid, 400, "Number to convert does not fit into 64 bits");
+												// Выводим удачное завершение работы
+												return;
+											}
 										}
 									}
 								// Выводим сообщение, что параметры для конвертации указаны неправильно
