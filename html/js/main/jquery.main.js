@@ -518,6 +518,7 @@
 									$("> li > a[href=#notation-0]", "#to-notation").addClass("disabled");
 									// Разблокируем все остальные вкладки
 									$("> li > a[href=#notations]", "#to-notation").removeClass("disabled");
+									$("> li > a[href=#notation-1]", "#to-notation").removeClass("disabled");
 									$("> li > a[href=#notation-2]", "#to-notation").removeClass("disabled");
 									$("> li > a[href=#notation-8]", "#to-notation").removeClass("disabled");
 									$("> li > a[href=#notation-10]", "#to-notation").removeClass("disabled");
