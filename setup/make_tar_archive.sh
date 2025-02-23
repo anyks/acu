@@ -10,16 +10,16 @@ readonly OS=$(uname -a | awk '{print $1}')
 readonly PACKAGE_NAME="acu"
 
 # Сборочная дирректория
-readonly BUILD_DIR="$ROOT/${PACKAGE_NAME}_build"
+readonly BUILD_DIR="$ROOT/../${PACKAGE_NAME}_build"
 
 # Очистка сборочной директории
-if [ -d "$ROOT/build" ]; then
-  rm -rf "$ROOT/build" || exit 1
+if [ -d "$ROOT/../build" ]; then
+  rm -rf "$ROOT/../build" || exit 1
 fi
 
 # Собираем приложение
-mkdir "$ROOT/build" || exit 1
-cd "$ROOT/build" || exit 1
+mkdir "$ROOT/../build" || exit 1
+cd "$ROOT/../build" || exit 1
 
 # Выполняем сборку приложения
 cmake \
@@ -29,7 +29,7 @@ cmake \
 cmake --build . || exit 1
 
 # Переходим в корневой каталог обратно
-cd $ROOT
+cd $ROOT/../
 
 # Имя исполнительного файла
 EXECUTABLE_FILE="$PACKAGE_NAME"

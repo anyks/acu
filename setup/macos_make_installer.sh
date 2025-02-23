@@ -10,11 +10,11 @@ readonly OS=$(uname -a | awk '{print $1}')
 readonly PACKAGE_NAME="acu"
 
 # Адрес каталога с собранными бинарями
-readonly BUILD_DIR="$ROOT/build"
+readonly BUILD_DIR="$ROOT/../build"
 
 # Определяем является ли операционная система MacOS X
 if ! [ $OS = "Darwin" ]; then
-	echo "Error: Only for macos"
+  echo "Error: Only for MacOS X"
   exit 1
 fi
 
@@ -64,7 +64,7 @@ if [ -n "$1" ]; then
 fi
 
 # Адрес каталога с рабочим приложением
-APP_DIR="$ROOT/package/MacOS/application"
+APP_DIR="$ROOT/../package/MacOS/application"
 
 # Очистка рабочей директории приложения
 if [ -d $APP_DIR ]; then
@@ -108,9 +108,9 @@ if [ -n "$DEV_APP_ID_SIGN" ]; then
   signProduct "$APP_DIR/bin/$PACKAGE_NAME"
 fi
 
-bash "$ROOT/package/MacOS/build.sh" $VERSION || exit 1
+bash "$ROOT/../package/MacOS/build.sh" $VERSION || exit 1
 
-# echo "Pkg path: $ROOT/package/MacOS/target/pkg-signed"
+# echo "Pkg path: $ROOT/../package/MacOS/target/pkg-signed"
 
 printf "\n****************************************"
 printf "\n************   Success!!!   ************"

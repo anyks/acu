@@ -7,7 +7,7 @@ PACKAGE_NAME="acu"
 readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 
 # Адрес каталога с собранными бинарями
-readonly BUILD_DIR="$ROOT/build"
+readonly BUILD_DIR="$ROOT/../build"
 
 # Очистка сборочной директории
 if [ -d $BUILD_DIR ]; then
@@ -26,7 +26,7 @@ cmake \
 cmake --build . || exit 1
 
 # Переходим в корневой каталог обратно
-cd $ROOT
+cd $ROOT/../
 
 # Имя исполнительного файла
 EXECUTABLE_FILE="acu"
@@ -39,13 +39,13 @@ if [ "${EXECUTABLE_FILE}" = "" ]; then
 fi
 
 # Устанавливаем запускаемые приложения
-EXECUTABLE_FILE="$ROOT/$EXECUTABLE_FILE"
+EXECUTABLE_FILE="$ROOT/../$EXECUTABLE_FILE"
 
 # Задаём параметры сборки
 SPEC_NAME="${PACKAGE_NAME}.spec"
-PACKAGE_SOURCE_DIR="$ROOT/package/rpm"
+PACKAGE_SOURCE_DIR="$ROOT/../package/rpm"
 # Задаём адрес сборочной дирректории
-WORK_PREFIX="${ROOT}/pkg-${PACKAGE_NAME}"
+WORK_PREFIX="$ROOT/../pkg-$PACKAGE_NAME"
 
 # Получаем архитектуру машины
 SYSTEM_ARCHITECTURE=$(uname -m)
@@ -78,7 +78,7 @@ fi
 rpmbuild --buildroot="$WORK_PREFIX" --target="$SYSTEM_ARCHITECTURE" --define='noclean 1' --rmspec "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp" -bb || exit 1
 
 PACKAGE=$(find $WORK_PREFIX -name "${PACKAGE_NAME}*.rpm")
-cp $PACKAGE "${ROOT}/${PACKAGE_NAME}-${VERSION}-1.${SYSTEM_ARCHITECTURE}.rpm" 
+cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-1.${SYSTEM_ARCHITECTURE}.rpm"
 
 # Очищаем сборочную директорию
 rm -rf "$WORK_PREFIX"

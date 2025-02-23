@@ -7,11 +7,11 @@ PACKAGE_NAME="acu.exe"
 readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 
 # Удаляем директории если существуют
-rm -rf "$ROOT/win"
-rm -rf "$ROOT/installer"
+rm -rf "$ROOT/../win"
+rm -rf "$ROOT/../installer"
 
 # Адрес каталога с собранными бинарями
-readonly BUILD_DIR="$ROOT/build"
+readonly BUILD_DIR="$ROOT/../build"
 
 # Очистка сборочной директории
 if [ -d $BUILD_DIR ]; then
@@ -32,7 +32,7 @@ cmake \
 cmake --build . || exit 1
 
 # Переходим в корневой каталог обратно
-cd $ROOT
+cd $ROOT/../
 
 # Имя исполнительного файла
 EXECUTABLE_FILE=$PACKAGE_NAME
@@ -51,26 +51,26 @@ VERSION=${VERSION#$GREP_VERSION_PHRASE}
 VERSION=`echo $VERSION | awk '{print $1}'`
 
 # Создаем директории для сборки инсталятора
-mkdir -p "$ROOT/win" || exit 1
-mkdir -p "$ROOT/installer" || exit 1
+mkdir -p "$ROOT/../win" || exit 1
+mkdir -p "$ROOT/../installer" || exit 1
 
 # Копируем все необходимые файлы
-cp -ar $EXECUTABLE_FILE "$ROOT/win" || exit 1
-cp -ar "$ROOT/icons/icon.ico" "$ROOT/win" || exit 1
-cp -ar "/mingw64/bin/libgcc_s_seh-1.dll" "$ROOT/win" || exit 1
-cp -ar "/mingw64/bin/libwinpthread-1.dll" "$ROOT/win" || exit 1
-cp -ar "/mingw64/bin/libstdc++-6.dll" "$ROOT/win" || exit 1
-cp -ar "$ROOT/package/win/install.iss" "$ROOT/win" || exit 1
+cp -ar $EXECUTABLE_FILE "$ROOT/../win" || exit 1
+cp -ar "$ROOT/../icons/icon.ico" "$ROOT/../win" || exit 1
+cp -ar "/mingw64/bin/libgcc_s_seh-1.dll" "$ROOT/../win" || exit 1
+cp -ar "/mingw64/bin/libwinpthread-1.dll" "$ROOT/../win" || exit 1
+cp -ar "/mingw64/bin/libstdc++-6.dll" "$ROOT/../win" || exit 1
+cp -ar "$ROOT/../package/win/install.iss" "$ROOT/../win" || exit 1
 
 
 # Заполняем поля шаблона для создания конфига инсталятора
-SOURCE_DIR=`echo $(cygpath -wm "$ROOT/win")`
-INSTALLER_DIR=`echo $(cygpath -wm "$ROOT/installer")`
+SOURCE_DIR=`echo $(cygpath -wm "$ROOT/../win")`
+INSTALLER_DIR=`echo $(cygpath -wm "$ROOT/../installer")`
 
 SOURCE_DIR=$(echo $SOURCE_DIR | sed -e 's|/|\\\\|g')
 INSTALLER_DIR=$(echo $INSTALLER_DIR | sed -e 's|/|\\\\|g')
 
-sed -i "s/@version@/${VERSION}/g" $ROOT/win/install.iss
-sed -i "s|@pwd@|${SOURCE_DIR}|g" $ROOT/win/install.iss
-sed -i "s|@name@|${PACKAGE_NAME}|g" $ROOT/win/install.iss
-sed -i "s|@installerDir@|${INSTALLER_DIR}|g" $ROOT/win/install.iss
+sed -i "s/@version@/${VERSION}/g" $ROOT/../win/install.iss
+sed -i "s|@pwd@|${SOURCE_DIR}|g" $ROOT/../win/install.iss
+sed -i "s|@name@|${PACKAGE_NAME}|g" $ROOT/../win/install.iss
+sed -i "s|@installerDir@|${INSTALLER_DIR}|g" $ROOT/../win/install.iss

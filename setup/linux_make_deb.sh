@@ -7,7 +7,7 @@ readonly PACKAGE_NAME="acu"
 readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 
 # Адрес каталога с собранными бинарями
-readonly BUILD_DIR="$ROOT/build"
+readonly BUILD_DIR="$ROOT/../build"
 
 # Очистка сборочной директории
 if [ -d $BUILD_DIR ]; then
@@ -26,7 +26,7 @@ cmake \
 cmake --build . || exit 1
 
 # Переходим в корневой каталог обратно
-cd $ROOT
+cd $ROOT/../
 
 # Имя исполнительного файла
 EXECUTABLE_FILE="$PACKAGE_NAME"
@@ -41,8 +41,8 @@ fi
 # Задаем необходимые параметры
 FINAL_PREFIX_DIRECTORY="usr"
 EXECUTABLE_PATH="$FINAL_PREFIX_DIRECTORY/bin/"
-WORK_PREFIX="$ROOT/pkg-${PACKAGE_NAME}"
-PACKAGE_SOURCE_DIR="$ROOT/package/deb"
+WORK_PREFIX="$ROOT/../pkg-${PACKAGE_NAME}"
+PACKAGE_SOURCE_DIR="$ROOT/../package/deb"
 PACKAGE_DEST_DIR="$WORK_PREFIX/DEBIAN"
 CONTROL_NAME="control"
 
@@ -131,4 +131,6 @@ mv "${WORK_PREFIX}.deb" "$deb_name" || exit 1
 
 # Очищаем сборочную директорию
 rm -rf "$WORK_PREFIX"
+
+# Выводим сообщение об удачной сборке
 echo "Successfully created package $deb_name"
