@@ -26,6 +26,11 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
+ * Подписываемся на пространство имён заполнителя
+ */
+using namespace placeholders;
+
+/**
  * crash Метод обработки вызова крашей в приложении
  * @param sig номер сигнала операционной системы
  */
