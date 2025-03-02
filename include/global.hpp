@@ -1,4 +1,18 @@
-#ifndef __CU_GLOBAL__
+/**
+ * @file: global.hpp
+ * @date: 2024-11-22
+ * @license: GPL-3.0
+ *
+ * @telegram: @forman
+ * @author: Yuriy Lobarev
+ * @phone: +7 (910) 983-95-90
+ * @email: forman@anyks.com
+ * @site: https://anyks.com
+ *
+ * @copyright: Copyright © 2025
+ */
+
+#ifndef __ACU_GLOBAL__
 #define __ACU_GLOBAL__
 
 #if defined(_MSC_VER) || defined(WIN64) || defined(_WIN64) || defined(__WIN64__) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
