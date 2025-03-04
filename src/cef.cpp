@@ -11,7 +11,9 @@
  * @copyright: Copyright © 2025
  */
 
-// Подключаем заголовочный файл
+/**
+ * Подключаем заголовочный файл
+ */
 #include <cef.hpp>
 
 /**
@@ -974,18 +976,12 @@ string anyks::Cef::cef() const noexcept {
 									::memcpy(&date, extension.second.data(), extension.second.size());
 									// Если формат даты установлен
 									if(!this->_format.empty()){
-										// Создаём объект потока
-										stringstream transTime;
-										// Создаем структуру времени
-										tm * tm = ::localtime(&date);
-										// Выполняем извлечение даты
-										transTime << put_time(tm, this->_format.c_str());
 										// Добавляем ключ расширения
 										result.append(extension.first);
 										// Добавляем разделитель
 										result.append(1, '=');
 										// Добавляем значение ключа
-										result.append(transTime.str());
+										result.append(this->_fmk->time2str(date, this->_format));
 									// Если формат даты не установлен
 									} else {
 										// Добавляем ключ расширения
@@ -1384,14 +1380,8 @@ anyks::json anyks::Cef::dump() const noexcept {
 									::memcpy(&date, extension.second.data(), extension.second.size());
 									// Если формат даты установлен
 									if(!this->_format.empty()){
-										// Создаём объект потока
-										stringstream transTime;
-										// Создаем структуру времени
-										tm * tm = ::localtime(&date);
-										// Выполняем извлечение даты
-										transTime << put_time(tm, this->_format.c_str());
 										// Получаем строку штампа времени
-										const string & stamp = transTime.str();
+										const string & stamp = this->_fmk->time2str(date, this->_format);
 										// Устанавливаем значение ключа
 										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(stamp.c_str(), stamp.length(), result.GetAllocator()).Move(), result.GetAllocator());
 									// Устанавливаем значение ключа
@@ -2158,17 +2148,11 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 									// Извлекаем из буфера данные числа
 									::memcpy(&date, extension.second.data(), extension.second.size());
 									// Если формат даты установлен
-									if(!this->_format.empty()){
-										// Создаём объект потока
-										stringstream transTime;
-										// Создаем структуру времени
-										tm * tm = ::localtime(&date);
-										// Выполняем извлечение даты
-										transTime << put_time(tm, this->_format.c_str());
+									if(!this->_format.empty())
 										// Устанавливаем значение ключа
-										result.emplace(extension.first, transTime.str());
+										result.emplace(extension.first, this->_fmk->time2str(date, this->_format));
 									// Устанавливаем значение ключа
-									} else result.emplace(extension.first, std::to_string(date));
+									else result.emplace(extension.first, std::to_string(date));
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else result.emplace(extension.first, string(extension.second.begin(), extension.second.end()));
 							} break;

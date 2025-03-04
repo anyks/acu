@@ -11,7 +11,9 @@
  * @copyright: Copyright © 2025
  */
 
-// Подключаем заголовочный файл
+/**
+ * Подключаем заголовочный файл
+ */
 #include <syslog.hpp>
 
 /**
@@ -22,6 +24,16 @@ using namespace awh;
  * Подписываемся на пространство имён rapidjson
  */
 using namespace rapidjson;
+
+/**
+ * Для операционной системы Windows
+ */
+#if defined(_WIN32) || defined(_WIN64)
+	/**
+	 * Заменяем функцию localtime_r на localtime_s
+	 */
+	#define localtime_r(T, Tm) (localtime_s(Tm, T) ? nullptr : Tm)
+#endif
 
 /**
  * clear Метод очистки данных
@@ -227,10 +239,12 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 														spaces++;
 													// Иначе мы получили дату
 													else {
+														// Создаем структуру времени
+														std::tm tm = {};
 														// Получаем текущее значение даты
 														const time_t timestamp = time(nullptr);
-														// Создаем структуру времени
-														tm * tm = ::localtime(&timestamp);
+														// Формируем локальное время
+														localtime_r(&timestamp, &tm);
 														// Получаем значение даты
 														string date = syslog.substr(pos, i - pos);
 														// Выполняем поиск пробела в дате
@@ -238,7 +252,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 														// Если позиция пробела в дате найдена
 														if(space != string::npos){
 															// Выполняем вставку в строку года
-															date.replace(space, 1, " " + std::to_string(1900 + tm->tm_year) + " ");
+															date.replace(space, 1, " " + std::to_string(1900 + tm.tm_year) + " ");
 															// Устанавливаем дату сообщения
 															this->date(date, "%b %d %Y %H:%M:%S");
 														}
@@ -618,14 +632,16 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 														format.append(1, ' ');
 													// Выполняем добавление месяца
 													format.append("%Y");
-													// Получаем текущее значение даты
-													const time_t timestamp = ::time(nullptr);
 													// Создаем структуру времени
-													tm * tm = ::localtime(&timestamp);
+													std::tm tm = {};
+													// Получаем текущее значение даты
+													const time_t date = ::time(nullptr);
+													// Формируем локальное время
+													localtime_r(&date, &tm);
 													// Выполняем добавление разделителя
 													const_cast <string &> (item).append(1, ' ');
 													// Выполняем добавление текущего года
-													const_cast <string &> (item).append(std::to_string(1900 + tm->tm_year));
+													const_cast <string &> (item).append(std::to_string(1900 + tm.tm_year));
 												}
 											}
 											// Устанавливаем дату сообщения
@@ -813,14 +829,16 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 															format.append(1, ' ');
 														// Выполняем добавление месяца
 														format.append("%Y");
-														// Получаем текущее значение даты
-														const time_t timestamp = ::time(nullptr);
 														// Создаем структуру времени
-														tm * tm = ::localtime(&timestamp);
+														std::tm tm = {};
+														// Получаем текущее значение даты
+														const time_t date = ::time(nullptr);
+														// Формируем локальное время
+														localtime_r(&date, &tm);
 														// Выполняем добавление разделителя
 														const_cast <string &> (item).append(1, ' ');
 														// Выполняем добавление текущего года
-														const_cast <string &> (item).append(std::to_string(1900 + tm->tm_year));
+														const_cast <string &> (item).append(std::to_string(1900 + tm.tm_year));
 													}
 												}
 												// Устанавливаем дату сообщения
@@ -1368,44 +1386,12 @@ void anyks::SysLog::format(const string & format) noexcept {
  * @return       дата сообщения в указанном формате
  */
 string anyks::SysLog::date(const string & format) const noexcept {
-	/**
-	 * Выполняем отлов ошибок
-	 */
-	try {
-		// Создаём объект потока
-		stringstream transTime;
-		// Создаем структуру времени
-		tm * tm = ::localtime(&this->_timestamp);
-		// Если формат даты сообщения установлен
-		if(!format.empty()){
-			// Выполняем извлечение даты
-			transTime << put_time(tm, format.c_str());
-			// Устанавливаем формат даты сообщения
-			const_cast <SysLog *> (this)->_format = format;
-		// Выполняем парсинг даты
-		} else transTime << put_time(tm, this->_format.c_str());
-		// Выводим результат сформированной даты
-		return transTime.str();
-	/**
-	 * Если возникает ошибка
-	 */
-	} catch(const exception & error) {
-		/**
-		 * Если включён режим отладки
-		 */
-		#if defined(DEBUG_MODE)
-			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(format), log_t::flag_t::CRITICAL, error.what());
-		/**
-		* Если режим отладки не включён
-		*/
-		#else
-			// Выводим сообщение об ошибке
-			this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
-		#endif
-	}
-	// Выводим пустое значение
-	return "";
+	// Если формат даты сообщения установлен
+	if(!format.empty())
+		// Устанавливаем формат даты сообщения
+		const_cast <SysLog *> (this)->_format = format;
+	// Формируем дату
+	return this->_fmk->time2str(this->_timestamp, this->_format);
 }
 /**
  * date Метод установки даты сообщения
@@ -1451,12 +1437,14 @@ string anyks::SysLog::syslog() const noexcept {
 				}
 				// Если штамп времени установлен
 				if(this->_timestamp > 0){
-					// Получаем текущее значение даты
-					const time_t timestamp = ::time(nullptr);
 					// Создаем структуру времени
-					tm * tm = ::localtime(&timestamp);
+					std::tm tm = {};
+					// Получаем текущее значение даты
+					const time_t date = ::time(nullptr);
+					// Формируем локальное время
+					localtime_r(&date, &tm);
 					// Если установленный год совпадает с текущим годом
-					if(std::to_string(1900 + tm->tm_year).compare(this->date("%Y")) == 0)
+					if(std::to_string(1900 + tm.tm_year).compare(this->date("%Y")) == 0)
 						// Устанавливаем дату сообщения
 						result.append(this->date("%b %d %H:%M:%S"));
 					// Выполняем установку года формирования лога
