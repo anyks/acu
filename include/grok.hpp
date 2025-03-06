@@ -210,9 +210,6 @@ namespace anyks {
 			// Мютекс для блокировки потока
 			mtx_t _mtx;
 		private:
-			// Объект контекста регулярного выражения для формирования групп
-			regex_t _reg;
-		private:
 			// Список именованных групп
 			map <uint64_t, string> _nameGroups;
 		private:
@@ -251,6 +248,12 @@ namespace anyks {
 			void removePattern(const string & name) noexcept;
 		private:
 			/**
+			 * namedGroups Метод извлечения именованных групп
+			 * @param text текст для извлечения именованных групп
+			 */
+			void namedGroups(string & text) const noexcept;
+		private:
+			/**
 			 * variable Метод извлечения первой блоковой переменной в тексте
 			 * @param text текст из которого следует извлечь переменные
 			 * @return     первая блоковая переменная
@@ -270,6 +273,14 @@ namespace anyks {
 			 * @return     позиция найденной скобки
 			 */
 			ssize_t bracket(const string & text, const size_t pos = 0) const noexcept;
+		private:
+			/**
+			 * namedGroup Метод получения позиции именованной группы
+			 * @param text текст для поиска
+			 * @param pos  начальная позиция для поиска
+			 * @return     позиция найденной именованной группы
+			 */
+			pair <ssize_t, ssize_t> namedGroup(const string & text, const size_t pos = 0) const noexcept;
 		private:
 			/**
 			 * prepare Метод обработки полученной переменной Grok
@@ -346,7 +357,7 @@ namespace anyks {
 			/**
 			 * ~Grok Деструктор
 			 */
-			~Grok() noexcept;
+			~Grok() noexcept {}
 	} grok_t;
 };
 

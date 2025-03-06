@@ -123,8 +123,7 @@ string anyks::Grok::Variables::get(const string & text, const uint8_t index) noe
 			// Выводим сообщение об ошибке
 			::fprintf(stderr, "\"Grok:Variables:get\": %s\n", message.c_str());
 		}
-	// Выполняем сброс параметров объекта
-	} else this->reset();
+	}
 	// Выводим результат
 	return "";
 }
@@ -380,6 +379,80 @@ void anyks::Grok::removePattern(const string & name) noexcept {
 	}
 }
 /**
+ * namedGroups Метод извлечения именованных групп
+ * @param text текст для извлечения именованных групп
+ */
+void anyks::Grok::namedGroups(string & text) const noexcept {
+	// Если текст для обработки передан
+	if(!text.empty()){
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Выполняем перебор всех именованных групп
+			for(;;){
+				// Получаем данные именованной группы
+				const auto & result = this->namedGroup(text, 0);
+				// Если результат получен
+				if((result.first > -1) && (result.second > -1) && (result.second > result.first)){
+					// Название группы и регулярное выражение
+					string group = "", express = "";
+					// Начало и конец названия группы
+					size_t beginGroup = 0, endGrounp = 0;
+					// Выполняем перебор всех полученных символов
+					for(size_t i = (result.first + 2); i < (result.second - 1); i++){
+						// Определяем текущий символ
+						switch(text.at(i)){
+							// Если символом является символ начального экранирования названия группы
+							case '<':
+								// Выполняем сброс конца экранирования названия группы
+								endGrounp = 0;
+								// Устанавливаем значения начала экранирования группы
+								beginGroup = i;
+							break;
+							// Если символом является символ конечного экранирования названия группы
+							case '>': {
+								// Устанавливаем значения конца экранирования группы
+								endGrounp = (i + 1);
+								// Завершаем работу цикла
+								i = (result.second - 1);
+							} break;
+						}
+					}
+					// Получаем название группы
+					group = text.substr(beginGroup, endGrounp - beginGroup);
+					// Получаем шаблон регулярного выражения
+					express = text.substr(endGrounp, (result.second - 1) - endGrounp);
+					// Получаем значение переменной
+					const string & var = const_cast <grok_t *> (this)->generatePattern(group, express);
+					// Если переменная получена
+					if(!var.empty())
+						// Заменяем в тексте полученные данные на нашу переменную
+						text.replace(result.first, result.second - result.first, var);
+				// Выходим из цикла
+				} else break;
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		}
+	}
+}
+/**
  * variable Метод извлечения первой блоковой переменной в тексте
  * @param text текст из которого следует извлечь переменные
  * @return     первая блоковая переменная
@@ -578,6 +651,95 @@ ssize_t anyks::Grok::bracket(const string & text, const size_t pos) const noexce
 	return -1;
 }
 /**
+ * namedGroup Метод получения позиции именованной группы
+ * @param text текст для поиска
+ * @param pos  начальная позиция для поиска
+ * @return     позиция найденной именованной группы
+ */
+pair <ssize_t, ssize_t> anyks::Grok::namedGroup(const string & text, const size_t pos) const noexcept {
+	// Результат работы функции
+	pair <ssize_t, ssize_t> result = {-1, -1};
+	// Если текст передан не пустой
+	if(!text.empty()){
+		/**
+		 * Выполняем отлов ошибок
+		 */
+		try {
+			// Количество подряд идущих экранирований
+			uint16_t shielding = 0;
+			// Количество найденных открытых скобок и индекс нужной скобки
+			uint16_t openBracket = 0, indexBracket = 0;
+			// Перебираем полученный текст
+			for(size_t i = pos; i < text.length(); i++){
+				// Определяем текущий символ
+				switch(text.at(i)){
+					// Если символом является символ экранирования
+					case '\\':
+						// Увеличиваем количество найденных экранов
+						shielding++;
+					break;
+					// Если найденный символ открытая скобка
+					case '(': {
+						// Увеличиваем количество открытых скобок
+						openBracket++;
+						// Если экранирования у скобки нет
+						if((shielding % 2) == 0){
+							// Если следующий символ не последний
+							if(((i + 1) < text.length()) && (text.at(i + 1) == '?') &&
+							   ((i + 2) < text.length()) && (text.at(i + 2) == '<')){
+								// Устанавливаем индекс нужной нам скобки
+								indexBracket = openBracket;
+								// Выходим из функции
+								result.first = static_cast <ssize_t> (i);
+							}
+						}
+						// Выполняем сброс количества экранирований
+						shielding = 0;
+					} break;
+					// Если найденный символ закрытая скобка
+					case ')': {
+						// Если экранирования у скобки нет
+						if((shielding % 2) == 0){
+							// Если открытая скобка найдена
+							if((result.first > -1) && (indexBracket == openBracket)){
+								// Устанавливаем конечную позицию
+								result.second = static_cast <ssize_t> (i + 1);
+								// Выходим из цикла
+								return result;
+							}
+						}
+						// Уменьшаем количество открытых скобок
+						openBracket--;
+						// Выполняем сброс количества экранирований
+						shielding = 0;
+					} break;
+					// Если найденный символ любой другой
+					default: shielding = 0;
+				}
+			}
+		/**
+		 * Если возникает ошибка
+		 */
+		} catch(const exception & error) {
+			/**
+			 * Если включён режим отладки
+			 */
+			#if defined(DEBUG_MODE)
+				// Выводим сообщение об ошибке
+				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, pos), log_t::flag_t::CRITICAL, error.what());
+			/**
+			* Если режим отладки не включён
+			*/
+			#else
+				// Выводим сообщение об ошибке
+				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
+			#endif
+		}
+	}
+	// Выводим результат
+	return result;
+}
+/**
  * prepare Метод обработки полученной переменной Grok
  * @param text текст в котором найдена переменная Grok
  * @param lets разрешить обработку блочных переменных
@@ -614,10 +776,18 @@ vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool le
 				if(i != this->_patternsInternal.end()){
 					// Выполняем копирование полученного шаблона
 					string pattern = i->second;
+					// Получаем начальную позицию в тексте
+					const size_t pos = (let.pos - 2);
+					// Получаем размер текста для модификации
+					const size_t size = (let.size + 3);
 					// Выполняем обработку нашего шаблона
 					const auto & vars = this->prepare(pattern, lets);
+					// Создаём суффикс формирования результирующего регулярного выражения
+					const string suffix = (lets ? ")" : "");
+					// Создаём префикс формирования результирующего регулярного выражения
+					const string prefix = (lets ? ((pos > 0) ? ((text.at(pos - 1) != '(') ? "(" : "(?:") : "(") : "");
 					// Выполняем замену
-					text.replace(let.pos - 2, let.size + 3, (lets ? "(" : "") + pattern + (lets ? ")" : ""));
+					text.replace(pos, size, prefix + pattern + suffix);
 					// Выполняем добавления переменной в список результата
 					result.emplace_back(::move(value), ::move(pattern));
 					// Если мы получили список переменных из обраотанного шаблона
@@ -634,10 +804,18 @@ vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool le
 					if(i != this->_patternsExternal.end()){
 						// Выполняем копирование полученного шаблона
 						string pattern = i->second;
+						// Получаем начальную позицию в тексте
+						const size_t pos = (let.pos - 2);
+						// Получаем размер текста для модификации
+						const size_t size = (let.size + 3);
 						// Выполняем обработку нашего шаблона
 						const auto & vars = this->prepare(pattern, lets);
+						// Создаём суффикс формирования результирующего регулярного выражения
+						const string suffix = (lets ? ")" : "");
+						// Создаём префикс формирования результирующего регулярного выражения
+						const string prefix = (lets ? ((pos > 0) ? ((text.at(pos - 1) != '(') ? "(" : "(?:") : "(") : "");
 						// Выполняем замену
-						text.replace(let.pos - 2, let.size + 3, (lets ? "(" : "") + pattern + (lets ? ")" : ""));
+						text.replace(pos, size, prefix + pattern + suffix);
 						// Выполняем добавления переменной в список результата
 						result.emplace_back(::move(value), ::move(pattern));
 						// Если мы получили список переменных из обраотанного шаблона
@@ -913,54 +1091,8 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 				auto ret = const_cast <grok_t *> (this)->_cache.emplace(result, unique_ptr <cache_t> (new cache_t(this->_log)));
 				// Выполняем разблокировку потока
 				const_cast <grok_t *> (this)->_mtx.cache.unlock();
-				// Выполняем поиск всех именованных групп
-				for(;;){
-					// Создаём объект матчинга
-					regmatch_t match[this->_reg.re_nsub + 1];
-					// Если возникла ошибка
-					if(::pcre2_regexec(&this->_reg, text.c_str(), this->_reg.re_nsub + 1, match, REG_NOTEMPTY) != 0)
-						// Выходим из цикла корректировки
-						break;
-					// Если ошибок не получено
-					else {
-						// Количество найденных скобок
-						uint8_t brackets = 0;
-						// Выполняем перебор всех полученных вариантов
-						for(uint8_t i = 1; i < static_cast <uint8_t> (this->_reg.re_nsub + 1); i++){
-							// Если результат получен
-							if(match[i].rm_eo > 0){
-								// Выполняем сброс количества скобок
-								brackets = 1;
-								// Выполняем перебор всей полученной группы сообщения
-								for(size_t j = static_cast <size_t> (match[i].rm_so); j < text.size(); j++){
-									// Если найдена открывающаяся скобка
-									if((text[j] == '(') && (text[j - 1] != '\\'))
-										// Увеличиваем количество найденных скобок
-										brackets++;
-									// Если найдена закрывающая скобка
-									else if((text[j] == ')') && (text[j - 1] != '\\'))
-										// Уменьшаем количество найденных скобок
-										brackets--;
-									// Если найден конец выходим
-									if(brackets == 0){
-										// Получаем полную извлечённую строку
-										const string & str = text.substr(match[i].rm_so, j - match[i].rm_so);
-										// Получаем название группы
-										string group = text.substr(match[i].rm_so, match[i].rm_eo - match[i].rm_so);
-										// Получаем шаблон регулярного выражения
-										string express = str.substr(group.length());
-										// Получаем значение переменной
-										const string & var = const_cast <grok_t *> (this)->generatePattern(group, express);
-										// Если переменная получена
-										if(!var.empty())
-											// Заменяем в тексте полученные данные на нашу переменную
-											text.replace(match[i].rm_so - 2, (j + 1) - (match[i].rm_so - 2), var);
-									}
-								}
-							}
-						}
-					}
-				}
+				// Выполняем генерацию именованных групп
+				this->namedGroups(text);
 				// Если текст существует а не сломан
 				if(!text.empty()){
 					// Выполняем обработку полученных шаблонов
@@ -1261,39 +1393,6 @@ string anyks::Grok::get(const string & key, const uint64_t cid) const noexcept {
  * @param log объект для работы с логами
  */
 anyks::Grok::Grok(const fmk_t * fmk, const log_t * log) noexcept : _fmk(fmk), _log(log) {
-	/**
-	 * Выполняем сборку регулярного выражения для формирования групп
-	 */
-	const int32_t error = ::pcre2_regcomp(&this->_reg, "(?:\\(\\?\\s*(\\<\\w+\\>))", REG_UTF | REG_ICASE);
-	// Если возникла ошибка компиляции
-	if(error != 0){
-		// Создаём буфер данных для извлечения данных ошибки
-		char buffer[256];
-		// Выполняем заполнение нулями буфер данных
-		::memset(buffer, '\0', sizeof(buffer));
-		// Выполняем извлечение текста ошибки
-		const size_t size = ::pcre2_regerror(error, &this->_reg, buffer, sizeof(buffer) - 1);
-		// Если текст ошибки получен
-		if(size > 0){
-			// Формируем полученную ошибку
-			string error(buffer, size);
-			/**
-			 * Если включён режим отладки
-			 */
-			#if defined(DEBUG_MODE)
-				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.c_str());
-			/**
-			* Если режим отладки не включён
-			*/
-			#else
-				// Выводим сообщение об ошибке
-				this->_log->print("%s", log_t::flag_t::CRITICAL, error.c_str());
-			#endif
-		}
-		// Выходим из приложения
-		::exit(EXIT_FAILURE);
-	}
 	/**
 	 * Выполняем добавление базовых шаблонов
 	 * https://docs.streamsets.com/platform-datacollector/latest/datacollector/UserGuide/Apx-GrokPatterns/GrokPatterns_title.html
@@ -1606,11 +1705,4 @@ anyks::Grok::Grok(const fmk_t * fmk, const log_t * log) noexcept : _fmk(fmk), _l
 	this->pattern("CISCOFW710001_710002_710003_710005_710006", "%{WORD:protocol} (?:request|access) %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{DATA:dst_interface}:%{IP:dst_ip}/%{INT:dst_port}", event_t::INTERNAL);
 	this->pattern("CISCOFW713172", "Group = %{GREEDYDATA:group}, IP = %{IP:src_ip}, Automatic NAT Detection Status:\\s+Remote end\\s*%{DATA:is_remote_natted}\\s*behind a NAT device\\s+This\\s+end\\s*%{DATA:is_local_natted}\\s*behind a NAT device", event_t::INTERNAL);
 	this->pattern("CISCOFW733100", "\\[\\s*%{DATA:drop_type}\\s*\\] drop %{DATA:drop_rate_id} exceeded. Current burst rate is %{INT:drop_rate_current_burst} per second, max configured rate is %{INT:drop_rate_max_burst}; Current average rate is %{INT:drop_rate_current_avg} per second, max configured rate is %{INT:drop_rate_max_avg}; Cumulative total count is %{INT:drop_total_count}", event_t::INTERNAL);
-}
-/**
- * ~Grok Деструктор
- */
-anyks::Grok::~Grok() noexcept {
-	// Выполняем очистку памяти выделенную под регулярное выражение для формирования групп
-	::pcre2_regfree(&this->_reg);
 }
