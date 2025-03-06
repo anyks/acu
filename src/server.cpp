@@ -512,7 +512,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 				// Если каунтер клиента получен
 				if(i != this->_counts.end()){
 					// Получаем текущее значение даты
-					const time_t date = this->_fmk->timestamp(fmk_t::stamp_t::MILLISECONDS);
+					const time_t date = this->_fmk->timestamp(fmk_t::chrono_t::MILLISECONDS);
 					// Выполняем проверку прошли ли сутки с момента предыдущего запроса
 					if((date - i->second.second) >= 86400000){
 						// Выполняем сброс количества выполненных запросов
@@ -529,7 +529,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 					// Увеличиваем количество выполненных запросов
 					} else i->second.first++;
 				// Выполняем заполнение списка количества запросов
-				} else this->_counts.emplace(ip, make_pair(1, this->_fmk->timestamp(fmk_t::stamp_t::MILLISECONDS)));
+				} else this->_counts.emplace(ip, make_pair(1, this->_fmk->timestamp(fmk_t::chrono_t::MILLISECONDS)));
 				// Если производится вызов метода /exec
 				if(this->_fmk->compare("/exec", addr)){
 					// Объект запроса
