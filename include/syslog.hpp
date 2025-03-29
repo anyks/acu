@@ -22,7 +22,6 @@
 /**
  * Подключаем зависимые заголовки
  */
-#include <ctime>
 #include <cmath>
 #include <stack>
 #include <mutex>
@@ -40,6 +39,7 @@
 #include <sys/fmk.hpp>
 #include <sys/log.hpp>
 #include <sys/reg.hpp>
+#include <sys/chrono.hpp>
 
 /**
  * Подключаем заголовочные файлы JSON
@@ -122,7 +122,10 @@ namespace anyks {
 			// Формат даты сообщения
 			string _format;
 			// Штамп времени сообщения
-			time_t _timestamp;
+			uint64_t _timestamp;
+		private:
+			// Объект работы с датой и временем
+			chrono_t _chrono;
 		private:
 			// Объект собранных регулярных выражений
 			exp_t _exp;
@@ -141,7 +144,7 @@ namespace anyks {
 			const log_t * _log;
 		private:
 			// Максимальный размер буфера данных на чтение из файла
-			static constexpr const char FORMAT[] = "%Y-%m-%dT%H:%M:%S.000Z";
+			static constexpr const char FORMAT[] = "%Y-%m-%dT%H:%M:%S.%sZ";
 		public:
 			/**
 			 * clear Метод очистки данных

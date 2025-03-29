@@ -290,7 +290,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						// Если буфер бинарных данных сформирован
 						if((result = !buffer.empty())){
 							// Выполняем получение штампа времени даты компиляции приложения
-							const time_t date = this->_fmk->str2time(this->_fmk->format("%s %s", __DATE__, __TIME__), "%b %d %Y %H:%M:%S");
+							const uint64_t date = this->_chrono.parse(this->_fmk->format("%s %s", __DATE__, __TIME__), "%b %d %Y %T");
 							// Отправляем сообщение клиенту
 							this->_awh.send(sid, bid, 200, "OK", buffer, {
 								{"Etag", "65d46266-47e"},
@@ -401,7 +401,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						// Выполняем установку типа контента
 						contentType = "image/jpeg";
 					// Выполняем получение штампа времени даты компиляции приложения
-					const time_t date = this->_fmk->str2time(this->_fmk->format("%s %s", __DATE__, __TIME__), "%b %d %Y %H:%M:%S");
+					const uint64_t date = this->_chrono.parse(this->_fmk->format("%s %s", __DATE__, __TIME__), "%b %d %Y %T");
 					// Выполняем поиск запрошенного файла в кэше
 					auto i = this->_cache.find(filename);
 					// Если запрошенный файл в кэше найден
@@ -422,7 +422,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									this->_awh.send(sid, bid, 304, "Not Modified", {}, {
 										{"Vary", "Accept-Encoding"},
 										{"Last-Modified", this->_http.date(date)},
-										{"Date", this->_http.date(::time(nullptr))},
+										{"Date", this->_http.date()},
 										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
 										{"ETag", this->_fmk->format("\"%llu\"", i->second.first)},
 										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
@@ -443,7 +443,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							{"Vary", "Accept-Encoding"},
 							{"Content-Type", contentType},
 							{"Last-Modified", this->_http.date(date)},
-							{"Date", this->_http.date(::time(nullptr))},
+							{"Date", this->_http.date()},
 							{"Access-Control-Request-Headers", "Content-Type"},
 							{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
 							{"ETag", this->_fmk->format("\"%llu\"", i->second.first)},
@@ -473,7 +473,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									this->_awh.send(sid, bid, 304, "Not Modified", {}, {
 										{"Vary", "Accept-Encoding"},
 										{"Last-Modified", this->_http.date(date)},
-										{"Date", this->_http.date(::time(nullptr))},
+										{"Date", this->_http.date()},
 										{"ETag", this->_fmk->format("\"%llu\"", etag)},
 										{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
 										{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
@@ -494,7 +494,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							{"Vary", "Accept-Encoding"},
 							{"Content-Type", contentType},
 							{"Last-Modified", this->_http.date(date)},
-							{"Date", this->_http.date(::time(nullptr))},
+							{"Date", this->_http.date()},
 							{"ETag", this->_fmk->format("\"%llu\"", etag)},
 							{"Access-Control-Request-Headers", "Content-Type"},
 							{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
@@ -512,7 +512,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 				// Если каунтер клиента получен
 				if(i != this->_counts.end()){
 					// Получаем текущее значение даты
-					const time_t date = this->_fmk->timestamp(fmk_t::chrono_t::MILLISECONDS);
+					const uint64_t date = this->_chrono.timestamp(chrono_t::type_t::MILLISECONDS);
 					// Выполняем проверку прошли ли сутки с момента предыдущего запроса
 					if((date - i->second.second) >= 86400000){
 						// Выполняем сброс количества выполненных запросов
@@ -529,7 +529,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 					// Увеличиваем количество выполненных запросов
 					} else i->second.first++;
 				// Выполняем заполнение списка количества запросов
-				} else this->_counts.emplace(ip, make_pair(1, this->_fmk->timestamp(fmk_t::chrono_t::MILLISECONDS)));
+				} else this->_counts.emplace(ip, make_pair(1, this->_chrono.timestamp(chrono_t::type_t::MILLISECONDS)));
 				// Если производится вызов метода /exec
 				if(this->_fmk->compare("/exec", addr)){
 					// Объект запроса
@@ -972,20 +972,16 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							if(!text.empty()){
 								// Если мы получили на вход штамп времени
 								if(this->_fmk->compare("timestamp", from)){
-									// Количество количество секунд для конвертации
-									time_t seconds = 0;
+									// Количество количество миллисекунд для конвертации
+									uint64_t milliseconds = 0;
 									// Если текст передан в виде секнд
-									if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL)){
+									if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL))
 										// Выполняем конвертацию полученных секунд
-										seconds = static_cast <time_t> (::stoull(text));
-										// Если количество символов 13 значит число пришло в миллисекундах
-										if(text.length() == 13)
-											// Переводим миллисекунды в секунды
-											seconds /= 1000;
+										milliseconds = static_cast <uint64_t> (::stoull(text));
 									// Если количество секунд передано в виде текста
-									} else seconds = this->_fmk->seconds(text);
+									else milliseconds = (static_cast <uint64_t> (this->_chrono.seconds(text)) * 1000.);
 									// Если количество секунд передано
-									if(seconds > 0){
+									if(milliseconds > 0){
 										// Если формат даты передан в виде строки
 										if(request.HasMember("formatDate") && request["formatDate"].IsString()){
 											// Получаем формат даты
@@ -993,13 +989,13 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 											// Если формат даты передан
 											if(!formatDate.empty())
 												// Формируем дату с указанным форматом
-												text = this->_fmk->time2str(seconds, formatDate);
+												text = this->_chrono.format(milliseconds, formatDate);
 											// Если формат даты не передан
-											else text = this->_fmk->time2str(seconds);
+											else text = this->_chrono.format(milliseconds, "%a, %d %b %Y %H:%M:%S %Z");
 										// Если формат даты не передан
-										} else text = this->_fmk->time2str(seconds);
+										} else text = this->_chrono.format(milliseconds, "%a, %d %b %Y %H:%M:%S %Z");
 									// Выводим полученный результат
-									} else text = this->_fmk->time2str(::time(nullptr));
+									} else text = this->_chrono.format("%a, %d %b %Y %H:%M:%S %Z");
 									// Если текст ответа получен
 									if((result = !text.empty())){
 										// Выполняем формирование результата ответа
@@ -1035,11 +1031,11 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 										// Если формат даты передан
 										if(!formatDate.empty())
 											// Формируем штамп временем с указанным форматом
-											text = std::to_string(this->_fmk->str2time(text, formatDate));
+											text = std::to_string(this->_chrono.parse(text, formatDate));
 										// Если формат штамп времени получен пустым
-										else text = std::to_string(this->_fmk->str2time(text));
+										else text = std::to_string(this->_chrono.parse(text, "%a, %d %b %Y %H:%M:%S %Z"));
 									// Если формат даты не передан
-									} else text = std::to_string(this->_fmk->str2time(text));
+									} else text = std::to_string(this->_chrono.parse(text, "%a, %d %b %Y %H:%M:%S %Z"));
 									// Если текст ответа получен
 									if((result = !text.empty())){
 										// Выполняем формирование результата ответа
@@ -1090,45 +1086,45 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							// Если данные для конвертации переданы
 							if(!text.empty() && !to.empty()){
 								// Количество количество секунд для конвертации
-								time_t seconds = 0;
+								double seconds = 0;
 								// Если текст передан в виде секнд
 								if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL)){
 									// Получаем тип название типа входящих данных
 									const string & from = (request.HasMember("from") && request["from"].IsString() ? request["from"].GetString() : "");
 									// Выполняем конвертацию полученных секунд
-									seconds = (!from.empty() ? this->_fmk->seconds(text + from) : static_cast <time_t> (::stoull(text)));
+									seconds = (!from.empty() ? this->_chrono.seconds(text + from) : ::stod(text));
 								// Если количество секунд передано в виде текста
-								} else seconds = this->_fmk->seconds(text);
+								} else seconds = this->_chrono.seconds(text);
 								// Если количество секунд передано
-								if(seconds > 0){
+								if(seconds > 0.){
 									// Если сконвертировать полученные секунды необходимо в секунды
 									if(to.front() == 's')
 										// Выводим полученный результат
-										text = std::to_string(seconds);
+										text = this->_fmk->noexp(seconds);
 									// Если сконвертировать полученные секунды необходимо в минуты
 									else if(to.front() == 'm')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 60.);
+										text = this->_fmk->noexp(seconds / 60.);
 									// Если сконвертировать полученные секунды необходимо в часы
 									else if(to.front() == 'h')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 3600.);
+										text = this->_fmk->noexp(seconds / 3600.);
 									// Если сконвертировать полученные секунды необходимо в дни
 									else if(to.front() == 'd')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 86400.);
+										text = this->_fmk->noexp(seconds / 86400.);
 									// Если сконвертировать полученные секунды необходимо в недели
 									else if(to.front() == 'w')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 604800.);
+										text = this->_fmk->noexp(seconds / 604800.);
 									// Если сконвертировать полученные секунды необходимо в месяцы
 									else if(to.front() == 'M')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 2628000.);
+										text = this->_fmk->noexp(seconds / 2628000.);
 									// Если сконвертировать полученные секунды необходимо в годы
 									else if(to.front() == 'y')
 										// Выводим полученный результат
-										text = this->_fmk->noexp(static_cast <double> (seconds) / 31536000.);
+										text = this->_fmk->noexp(seconds / 31536000.);
 								// Выводим полученный результат
 								} else text = "0";
 								// Если текст ответа получен
@@ -1946,13 +1942,13 @@ void anyks::Server::config(const json & config) noexcept {
 						// Устанавливаем название сервера
 						this->_awh.realm(AWH_SHORT_NAME);
 						// Устанавливаем временный ключ сессии сервера
-						this->_awh.opaque(this->_hash.hashing <string> (std::to_string(::time(nullptr)), hash_t::type_t::MD5));
+						this->_awh.opaque(this->_hash.hashing <string> (this->_fmk->timestamp <string> (fmk_t::chrono_t::MILLISECONDS), hash_t::type_t::MD5));
 					}
 				}
 				// Если время ожидания получения сообщения передано
 				if(config["net"].HasMember("wait") && config["net"]["wait"].IsUint64())
 					// Выполняем установку времени ожидания получения сообщения
-					this->_awh.waitMessage(static_cast <time_t> (config["net"]["wait"].GetUint64()));
+					this->_awh.waitMessage(static_cast <uint16_t> (config["net"]["wait"].GetUint64()));
 				// Если фильтры доступа к серверу переданы
 				if(config["net"].HasMember("filter") && config["net"]["filter"].IsObject()){
 					// Создаём объект для работы с IP-адресами
@@ -2137,8 +2133,10 @@ void anyks::Server::start() noexcept {
  * @param log объект для работы с логами
  */
 anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
- _fs(fmk, log), _uri(fmk, log), _hash(log), _root{""}, _index{""}, _origin{""}, _favicon{""},
- _http(fmk, log), _maxRequests(100), _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
+ _fs(fmk, log), _uri(fmk, log), _hash(log),
+ _root{""}, _index{""}, _origin{""}, _favicon{""},
+ _chrono(fmk), _http(fmk, log), _maxRequests(100),
+ _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
 	// Выполняем установку идентификатора клиента
 	this->_awh.ident(AWH_SHORT_NAME, AWH_NAME, AWH_VERSION);
 	// Устанавливаем функцию извлечения пароля пользователя для авторизации

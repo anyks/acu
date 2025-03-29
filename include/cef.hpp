@@ -22,7 +22,6 @@
 /**
  * Подключаем зависимые заголовки
  */
-#include <ctime>
 #include <stack>
 #include <vector>
 #include <string>
@@ -39,6 +38,7 @@
 #include <sys/log.hpp>
 #include <net/net.hpp>
 #include <sys/reg.hpp>
+#include <sys/chrono.hpp>
 
 /**
  * Подключаем заголовочные файлы JSON
@@ -178,6 +178,9 @@ namespace anyks {
 		private:
 			// Параметры события
 			event_t _event;
+		private:
+			// Объект работы с датой и временем
+			chrono_t _chrono;
 		private:
 			// Объект работы с IP-адресами
 			mutable net_t _net;
@@ -442,17 +445,11 @@ namespace anyks {
 												// Если формат даты установлен
 												if(!this->_format.empty()){
 													// Формируем число из бинарного буфера
-													time_t date = 0;
+													uint64_t date = 0;
 													// Извлекаем из буфера данные числа
 													::memcpy(&date, j->second.data(), j->second.size());
-													// Создаём объект потока
-													stringstream transTime;
-													// Создаем структуру времени
-													tm * tm = ::localtime(&date);
-													// Выполняем извлечение даты
-													transTime << put_time(tm, this->_format.c_str());
 													// Устанавливаем значение ключа
-													result = transTime.str();
+													result = this->_chrono.format(date, this->_format);
 												}
 											// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 											} else result.assign(j->second.begin(), j->second.end());
@@ -568,7 +565,7 @@ namespace anyks {
 										// Если тип ключа является TIMESTAMP
 										case static_cast <uint8_t> (type_t::TIMESTAMP): {
 											// Формируем число из бинарного буфера
-											time_t date = 0;
+											uint64_t date = 0;
 											// Извлекаем из буфера данные числа
 											::memcpy(&date, j->second.data(), j->second.size());
 											// Устанавливаем значение ключа

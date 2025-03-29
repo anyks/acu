@@ -26,16 +26,6 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
- * Для операционной системы Windows
- */
-#if defined(_WIN32) || defined(_WIN64)
-	/**
-	 * Заменяем функцию localtime_r на localtime_s
-	 */
-	#define localtime_r(T, Tm) (localtime_s(Tm, T) ? nullptr : Tm)
-#endif
-
-/**
  * clear Метод очистки данных
  */
 void anyks::SysLog::clear() noexcept {
@@ -239,23 +229,8 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 														spaces++;
 													// Иначе мы получили дату
 													else {
-														// Создаем структуру времени
-														std::tm tm = {};
-														// Получаем текущее значение даты
-														const time_t timestamp = time(nullptr);
-														// Формируем локальное время
-														localtime_r(&timestamp, &tm);
-														// Получаем значение даты
-														string date = syslog.substr(pos, i - pos);
-														// Выполняем поиск пробела в дате
-														const size_t space = date.rfind(' ');
-														// Если позиция пробела в дате найдена
-														if(space != string::npos){
-															// Выполняем вставку в строку года
-															date.replace(space, 1, " " + std::to_string(1900 + tm.tm_year) + " ");
-															// Устанавливаем дату сообщения
-															this->date(date, "%b %d %Y %H:%M:%S");
-														}
+														// Устанавливаем дату сообщения
+														this->date(syslog.substr(pos, i - pos), "%b %d %T");
 														// Запоминаем начало строки с версией
 														pos = (i + 1);
 														// Увеличиваем значение статуса
@@ -346,7 +321,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 												// Если установлен пробел
 												if(syslog.at(i) == ' '){
 													// Устанавливаем дату сообщения
-													this->date(syslog.substr(pos, i - pos), "%Y-%m-%dT%H:%M:%S");
+													this->date(syslog.substr(pos, i - pos), "%FT%T.%s");
 													// Запоминаем начало строки с версией
 													pos = (i + 1);
 													// Увеличиваем значение статуса
@@ -612,7 +587,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 																// Выполняем добавление разделителя
 																format.append(1, ' ');
 															// Выполняем добавление месяца
-															format.append("%H:%M:%S");
+															format.append("%T");
 														} break;
 														// Если мы получили год
 														case 5: {
@@ -624,24 +599,6 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 															format.append("%Y");
 														} break;
 													}
-												// Если мы получили год но он пустой
-												} else if(j == 5) {
-													// Если формат уже сформирован
-													if(!format.empty())
-														// Выполняем добавление разделителя
-														format.append(1, ' ');
-													// Выполняем добавление месяца
-													format.append("%Y");
-													// Создаем структуру времени
-													std::tm tm = {};
-													// Получаем текущее значение даты
-													const time_t date = ::time(nullptr);
-													// Формируем локальное время
-													localtime_r(&date, &tm);
-													// Выполняем добавление разделителя
-													const_cast <string &> (item).append(1, ' ');
-													// Выполняем добавление текущего года
-													const_cast <string &> (item).append(std::to_string(1900 + tm.tm_year));
 												}
 											}
 											// Устанавливаем дату сообщения
@@ -651,13 +608,13 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 											// Если формат даты детектирован
 											if(this->_reg.test(item, this->_exp.date2))
 												// Устанавливаем дату сообщения
-												this->date(item, "%Y-%m-%d %H:%M:%S");
+												this->date(item, "%F %T");
 											// Если парсинг даты не выполнен
 											else {
 												// Если формат даты детектирован
 												if(this->_reg.test(item, this->_exp.date3))
 													// Устанавливаем дату сообщения
-													this->date(item, "%Y-%m-%dT%H:%M:%S");
+													this->date(item, "%FT%T.%s");
 												// Если парсинг даты не выполнен
 												else this->_log->print("SysLog parse: %s", log_t::flag_t::WARNING, "date format is not defined");
 											}
@@ -809,7 +766,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 																	// Выполняем добавление разделителя
 																	format.append(1, ' ');
 																// Выполняем добавление месяца
-																format.append("%H:%M:%S");
+																format.append("%T");
 															} break;
 															// Если мы получили год
 															case 5: {
@@ -821,24 +778,6 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 																format.append("%Y");
 															} break;
 														}
-													// Если мы получили год но он пустой
-													} else if(j == 5) {
-														// Если формат уже сформирован
-														if(!format.empty())
-															// Выполняем добавление разделителя
-															format.append(1, ' ');
-														// Выполняем добавление месяца
-														format.append("%Y");
-														// Создаем структуру времени
-														std::tm tm = {};
-														// Получаем текущее значение даты
-														const time_t date = ::time(nullptr);
-														// Формируем локальное время
-														localtime_r(&date, &tm);
-														// Выполняем добавление разделителя
-														const_cast <string &> (item).append(1, ' ');
-														// Выполняем добавление текущего года
-														const_cast <string &> (item).append(std::to_string(1900 + tm.tm_year));
 													}
 												}
 												// Устанавливаем дату сообщения
@@ -848,13 +787,13 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 												// Если формат даты детектирован
 												if(this->_reg.test(item, this->_exp.date2))
 													// Устанавливаем дату сообщения
-													this->date(item, "%Y-%m-%d %H:%M:%S");
+													this->date(item, "%F %T");
 												// Если парсинг даты не выполнен
 												else {
 													// Если формат даты детектирован
 													if(this->_reg.test(item, this->_exp.date3))
 														// Устанавливаем дату сообщения
-														this->date(item, "%Y-%m-%dT%H:%M:%S");
+														this->date(item, "%FT%T.%s");
 													// Если парсинг даты не выполнен
 													else this->_log->print("SysLog parse: %s", log_t::flag_t::WARNING, "date format is not defined");
 												}
@@ -1391,7 +1330,7 @@ string anyks::SysLog::date(const string & format) const noexcept {
 		// Устанавливаем формат даты сообщения
 		const_cast <SysLog *> (this)->_format = format;
 	// Формируем дату
-	return this->_fmk->time2str(this->_timestamp, this->_format);
+	return this->_chrono.format(this->_timestamp, this->_format);
 }
 /**
  * date Метод установки даты сообщения
@@ -1406,9 +1345,9 @@ void anyks::SysLog::date(const string & date, const string & format) noexcept {
 		// Если формат даты сообщения установлен
 		if(!format.empty())
 			// Выполняем парсинг даты
-			this->_timestamp = this->_fmk->str2time(date.c_str(), format.c_str());
+			this->_timestamp = this->_chrono.parse(date, format);
 		// Выполняем парсинг даты
-		else this->_timestamp = this->_fmk->str2time(date.c_str(), this->_format.c_str());
+		else this->_timestamp = this->_chrono.parse(date, this->_format);
 	}
 }
 /**
@@ -1437,18 +1376,12 @@ string anyks::SysLog::syslog() const noexcept {
 				}
 				// Если штамп времени установлен
 				if(this->_timestamp > 0){
-					// Создаем структуру времени
-					std::tm tm = {};
-					// Получаем текущее значение даты
-					const time_t date = ::time(nullptr);
-					// Формируем локальное время
-					localtime_r(&date, &tm);
 					// Если установленный год совпадает с текущим годом
-					if(std::to_string(1900 + tm.tm_year).compare(this->date("%Y")) == 0)
+					if(this->_chrono.get <uint16_t> (chrono_t::unit_t::YEAR) == this->_chrono.get <uint16_t> (this->_timestamp, chrono_t::unit_t::YEAR))
 						// Устанавливаем дату сообщения
-						result.append(this->date("%b %d %H:%M:%S"));
+						result.append(this->date("%b %d %T"));
 					// Выполняем установку года формирования лога
-					else result.append(this->date("%b %d %H:%M:%S %Y"));
+					else result.append(this->date("%b %d %T %Y"));
 					// Если хост, название приложения или сообщение переданы
 					if(!this->_host.empty() || !this->_app.empty() || !this->_message.empty())
 						// Устанавливаем разделитель
@@ -2026,8 +1959,8 @@ anyks::SysLog & anyks::SysLog::operator = (const string & syslog) noexcept {
  * @param log объект для работы с логами
  */
 anyks::SysLog::SysLog(const fmk_t * fmk, const log_t * log) noexcept :
- _std(std_t::AUTO), _ver(0), _pri(0), _mode(mode_t::REGEXP), _app{"-"}, _host{"-"},
- _pid(0), _mid{"-"}, _message{""}, _format{FORMAT}, _timestamp(0), _fmk(fmk), _log(log) {
+ _std(std_t::AUTO), _ver(0), _pri(0), _mode(mode_t::REGEXP), _app{"-"}, _host{"-"}, _pid(0),
+ _mid{"-"}, _message{""}, _format{FORMAT}, _timestamp(0), _chrono(fmk), _fmk(fmk), _log(log) {
 	// Выполняем сборку регулярных выражений для распознавания формат даты (Sat Jan  8 20:07:41 2011)
 	this->_exp.date1 = this->_reg.build("([a-z]+\\s+)?([a-z]+)\\s+(\\d+)\\s+(\\d{1,2}\\:\\d{1,2}\\:\\d{1,2})(?:\\s+(\\d{2,4}))?", {
 		regexp_t::option_t::UTF8,

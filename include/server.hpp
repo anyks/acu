@@ -33,6 +33,7 @@
 /**
  * Модули AWH
  */
+#include <sys/chrono.hpp>
 #include <client/awh.hpp>
 #include <server/awh.hpp>
 
@@ -117,6 +118,9 @@ namespace anyks {
 			// Адрес хранения favicon.ico
 			string _favicon;
 		private:
+			// Объект работы с датой и временем
+			chrono_t _chrono;
+		private:
 			// Объект работы с HTTP протоколом
 			client::http_t _http;
 		private:
@@ -145,7 +149,7 @@ namespace anyks {
 			unordered_map <string, string> _users;
 		private:
 			// Каунтеры запросов клиентов
-			unordered_map <string, pair <uint16_t, time_t>> _counts;
+			unordered_map <string, pair <uint16_t, uint64_t>> _counts;
 		private:
 			// Кэш контента содержимого сайта
 			unordered_map <string, pair <uint64_t, vector <char>>> _cache;

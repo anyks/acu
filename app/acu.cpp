@@ -179,6 +179,8 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 		log_t log(&fmk);
 		// Объект работы с файловой системой
 		fs_t fs(&fmk, &log);
+		// Создаём объект работы с датой и временем
+		chrono_t chrono(&fmk);
 		// Создаём объект переменных окружения
 		env_t env(ACU_SHORT_NAME, "text", &fmk, &log);
 		// Устанавливаем название сервиса
@@ -1727,23 +1729,19 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				// Если мы получили на вход штамп времени
 				if(fmk.compare("timestamp", from)){
 					// Количество количество секунд для конвертации
-					time_t seconds = 0;
+					uint64_t milliseconds = 0;
 					// Если текст передан в виде секнд
-					if(fmk.is(text, fmk_t::check_t::NUMBER) || fmk.is(text, fmk_t::check_t::DECIMAL)){
+					if(fmk.is(text, fmk_t::check_t::NUMBER) || fmk.is(text, fmk_t::check_t::DECIMAL))
 						// Выполняем конвертацию полученных секунд
-						seconds = static_cast <time_t> (::stoull(text));
-						// Если количество символов 13 значит число пришло в миллисекундах
-						if(text.length() == 13)
-							// Переводим миллисекунды в секунды
-							seconds /= 1000;
+						milliseconds = static_cast <uint64_t> (::stoull(text));
 					// Если количество секунд передано в виде текста
-					} else seconds = fmk.seconds(text);
+					else milliseconds = static_cast <uint64_t> (chrono.seconds(text) * 1000.);
 					// Если количество секунд передано
-					if(seconds > 0){
+					if(milliseconds > 0){
 						// Если формат не передан
 						if(!env.isString(false, "formatDate"))
 							// Формируем дату
-							cout << fmk.time2str(seconds) << endl;
+							cout << chrono.format(milliseconds, "%a, %d %b %Y %H:%M:%S %Z") << endl;
 						// Если формат даты передан
 						else {
 							// Получаем формат даты
@@ -1751,18 +1749,18 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 							// Если формат даты передан
 							if(!formatDate.empty())
 								// Формируем дату с указанным форматом
-								cout << fmk.time2str(seconds, formatDate) << endl;
+								cout << chrono.format(milliseconds, formatDate) << endl;
 							// Если формат даты получен пустым
-							else cout << fmk.time2str(seconds) << endl;
+							else cout << chrono.format(milliseconds, "%a, %d %b %Y %H:%M:%S %Z") << endl;
 						}
 					// Выводим полученный результат
-					} else cout << fmk.time2str(::time(nullptr)) << endl;
+					} else cout << chrono.format("%a, %d %b %Y %H:%M:%S %Z") << endl;
 				// Если мы получили на вход дату
 				} else if(fmk.compare("date", from)) {
 					// Если формат не передан
 					if(!env.isString(false, "formatDate"))
 						// Формируем штамп времени
-						cout << fmk.str2time(text) << endl;
+						cout << chrono.parse(text, "%a, %d %b %Y %H:%M:%S %Z") << endl;
 					// Если формат даты передан
 					else {
 						// Получаем формат даты
@@ -1770,9 +1768,9 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						// Если формат даты передан
 						if(!formatDate.empty())
 							// Формируем штамп временем с указанным форматом
-							cout << fmk.str2time(text, formatDate) << endl;
+							cout << chrono.parse(text, formatDate) << endl;
 						// Если формат штамп времени получен пустым
-						else cout << fmk.str2time(text) << endl;
+						else cout << chrono.parse(text, "%a, %d %b %Y %H:%M:%S %Z") << endl;
 					}
 				// Выводим сообщение, что значение для конвертации не указанно
 				} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
@@ -1785,43 +1783,43 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Если данные прочитаны из потока
 			if(!text.empty() && !to.empty()){
 				// Количество количество секунд для конвертации
-				time_t seconds = 0;
+				double seconds = 0.;
 				// Если текст передан в виде секнд
 				if(fmk.is(text, fmk_t::check_t::NUMBER) || fmk.is(text, fmk_t::check_t::DECIMAL))
 					// Выполняем конвертацию полученных секунд
-					seconds = (env.isString(false, "from") ? fmk.seconds(text + env.get <string> (false, "from")) : static_cast <time_t> (::stoull(text)));
+					seconds = (env.isString(false, "from") ? chrono.seconds(text + env.get <string> (false, "from")) : ::stod(text));
 				// Если количество секунд передано в виде текста
-				else seconds = fmk.seconds(text);
+				else seconds = chrono.seconds(text);
 				// Если количество секунд передано
 				if(seconds > 0){
 					// Если сконвертировать полученные секунды необходимо в секунды
 					if(to.front() == 's')
 						// Выводим полученный результат
-						cout << std::to_string(seconds) << endl;
+						cout << fmk.noexp(seconds) << endl;
 					// Если сконвертировать полученные секунды необходимо в минуты
 					else if(to.front() == 'm')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 60.) << endl;
+						cout << fmk.noexp(seconds / 60.) << endl;
 					// Если сконвертировать полученные секунды необходимо в часы
 					else if(to.front() == 'h')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 3600.) << endl;
+						cout << fmk.noexp(seconds / 3600.) << endl;
 					// Если сконвертировать полученные секунды необходимо в дни
 					else if(to.front() == 'd')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 86400.) << endl;
+						cout << fmk.noexp(seconds / 86400.) << endl;
 					// Если сконвертировать полученные секунды необходимо в недели
 					else if(to.front() == 'w')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 604800.) << endl;
+						cout << fmk.noexp(seconds / 604800.) << endl;
 					// Если сконвертировать полученные секунды необходимо в месяцы
 					else if(to.front() == 'M')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 2628000.) << endl;
+						cout << fmk.noexp(seconds / 2628000.) << endl;
 					// Если сконвертировать полученные секунды необходимо в годы
 					else if(to.front() == 'y')
 						// Выводим полученный результат
-						cout << fmk.noexp(static_cast <double> (seconds) / 31536000.) << endl;
+						cout << fmk.noexp(seconds / 31536000.) << endl;
 				// Выводим полученный результат
 				} else cout << "0" << endl;
 			// Выводим сообщение, что значение для конвертации не указанно

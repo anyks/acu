@@ -971,7 +971,7 @@ string anyks::Cef::cef() const noexcept {
 								// Если режим парсинга установлен
 								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
 									// Формируем число из бинарного буфера
-									time_t date = 0;
+									uint64_t date = 0;
 									// Извлекаем из буфера данные числа
 									::memcpy(&date, extension.second.data(), extension.second.size());
 									// Если формат даты установлен
@@ -981,7 +981,7 @@ string anyks::Cef::cef() const noexcept {
 										// Добавляем разделитель
 										result.append(1, '=');
 										// Добавляем значение ключа
-										result.append(this->_fmk->time2str(date, this->_format));
+										result.append(this->_chrono.format(date, this->_format));
 									// Если формат даты не установлен
 									} else {
 										// Добавляем ключ расширения
@@ -1375,17 +1375,17 @@ anyks::json anyks::Cef::dump() const noexcept {
 								// Если режим парсинга установлен
 								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
 									// Формируем число из бинарного буфера
-									time_t date = 0;
+									uint64_t date = 0;
 									// Извлекаем из буфера данные числа
 									::memcpy(&date, extension.second.data(), extension.second.size());
 									// Если формат даты установлен
 									if(!this->_format.empty()){
 										// Получаем строку штампа времени
-										const string & stamp = this->_fmk->time2str(date, this->_format);
+										const string & stamp = this->_chrono.format(date, this->_format);
 										// Устанавливаем значение ключа
 										result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(stamp.c_str(), stamp.length(), result.GetAllocator()).Move(), result.GetAllocator());
 									// Устанавливаем значение ключа
-									} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(static_cast <uint64_t> (date)).Move(), result.GetAllocator());
+									} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(date).Move(), result.GetAllocator());
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
 								} else result["extensions"].AddMember(Value(extension.first.c_str(), extension.first.length(), result.GetAllocator()).Move(), Value(extension.second.data(), extension.second.size(), result.GetAllocator()).Move(), result.GetAllocator());
 							} break;
@@ -2144,13 +2144,13 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 								// Если режим парсинга установлен
 								if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
 									// Формируем число из бинарного буфера
-									time_t date = 0;
+									uint64_t date = 0;
 									// Извлекаем из буфера данные числа
 									::memcpy(&date, extension.second.data(), extension.second.size());
 									// Если формат даты установлен
 									if(!this->_format.empty())
 										// Устанавливаем значение ключа
-										result.emplace(extension.first, this->_fmk->time2str(date, this->_format));
+										result.emplace(extension.first, this->_chrono.format(date, this->_format));
 									// Устанавливаем значение ключа
 									else result.emplace(extension.first, std::to_string(date));
 								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
@@ -2717,7 +2717,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									 */
 									try {
 										// Преобразуем строку в число
-										const time_t date = static_cast <time_t> (number ? ::stoull(value) : ::stold(value));
+										const uint64_t date = static_cast <uint64_t> (number ? ::stoull(value) : ::stold(value));
 										// Добавляем полученное расширение в базу
 										this->extension(key, vector <char> (
 											reinterpret_cast <const char *> (&date),
@@ -2733,7 +2733,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 								// Если режим работы не строгий
 								} else if(!this->_format.empty()) {
 									// Выполняем парсинг даты
-									const time_t date = this->_fmk->str2time(value.c_str(), this->_format.c_str());
+									const uint64_t date = this->_chrono.parse(value, this->_format);
 									// Добавляем полученное расширение в базу
 									this->extension(key, vector <char> (
 										reinterpret_cast <const char *> (&date),
@@ -3006,7 +3006,7 @@ anyks::Cef & anyks::Cef::operator = (const string & cef) noexcept {
  */
 anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
  _mode(mode_t::STRONG), _version(1.2), _header{""},
- _format{FORMAT}, _net(log), _fmk(fmk), _log(log) {
+ _format{FORMAT}, _chrono(fmk), _net(log), _fmk(fmk), _log(log) {
 	/**
 	 * Формируем схему расширений для SEFv0
 	 */

@@ -24,7 +24,6 @@
  * Подключаем зависимые заголовки
  */
 #include <mutex>
-#include <ctime>
 #include <string>
 #include <vector>
 #include <iostream>
