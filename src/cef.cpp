@@ -487,97 +487,89 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 		 * Выполняем отлов ошибок
 		 */
 		try {
-			// Смещение в сообщении
-			size_t offset = 0;
-			// Если включён строгий режим парсинга
-			if(this->_mode == mode_t::STRONG){
-				/**
-				 * matchFn Функция матчинга ключа расширения для CEF
-				 * @param key ключ для матчинга
-				 * @return    результат сравнения
-				 */
-				auto matchFn = [this](const string & key) noexcept -> bool {
-					// Результат работы функции
-					bool result = false;
-					// Если ключё передан
-					if(!key.empty()){
-						// Выполняем поиск нашего ключа
-						auto i = this->_extensionSEFv0.find(key);
-						// Выполняем поиск ключа в схеме для версии CEF:0
-						result = (i != this->_extensionSEFv0.end());
-						// Если результат не получен но версия CEF:1
-						if(!result && (this->_version == 1.0))
-							// Выполняем поиск ключа в схеме для версии CEF:1
-							result = (i != this->_extensionSEFv1.end());
-					}
-					// Выводим результат
-					return result;
-				};
-				// Выполняем извлечение всех сообщений
-				for(;;){
-					// Выполняем извлечение всего списка установленных параметров
-					const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
-					// Если список параметров получен
-					if(!items.empty()){
-						// Если элементов параметров получены 4 штуки
-						if(items.size() >= 4){
-							// Получаем ключ расширения
-							const string & key = extensions.substr(items.at(1).first + offset, items.at(1).second);
-							// Выполняем матчинг ключа
-							if(matchFn(key))
-								// Выполняем создание расширения
-								this->extension(key, (items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second)));
-							// Если ключ не интерпретирован
-							else {
-								// Формируем текст ошибки
-								string error = "";
-								// Добавляем экранирование
-								error.append(1, '\"');
-								// Добавляем брокированное значение ключа
-								error.append(key);
-								// Добавляем основной текст сообщения
-								error.append("\" key does not comply with CEF standard");
-								/**
-								 * Если включён режим отладки
-								 */
-								#if defined(DEBUG_MODE)
-									// Выводим сообщение об ошибке
-									this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
-								/**
-								* Если режим отладки не включён
-								*/
-								#else
-									// Выводим сообщение об ошибке
-									this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
-								#endif
-							}
+			// Выполняем извлечение списка расширений
+			const auto & kv = this->_fmk->kv(extensions, " ");
+			// Если ключи извлечены удачно
+			if(!kv.empty()){
+				// Если включён строгий режим парсинга
+				if(this->_mode == mode_t::STRONG){
+					/**
+					 * matchFn Функция матчинга ключа расширения для CEF
+					 * @param key ключ для матчинга
+					 * @return    результат сравнения
+					 */
+					auto matchFn = [this](const string & key) noexcept -> bool {
+						// Результат работы функции
+						bool result = false;
+						// Если ключё передан
+						if(!key.empty()){
+							// Выполняем поиск нашего ключа
+							auto i = this->_extensionSEFv0.find(key);
+							// Выполняем поиск ключа в схеме для версии CEF:0
+							result = (i != this->_extensionSEFv0.end());
+							// Если результат не получен но версия CEF:1
+							if(!result && (this->_version == 1.0))
+								// Выполняем поиск ключа в схеме для версии CEF:1
+								result = (i != this->_extensionSEFv1.end());
 						}
-						// Увеличиваем длину сообщения
-						offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
-					// Выходим из цикла
-					} else break;
-				}
-			// Если строгий режим не активирован
-			} else {
-				// Выполняем извлечение всех сообщений
-				for(;;){
-					// Выполняем извлечение всего списка установленных параметров
-					const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
-					// Если список параметров получен
-					if(!items.empty()){
-						// Если элементов параметров получены 4 штуки
-						if(items.size() >= 4){
+						// Выводим результат
+						return result;
+					};
+					// Выполняем перебор всех полученных ключей
+					for(auto & extension : kv){
+						// Выполняем матчинг ключа
+						if(matchFn(extension.first))
 							// Выполняем создание расширения
-							this->extension(
-								extensions.substr(items.at(1).first + offset, items.at(1).second),
-								(items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second))
-							);
+							this->extension(extension.first, extension.second);
+						// Если ключ не интерпретирован
+						else {
+							// Формируем текст ошибки
+							string error = "";
+							// Добавляем экранирование
+							error.append(1, '\"');
+							// Добавляем брокированное значение ключа
+							error.append(extension.first);
+							// Добавляем основной текст сообщения
+							error.append("\" key does not comply with CEF standard");
+							/**
+							 * Если включён режим отладки
+							 */
+							#if defined(DEBUG_MODE)
+								// Выводим сообщение об ошибке
+								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
+							/**
+							* Если режим отладки не включён
+							*/
+							#else
+								// Выводим сообщение об ошибке
+								this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
+							#endif
 						}
-						// Увеличиваем длину сообщения
-						offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
-					// Выходим из цикла
-					} else break;
+					}
+				// Если строгий режим не активирован
+				} else {
+					// Выполняем перебор всех полученных ключей
+					for(auto & extension : kv)
+						// Выполняем создание расширения
+						this->extension(extension.first, extension.second);
 				}
+			// Если данные не извлечены
+			} else {
+				// Формируем текст ошибки
+				string error = "No parsing extensions passed";
+				/**
+				 * Если включён режим отладки
+				 */
+				#if defined(DEBUG_MODE)
+					// Выводим сообщение об ошибке
+					this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
+				/**
+				* Если режим отладки не включён
+				*/
+				#else
+					// Выводим сообщение об ошибке
+					this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
+				#endif
 			}
 		/**
 		 * Если возникает ошибка
@@ -588,7 +580,7 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -597,21 +589,6 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
 			#endif
 		}
-	// Если получена ошибка
-	} else {
-		/**
-		 * Если включён режим отладки
-		 */
-		#if defined(DEBUG_MODE)
-			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::CRITICAL, "No parsing extensions passed");
-		/**
-		* Если режим отладки не включён
-		*/
-		#else
-			// Выводим сообщение об ошибке
-			this->_log->print("%s", log_t::flag_t::CRITICAL, "No parsing extensions passed");
-		#endif
 	}
 }
 /**
@@ -3370,11 +3347,6 @@ anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
 		{"sourceTranslatedZoneExternalID", "source TranslatedZoneExternalID"},
 		{"destinationTranslatedZoneExternalID", "destination TranslatedZoneExternalID"}
 	};
-	// Выполняем сборку регулярных выражений для извлечения параметров расширений
-	this->_exp = this->_reg.build(R"(([\w\-]+)=(?:\"([^\"]+)\"|([^=]*|(?:[^=]+\\\=[^=]+)+))(?:\s+[\w\-]+=|\s*$))", {
-		regexp_t::option_t::UTF8,
-		regexp_t::option_t::UCP
-	});
 };
 /**
  * Оператор [>>] чтения из потока CEF контейнера
