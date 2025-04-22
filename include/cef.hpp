@@ -37,6 +37,7 @@
 #include <sys/fmk.hpp>
 #include <sys/log.hpp>
 #include <net/net.hpp>
+#include <sys/reg.hpp>
 #include <sys/chrono.hpp>
 
 /**
@@ -183,6 +184,11 @@ namespace anyks {
 		private:
 			// Объект работы с IP-адресами
 			mutable net_t _net;
+		private:
+			// Объект работы с регулярными выражениями
+			regexp_t _reg;
+			// Регулярное выражение для парсинга расширений
+			regexp_t::exp_t _exp;
 		private:
 			// Схема соответствий ключей расширения
 			unordered_map <string, string> _mapping;
