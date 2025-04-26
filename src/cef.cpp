@@ -57,8 +57,8 @@ void anyks::Cef::parse(const string & cef) noexcept {
 			size_t stop = cef.find("CEF:");
 			// Если заголовок получен
 			if(stop != string::npos){
-				// Получаем позицию начала строки
-				size_t start = (stop + 4);
+				// Получаем позицию начала строки и длина текста
+				size_t start = (stop + 4), length = 0;
 				// Если заголовок не найден
 				if(stop > 0){
 					// Получаем заголовок контейнера
@@ -78,207 +78,127 @@ void anyks::Cef::parse(const string & cef) noexcept {
 						this->_version = ::stod(value);
 						// Выполняем поиск вендора
 						if((stop = cef.find("|", start)) != string::npos){
-							// Получаем данные строки
-							value = cef.substr(start, stop - start);
-							// Если вендор получен
-							if(!value.empty()){
+							// Получаем длину текста
+							length = (stop - start);
+							// Если значение получено
+							if(length > 0)
+								// Выполняем копирование вендора
+								::memcpy(this->_event.devVendor, cef.data() + start, (length < 63 ? length : 63));
+							// Получаем позицию начала строки
+							start = (stop + 1);
+							// Выполняем поиск продукта
+							if((stop = cef.find("|", start)) != string::npos){
+								// Получаем длину текста
+								length = (stop - start);
+								// Если значение получено
+								if(length > 0)
+									// Выполняем копирование продукта
+									::memcpy(this->_event.devProduct, cef.data() + start, (length < 63 ? length : 63));
 								// Получаем позицию начала строки
 								start = (stop + 1);
-								// Выполняем копирование вендора
-								::memcpy(this->_event.devVendor, value.data(), sizeof(this->_event.devVendor));
-								// Выполняем поиск продукта
+								// Выполняем поиск версии
 								if((stop = cef.find("|", start)) != string::npos){
-									// Получаем данные строки
-									value = cef.substr(start, stop - start);
-									// Если продукт получен
-									if(!value.empty()){
+									// Получаем длину текста
+									length = (stop - start);
+									// Если значение получено
+									if(length > 0)
+										// Выполняем копирование версии
+										::memcpy(this->_event.devVersion, cef.data() + start, (length < 31 ? length : 31));
+									// Получаем позицию начала строки
+									start = (stop + 1);
+									// Выполняем поиск подписи
+									if((stop = cef.find("|", start)) != string::npos){
+										// Получаем длину текста
+										length = (stop - start);
+										// Если значение получено
+										if(length > 0)
+											// Выполняем копирование подписи
+											::memcpy(this->_event.signatureId, cef.data() + start, (length < 1023 ? length : 1023));
 										// Получаем позицию начала строки
 										start = (stop + 1);
-										// Выполняем копирование продукта
-										::memcpy(this->_event.devProduct, value.data(), sizeof(this->_event.devProduct));
-										// Выполняем поиск версии
+										// Выполняем поиск названия события
 										if((stop = cef.find("|", start)) != string::npos){
-											// Получаем данные строки
-											value = cef.substr(start, stop - start);
-											// Если версия получена
-											if(!value.empty()){
-												// Получаем позицию начала строки
-												start = (stop + 1);
-												// Выполняем копирование версии
-												::memcpy(this->_event.devVersion, value.data(), sizeof(this->_event.devVersion));
-												// Выполняем поиск подписи
-												if((stop = cef.find("|", start)) != string::npos){
-													// Получаем данные строки
-													value = cef.substr(start, stop - start);
-													// Если версия получена
-													if(!value.empty()){
-														// Получаем позицию начала строки
-														start = (stop + 1);
-														// Выполняем копирование подписи
-														::memcpy(this->_event.signatureId, value.data(), sizeof(this->_event.signatureId));
-														// Выполняем поиск названия события
-														if((stop = cef.find("|", start)) != string::npos){
-															// Получаем данные строки
-															value = cef.substr(start, stop - start);
-															// Если название события получено
-															if(!value.empty()){
-																// Получаем позицию начала строки
-																start = (stop + 1);
-																// Выполняем копирование названия события
-																::memcpy(this->_event.name, value.data(), sizeof(this->_event.name));
-																// Выполняем поиск важности события
-																if((stop = cef.find("|", start)) != string::npos){
-																	// Получаем данные строки
-																	value = cef.substr(start, stop - start);
-																	// Если важность события получено
-																	if(!value.empty()){
-																		// Получаем позицию начала строки
-																		start = (stop + 1);
-																		// Если важность события получено в виде числа
-																		if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
-																			// Выполняем получение числа
-																			this->_event.severity.level = static_cast <uint8_t> (::stoi(value));
-																			// Заполняем нулями буфер названия важности
-																			::memset(this->_event.severity.name, 0, sizeof(this->_event.severity.name));
-																			// Если событие не больше 4-х
-																			if((this->_event.severity.level >= 0) && (this->_event.severity.level <= 3))
-																				// Устанавливаем уровень важности
-																				::memcpy(this->_event.severity.name, "Low", 3);
-																			// Если событие не больше 6-и
-																			else if((this->_event.severity.level >= 4) && (this->_event.severity.level <= 6))
-																				// Устанавливаем уровень важности
-																				::memcpy(this->_event.severity.name, "Medium", 6);
-																			// Если событие не больше 8-и
-																			else if((this->_event.severity.level >= 7) && (this->_event.severity.level <= 8))
-																				// Устанавливаем уровень важности
-																				::memcpy(this->_event.severity.name, "High", 4);
-																			// Если событие не больше 10-и
-																			else if((this->_event.severity.level >= 9) && (this->_event.severity.level <= 10))
-																				// Устанавливаем уровень важности
-																				::memcpy(this->_event.severity.name, "Very-High", 9);
-																		// Если важность события получено в виде строки
-																		} else {
-																			// Выполняем копирование важность события
-																			::memcpy(this->_event.severity.name, value.data(), sizeof(this->_event.severity.name));
-																			// Преобразуем важность в верхний регистр
-																			this->_fmk->transform(value, fmk_t::transform_t::UPPER);
-																			// Если сложность является низкой
-																			if(value.compare("LOW") == 0)
-																				// Устанавливаем низкое значение сложности
-																				this->_event.severity.level = 0;
-																			// Если сложность является средней
-																			else if(value.compare("MEDIUM") == 0)
-																				// Устанавливаем среднее значение сложности
-																				this->_event.severity.level = 4;
-																			// Если сложность является высокой
-																			else if(value.compare("HIGH") == 0)
-																				// Устанавливаем высокое значение сложности
-																				this->_event.severity.level = 7;
-																			// Если сложность является очень-высокой
-																			else if(value.compare("VERY-HIGH") == 0)
-																				// Устанавливаем очень-высокое значение сложности
-																				this->_event.severity.level = 9;
-																		}
-																		// Получаем данные строки
-																		value = cef.substr(start);
-																		// Если важность события получено
-																		if(!value.empty())
-																			// Выполняем препарирование расширений
-																			this->prepare(value);
-																		// Добавляем в список полученные ошибки
-																		else {
-																			/**
-																			 * Если включён режим отладки
-																			 */
-																			#if defined(DEBUG_MODE)
-																				// Выводим сообщение об ошибке
-																				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Extensions is not found");
-																			/**
-																			* Если режим отладки не включён
-																			*/
-																			#else
-																				// Выводим сообщение об ошибке
-																				this->_log->print("%s", log_t::flag_t::WARNING, "Extensions is not found");
-																			#endif
-																		}
-																	// Выводим сообщение об ошибке
-																	} else {
-																		/**
-																		 * Если включён режим отладки
-																		 */
-																		#if defined(DEBUG_MODE)
-																			// Выводим сообщение об ошибке
-																			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
-																		/**
-																		* Если режим отладки не включён
-																		*/
-																		#else
-																			// Выводим сообщение об ошибке
-																			this->_log->print("%s", log_t::flag_t::WARNING, "Severity is not found");
-																		#endif
-																	}
-																// Выводим сообщение об ошибке
-																} else {
-																	/**
-																	 * Если включён режим отладки
-																	 */
-																	#if defined(DEBUG_MODE)
-																		// Выводим сообщение об ошибке
-																		this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
-																	/**
-																	* Если режим отладки не включён
-																	*/
-																	#else
-																		// Выводим сообщение об ошибке
-																		this->_log->print("%s", log_t::flag_t::WARNING, "Severity is not found");
-																	#endif
-																}
-															// Выводим сообщение об ошибке
-															} else {
-																/**
-																 * Если включён режим отладки
-																 */
-																#if defined(DEBUG_MODE)
-																	// Выводим сообщение об ошибке
-																	this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
-																/**
-																* Если режим отладки не включён
-																*/
-																#else
-																	// Выводим сообщение об ошибке
-																	this->_log->print("%s", log_t::flag_t::WARNING, "Event name is not found");
-																#endif
-															}
-														// Выводим сообщение об ошибке
-														} else {
-															/**
-															 * Если включён режим отладки
-															 */
-															#if defined(DEBUG_MODE)
-																// Выводим сообщение об ошибке
-																this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
-															/**
-															* Если режим отладки не включён
-															*/
-															#else
-																// Выводим сообщение об ошибке
-																this->_log->print("%s", log_t::flag_t::WARNING, "Event name is not found");
-															#endif
-														}
-													// Выводим сообщение об ошибке
+											// Получаем длину текста
+											length = (stop - start);
+											// Если значение получено
+											if(length > 0)
+												// Выполняем копирование названия события
+												::memcpy(this->_event.name, cef.data() + start, (length < 512 ? length : 512));
+											// Получаем позицию начала строки
+											start = (stop + 1);
+											// Выполняем поиск важности события
+											if((stop = cef.find("|", start)) != string::npos){
+												// Получаем данные строки
+												value = cef.substr(start, stop - start);
+												// Если важность события получено
+												if(!value.empty()){
+													// Получаем позицию начала строки
+													start = (stop + 1);
+													// Если важность события получено в виде числа
+													if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+														// Выполняем получение числа
+														this->_event.severity.level = static_cast <uint8_t> (::stoi(value));
+														// Заполняем нулями буфер названия важности
+														::memset(this->_event.severity.name, 0, sizeof(this->_event.severity.name));
+														// Если событие не больше 4-х
+														if((this->_event.severity.level >= 0) && (this->_event.severity.level <= 3))
+															// Устанавливаем уровень важности
+															::memcpy(this->_event.severity.name, "Low", 3);
+														// Если событие не больше 6-и
+														else if((this->_event.severity.level >= 4) && (this->_event.severity.level <= 6))
+															// Устанавливаем уровень важности
+															::memcpy(this->_event.severity.name, "Medium", 6);
+														// Если событие не больше 8-и
+														else if((this->_event.severity.level >= 7) && (this->_event.severity.level <= 8))
+															// Устанавливаем уровень важности
+															::memcpy(this->_event.severity.name, "High", 4);
+														// Если событие не больше 10-и
+														else if((this->_event.severity.level >= 9) && (this->_event.severity.level <= 10))
+															// Устанавливаем уровень важности
+															::memcpy(this->_event.severity.name, "Very-High", 9);
+													// Если важность события получено в виде строки
 													} else {
+														// Выполняем копирование важность события
+														::memcpy(this->_event.severity.name, value.data(), sizeof(this->_event.severity.name));
+														// Преобразуем важность в верхний регистр
+														this->_fmk->transform(value, fmk_t::transform_t::UPPER);
+														// Если сложность является низкой
+														if(value.compare("LOW") == 0)
+															// Устанавливаем низкое значение сложности
+															this->_event.severity.level = 0;
+														// Если сложность является средней
+														else if(value.compare("MEDIUM") == 0)
+															// Устанавливаем среднее значение сложности
+															this->_event.severity.level = 4;
+														// Если сложность является высокой
+														else if(value.compare("HIGH") == 0)
+															// Устанавливаем высокое значение сложности
+															this->_event.severity.level = 7;
+														// Если сложность является очень-высокой
+														else if(value.compare("VERY-HIGH") == 0)
+															// Устанавливаем очень-высокое значение сложности
+															this->_event.severity.level = 9;
+													}
+													// Получаем данные строки
+													value = cef.substr(start);
+													// Если важность события получено
+													if(!value.empty())
+														// Выполняем препарирование расширений
+														this->prepare(value);
+													// Добавляем в список полученные ошибки
+													else {
 														/**
 														 * Если включён режим отладки
 														 */
 														#if defined(DEBUG_MODE)
 															// Выводим сообщение об ошибке
-															this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
+															this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Extensions is not found");
 														/**
 														* Если режим отладки не включён
 														*/
 														#else
 															// Выводим сообщение об ошибке
-															this->_log->print("%s", log_t::flag_t::WARNING, "Signature ID is not found");
+															this->_log->print("%s", log_t::flag_t::WARNING, "Extensions is not found");
 														#endif
 													}
 												// Выводим сообщение об ошибке
@@ -288,13 +208,13 @@ void anyks::Cef::parse(const string & cef) noexcept {
 													 */
 													#if defined(DEBUG_MODE)
 														// Выводим сообщение об ошибке
-														this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
+														this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
 													/**
 													* Если режим отладки не включён
 													*/
 													#else
 														// Выводим сообщение об ошибке
-														this->_log->print("%s", log_t::flag_t::WARNING, "Signature ID is not found");
+														this->_log->print("%s", log_t::flag_t::WARNING, "Severity is not found");
 													#endif
 												}
 											// Выводим сообщение об ошибке
@@ -304,13 +224,13 @@ void anyks::Cef::parse(const string & cef) noexcept {
 												 */
 												#if defined(DEBUG_MODE)
 													// Выводим сообщение об ошибке
-													this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
+													this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
 												/**
 												* Если режим отладки не включён
 												*/
 												#else
 													// Выводим сообщение об ошибке
-													this->_log->print("%s", log_t::flag_t::WARNING, "Device version is not found");
+													this->_log->print("%s", log_t::flag_t::WARNING, "Severity is not found");
 												#endif
 											}
 										// Выводим сообщение об ошибке
@@ -320,13 +240,13 @@ void anyks::Cef::parse(const string & cef) noexcept {
 											 */
 											#if defined(DEBUG_MODE)
 												// Выводим сообщение об ошибке
-												this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
+												this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
 											/**
 											* Если режим отладки не включён
 											*/
 											#else
 												// Выводим сообщение об ошибке
-												this->_log->print("%s", log_t::flag_t::WARNING, "Device version is not found");
+												this->_log->print("%s", log_t::flag_t::WARNING, "Event name is not found");
 											#endif
 										}
 									// Выводим сообщение об ошибке
@@ -336,13 +256,13 @@ void anyks::Cef::parse(const string & cef) noexcept {
 										 */
 										#if defined(DEBUG_MODE)
 											// Выводим сообщение об ошибке
-											this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
+											this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
 										/**
 										* Если режим отладки не включён
 										*/
 										#else
 											// Выводим сообщение об ошибке
-											this->_log->print("%s", log_t::flag_t::WARNING, "Device product is not found");
+											this->_log->print("%s", log_t::flag_t::WARNING, "Signature ID is not found");
 										#endif
 									}
 								// Выводим сообщение об ошибке
@@ -352,13 +272,13 @@ void anyks::Cef::parse(const string & cef) noexcept {
 									 */
 									#if defined(DEBUG_MODE)
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
+										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
 									/**
 									* Если режим отладки не включён
 									*/
 									#else
 										// Выводим сообщение об ошибке
-										this->_log->print("%s", log_t::flag_t::WARNING, "Device product is not found");
+										this->_log->print("%s", log_t::flag_t::WARNING, "Device version is not found");
 									#endif
 								}
 							// Выводим сообщение об ошибке
@@ -368,13 +288,13 @@ void anyks::Cef::parse(const string & cef) noexcept {
 								 */
 								#if defined(DEBUG_MODE)
 									// Выводим сообщение об ошибке
-									this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
+									this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
 								/**
 								* Если режим отладки не включён
 								*/
 								#else
 									// Выводим сообщение об ошибке
-									this->_log->print("%s", log_t::flag_t::WARNING, "Device vendor is not found");
+									this->_log->print("%s", log_t::flag_t::WARNING, "Device product is not found");
 								#endif
 							}
 						// Выводим сообщение об ошибке
@@ -487,97 +407,89 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 		 * Выполняем отлов ошибок
 		 */
 		try {
-			// Смещение в сообщении
-			size_t offset = 0;
-			// Если включён строгий режим парсинга
-			if(this->_mode == mode_t::STRONG){
-				/**
-				 * matchFn Функция матчинга ключа расширения для CEF
-				 * @param key ключ для матчинга
-				 * @return    результат сравнения
-				 */
-				auto matchFn = [this](const string & key) noexcept -> bool {
-					// Результат работы функции
-					bool result = false;
-					// Если ключё передан
-					if(!key.empty()){
-						// Выполняем поиск нашего ключа
-						auto i = this->_extensionSEFv0.find(key);
-						// Выполняем поиск ключа в схеме для версии CEF:0
-						result = (i != this->_extensionSEFv0.end());
-						// Если результат не получен но версия CEF:1
-						if(!result && (this->_version == 1.0))
-							// Выполняем поиск ключа в схеме для версии CEF:1
-							result = (i != this->_extensionSEFv1.end());
-					}
-					// Выводим результат
-					return result;
-				};
-				// Выполняем извлечение всех сообщений
-				for(;;){
-					// Выполняем извлечение всего списка установленных параметров
-					const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
-					// Если список параметров получен
-					if(!items.empty()){
-						// Если элементов параметров получены 4 штуки
-						if(items.size() >= 4){
-							// Получаем ключ расширения
-							const string & key = extensions.substr(items.at(1).first + offset, items.at(1).second);
-							// Выполняем матчинг ключа
-							if(matchFn(key))
-								// Выполняем создание расширения
-								this->extension(key, (items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second)));
-							// Если ключ не интерпретирован
-							else {
-								// Формируем текст ошибки
-								string error = "";
-								// Добавляем экранирование
-								error.append(1, '\"');
-								// Добавляем брокированное значение ключа
-								error.append(key);
-								// Добавляем основной текст сообщения
-								error.append("\" key does not comply with CEF standard");
-								/**
-								 * Если включён режим отладки
-								 */
-								#if defined(DEBUG_MODE)
-									// Выводим сообщение об ошибке
-									this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
-								/**
-								* Если режим отладки не включён
-								*/
-								#else
-									// Выводим сообщение об ошибке
-									this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
-								#endif
-							}
+			// Выполняем извлечение списка расширений
+			const auto & kv = this->_fmk->kv(extensions, " ");
+			// Если ключи извлечены удачно
+			if(!kv.empty()){
+				// Если включён строгий режим парсинга
+				if(this->_mode == mode_t::STRONG){
+					/**
+					 * matchFn Функция матчинга ключа расширения для CEF
+					 * @param key ключ для матчинга
+					 * @return    результат сравнения
+					 */
+					auto matchFn = [this](const string & key) noexcept -> bool {
+						// Результат работы функции
+						bool result = false;
+						// Если ключё передан
+						if(!key.empty()){
+							// Выполняем поиск нашего ключа
+							auto i = this->_extensionSEFv0.find(key);
+							// Выполняем поиск ключа в схеме для версии CEF:0
+							result = (i != this->_extensionSEFv0.end());
+							// Если результат не получен но версия CEF:1
+							if(!result && (this->_version == 1.0))
+								// Выполняем поиск ключа в схеме для версии CEF:1
+								result = (i != this->_extensionSEFv1.end());
 						}
-						// Увеличиваем длину сообщения
-						offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
-					// Выходим из цикла
-					} else break;
-				}
-			// Если строгий режим не активирован
-			} else {
-				// Выполняем извлечение всех сообщений
-				for(;;){
-					// Выполняем извлечение всего списка установленных параметров
-					const auto & items = this->_reg.match(extensions.c_str() + offset, this->_exp);
-					// Если список параметров получен
-					if(!items.empty()){
-						// Если элементов параметров получены 4 штуки
-						if(items.size() >= 4){
+						// Выводим результат
+						return result;
+					};
+					// Выполняем перебор всех полученных ключей
+					for(auto & extension : kv){
+						// Выполняем матчинг ключа
+						if(matchFn(extension.first))
 							// Выполняем создание расширения
-							this->extension(
-								extensions.substr(items.at(1).first + offset, items.at(1).second),
-								(items.back().first == 0 ? extensions.substr(items.at(2).first + offset, items.at(2).second) : extensions.substr(items.back().first + offset, items.back().second))
-							);
+							this->extension(extension.first, extension.second);
+						// Если ключ не интерпретирован
+						else {
+							// Формируем текст ошибки
+							string error = "";
+							// Добавляем экранирование
+							error.append(1, '\"');
+							// Добавляем брокированное значение ключа
+							error.append(extension.first);
+							// Добавляем основной текст сообщения
+							error.append("\" key does not comply with CEF standard");
+							/**
+							 * Если включён режим отладки
+							 */
+							#if defined(DEBUG_MODE)
+								// Выводим сообщение об ошибке
+								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
+							/**
+							* Если режим отладки не включён
+							*/
+							#else
+								// Выводим сообщение об ошибке
+								this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
+							#endif
 						}
-						// Увеличиваем длину сообщения
-						offset += (items.at(2).first + items.at(2).second + items.back().first + items.back().second);
-					// Выходим из цикла
-					} else break;
+					}
+				// Если строгий режим не активирован
+				} else {
+					// Выполняем перебор всех полученных ключей
+					for(auto & extension : kv)
+						// Выполняем создание расширения
+						this->extension(extension.first, extension.second);
 				}
+			// Если данные не извлечены
+			} else {
+				// Формируем текст ошибки
+				string error = "No parsing extensions passed";
+				/**
+				 * Если включён режим отладки
+				 */
+				#if defined(DEBUG_MODE)
+					// Выводим сообщение об ошибке
+					this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
+				/**
+				* Если режим отладки не включён
+				*/
+				#else
+					// Выводим сообщение об ошибке
+					this->_log->print("%s", log_t::flag_t::WARNING, error.c_str());
+				#endif
 			}
 		/**
 		 * Если возникает ошибка
@@ -588,7 +500,7 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 			 */
 			#if defined(DEBUG_MODE)
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -597,21 +509,6 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 				this->_log->print("%s", log_t::flag_t::CRITICAL, error.what());
 			#endif
 		}
-	// Если получена ошибка
-	} else {
-		/**
-		 * Если включён режим отладки
-		 */
-		#if defined(DEBUG_MODE)
-			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::CRITICAL, "No parsing extensions passed");
-		/**
-		* Если режим отладки не включён
-		*/
-		#else
-			// Выводим сообщение об ошибке
-			this->_log->print("%s", log_t::flag_t::CRITICAL, "No parsing extensions passed");
-		#endif
 	}
 }
 /**
@@ -1092,16 +989,36 @@ anyks::json anyks::Cef::dump() const noexcept {
 				result.AddMember(Value("header", result.GetAllocator()).Move(), Value(this->_header.c_str(), this->_header.length(), result.GetAllocator()).Move(), result.GetAllocator());
 			// Формируем параметры полезной нагрузки
 			result.AddMember(Value("event", result.GetAllocator()).Move(), Value(kObjectType).Move(), result.GetAllocator());
-			// Устанавливаем название события
-			result["event"].AddMember(Value("name", result.GetAllocator()).Move(), Value(this->_event.name, ::strlen(this->_event.name), result.GetAllocator()).Move(), result.GetAllocator());
-			// Устанавливаем поставщика данных
-			result["event"].AddMember(Value("vendor", result.GetAllocator()).Move(), Value(this->_event.devVendor, ::strlen(this->_event.devVendor), result.GetAllocator()).Move(), result.GetAllocator());
-			// Устанавливаем версию поставщика данных
-			result["event"].AddMember(Value("version", result.GetAllocator()).Move(), Value(this->_event.devVersion, ::strlen(this->_event.devVersion), result.GetAllocator()).Move(), result.GetAllocator());
-			// Устанавливаем тип устройства поставщика данных
-			result["event"].AddMember(Value("product", result.GetAllocator()).Move(), Value(this->_event.devProduct, ::strlen(this->_event.devProduct), result.GetAllocator()).Move(), result.GetAllocator());
-			// Устанавливаем подпись события поставщика данных
-			result["event"].AddMember(Value("signature", result.GetAllocator()).Move(), Value(this->_event.signatureId, ::strlen(this->_event.signatureId), result.GetAllocator()).Move(), result.GetAllocator());
+			// Размер названия записи
+			size_t length = static_cast <size_t> (::strlen(this->_event.name));
+			// Если размер не нулевой
+			if(length > 0)
+				// Устанавливаем название события
+				result["event"].AddMember(Value("name", result.GetAllocator()).Move(), Value(this->_event.name, length, result.GetAllocator()).Move(), result.GetAllocator());
+			// Размер поставщика данных
+			length = static_cast <size_t> (::strlen(this->_event.devVendor));
+			// Если размер не нулевой
+			if(length > 0)
+				// Устанавливаем поставщика данных
+				result["event"].AddMember(Value("vendor", result.GetAllocator()).Move(), Value(this->_event.devVendor, length, result.GetAllocator()).Move(), result.GetAllocator());
+			// Размер версии поставщика данных
+			length = static_cast <size_t> (::strlen(this->_event.devVersion));
+			// Если размер не нулевой
+			if(length > 0)
+				// Устанавливаем версию поставщика данных
+				result["event"].AddMember(Value("version", result.GetAllocator()).Move(), Value(this->_event.devVersion, length, result.GetAllocator()).Move(), result.GetAllocator());
+			// Размер типа устройства поставщика данных
+			length = static_cast <size_t> (::strlen(this->_event.devProduct));
+			// Если размер не нулевой
+			if(length > 0)
+				// Устанавливаем тип устройства поставщика данных
+				result["event"].AddMember(Value("product", result.GetAllocator()).Move(), Value(this->_event.devProduct, length, result.GetAllocator()).Move(), result.GetAllocator());
+			// Размер типа подписи события поставщика данных
+			length = static_cast <size_t> (::strlen(this->_event.signatureId));
+			// Если размер не нулевой
+			if(length > 0)
+				// Устанавливаем подпись события поставщика данных
+				result["event"].AddMember(Value("signature", result.GetAllocator()).Move(), Value(this->_event.signatureId, length, result.GetAllocator()).Move(), result.GetAllocator());
 			// Формируем важность события
 			result["event"].AddMember(Value("severity", result.GetAllocator()).Move(), Value(kObjectType).Move(), result.GetAllocator());
 			// Устанавливаем числовое значение важности события
@@ -3370,11 +3287,6 @@ anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
 		{"sourceTranslatedZoneExternalID", "source TranslatedZoneExternalID"},
 		{"destinationTranslatedZoneExternalID", "destination TranslatedZoneExternalID"}
 	};
-	// Выполняем сборку регулярных выражений для извлечения параметров расширений
-	this->_exp = this->_reg.build(R"(([\w\-]+)=(?:\"([^\"]+)\"|([^=]*|(?:[^=]+\\\=[^=]+)+))(?:\s+[\w\-]+=|\s*$))", {
-		regexp_t::option_t::UTF8,
-		regexp_t::option_t::UCP
-	});
 };
 /**
  * Оператор [>>] чтения из потока CEF контейнера
