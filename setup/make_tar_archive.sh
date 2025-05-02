@@ -14,7 +14,7 @@ readonly BUILD_DIR="$ROOT/../${PACKAGE_NAME}_build"
 
 # Очистка сборочной директории
 if [ -d "$ROOT/../build" ]; then
-  rm -rf "$ROOT/../build" || exit 1
+	rm -rf "$ROOT/../build" || exit 1
 fi
 
 # Собираем приложение
@@ -23,8 +23,8 @@ cd "$ROOT/../build" || exit 1
 
 # Выполняем сборку приложения
 cmake \
-	-DCMAKE_BUILD_TYPE=Release \
-	.. || exit 1
+ -DCMAKE_BUILD_TYPE=Release \
+ .. || exit 1
 
 cmake --build . || exit 1
 

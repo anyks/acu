@@ -14,8 +14,8 @@ readonly BUILD_DIR="$ROOT/../build"
 
 # Определяем является ли операционная система MacOS X
 if ! [ $OS = "Darwin" ]; then
-  echo "Error: Only for MacOS X"
-  exit 1
+	echo "Error: Only for MacOS X"
+	exit 1
 fi
 
 # Устанавливаем флаги глобального использования
@@ -25,7 +25,7 @@ export CFLAGS="-I$PREFIX/include -fPIC -mmacosx-version-min=10.15"
 
 # Очистка сборочной директории
 if [ -d $BUILD_DIR ]; then
-  rm -rf $BUILD_DIR || exit 1
+ 	rm -rf $BUILD_DIR || exit 1
 fi
 
 # Собираем приложение
@@ -34,8 +34,8 @@ cd $BUILD_DIR || exit 1
 
 # Выполняем сборку приложения
 cmake \
-	-DCMAKE_BUILD_TYPE=Release \
-	.. || exit 1
+ -DCMAKE_BUILD_TYPE=Release \
+ .. || exit 1
 
 cmake --build . || exit 1
 
@@ -60,7 +60,7 @@ DEV_APP_ID_SIGN=""
 
 # Если идентификатор цифровой подписи передан
 if [ -n "$1" ]; then
-  DEV_APP_ID_SIGN="$1"
+	DEV_APP_ID_SIGN="$1"
 fi
 
 # Адрес каталога с рабочим приложением
@@ -68,7 +68,7 @@ APP_DIR="$ROOT/../package/MacOS/application"
 
 # Очистка рабочей директории приложения
 if [ -d $APP_DIR ]; then
-  rm -rf $APP_DIR || exit 1
+	rm -rf $APP_DIR || exit 1
 fi
 
 # Создаём адрес рабочего каталога
@@ -91,21 +91,21 @@ cd $APP_DIR || exit 1
 # Подписываем бинарные файлы
 function signProduct() {
     codesign \
-    --deep \
-    --force \
-    --all-architectures \
-    --timestamp \
-    --options=runtime \
-    --sign "${DEV_APP_ID_SIGN}" \
-    "$1" 
+     --deep \
+     --force \
+     --all-architectures \
+     --timestamp \
+     --options=runtime \
+     --sign "${DEV_APP_ID_SIGN}" \
+     "$1" 
 
     codesign -dv --verbose=4 "$1"
 }
 
 # Если идентификатор цифровой подписи передан
 if [ -n "$DEV_APP_ID_SIGN" ]; then
-  # Выполняем подпись цифровым ключом наши бинарники
-  signProduct "$APP_DIR/bin/$PACKAGE_NAME"
+	# Выполняем подпись цифровым ключом наши бинарники
+	signProduct "$APP_DIR/bin/$PACKAGE_NAME"
 fi
 
 bash "$ROOT/../package/MacOS/build.sh" $VERSION || exit 1

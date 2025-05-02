@@ -20,8 +20,8 @@ cd $BUILD_DIR || exit 1
 
 # Выполняем сборку приложения
 cmake \
-	-DCMAKE_BUILD_TYPE=Release \
-	.. || exit 1
+ -DCMAKE_BUILD_TYPE=Release \
+ .. || exit 1
 
 cmake --build . || exit 1
 

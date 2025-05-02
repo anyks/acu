@@ -15,7 +15,7 @@ readonly BUILD_DIR="$ROOT/../build"
 
 # Очистка сборочной директории
 if [ -d $BUILD_DIR ]; then
-  rm -rf $BUILD_DIR || exit 1
+	rm -rf $BUILD_DIR || exit 1
 fi
 
 # Собираем приложение
