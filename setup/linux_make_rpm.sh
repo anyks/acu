@@ -29,12 +29,12 @@ cmake --build . || exit 1
 cd $ROOT/../
 
 # Имя исполнительного файла
-EXECUTABLE_FILE="acu"
+EXECUTABLE_FILE="$PACKAGE_NAME"
 EXECUTABLE_FILE=$(find . -name "$EXECUTABLE_FILE" -type f) || exit 1
 
 # Если исполнительный файл не найден, печатаем сообщение и и прекращаем работу
 if [ "${EXECUTABLE_FILE}" = "" ]; then
-	echo "Error: Executable file \"acu\" is not found! Please build the project and run again!"
+	echo "Error: Executable file \"$PACKAGE_NAME\" is not found! Please build the project and run again!"
 	exit 1
 fi
 
