@@ -57,10 +57,11 @@ mkdir -p "$ROOT/../installer" || exit 1
 # Копируем все необходимые файлы
 cp -ar $EXECUTABLE_FILE "$ROOT/../win" || exit 1
 cp -ar "$ROOT/../icons/icon.ico" "$ROOT/../win" || exit 1
+cp -ar "$ROOT/../icons/setup.ico" "$ROOT/../win" || exit 1
 cp -ar "/mingw64/bin/libgcc_s_seh-1.dll" "$ROOT/../win" || exit 1
 cp -ar "/mingw64/bin/libwinpthread-1.dll" "$ROOT/../win" || exit 1
 cp -ar "/mingw64/bin/libstdc++-6.dll" "$ROOT/../win" || exit 1
-cp -ar "$ROOT/../package/win/install.iss" "$ROOT/../win" || exit 1
+cp -ar "$ROOT/../package/Windows/install.iss" "$ROOT/../win" || exit 1
 
 
 # Заполняем поля шаблона для создания конфига инсталятора

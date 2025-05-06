@@ -43,7 +43,7 @@ EXECUTABLE_FILE="$ROOT/../$EXECUTABLE_FILE"
 
 # Задаём параметры сборки
 SPEC_NAME="${PACKAGE_NAME}.spec"
-PACKAGE_SOURCE_DIR="$ROOT/../package/rpm"
+PACKAGE_SOURCE_DIR="$ROOT/../package/Linux/rpm"
 # Задаём адрес сборочной дирректории
 WORK_PREFIX="$ROOT/../pkg-$PACKAGE_NAME"
 
