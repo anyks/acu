@@ -30,7 +30,19 @@ string(REGEX MATCH "Linux" PROJECT_OS_LINUX ${CMAKE_SYSTEM_NAME})
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     message(STATUS "Detected OS: Linux")
     set(DEBUGGER "-ggdb3")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl")
+    # Используем Clang
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+     # Используем GCC
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl")
+    # Используем Intel C++
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    # Используем Visual Studio C++
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    endif()
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     if (NOT MACOS_VERSION)
         EXECUTE_PROCESS(COMMAND sw_vers -productVersion COMMAND tr -d '\n' OUTPUT_VARIABLE MACOS_VERSION)
@@ -49,8 +61,29 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Устанавливаем опции компилятора
-set(CMAKE_CXX_COMPILER_ID "clang++")
+# Используем Clang
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Устанавливаем опции компилятора
+    SET(CMAKE_C_COMPILER_ID "clang")
+    SET(CMAKE_CXX_COMPILER_ID "clang++")
+# Используем GCC
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # Устанавливаем опции компилятора
+    SET(CMAKE_C_COMPILER_ID "GNU")
+    SET(CMAKE_CXX_COMPILER_ID "GNU")
+# Используем Intel C++
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    # Устанавливаем опции компилятора
+    SET(CMAKE_C_COMPILER_ID "Intel")
+    SET(CMAKE_CXX_COMPILER_ID "Intel")
+# Используем Visual Studio C++
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # Устанавливаем опции компилятора
+    SET(CMAKE_C_COMPILER_ID "MSVC")
+    SET(CMAKE_CXX_COMPILER_ID "MSVC")
+endif()
+
+# Выводим информацию об установленных компиляторах
 message(STATUS "Using C compiler: ${CMAKE_C_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "Using C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}\n")
 
