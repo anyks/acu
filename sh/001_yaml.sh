@@ -117,6 +117,9 @@ if [ -n "$1" ]; then
 				exit 1
 			fi
 
+			# Применяем патч
+			apply_patch "yaml" "yaml.patch" || exit 1
+
 			# Создаём каталог сборки
 			mkdir -p "build" || exit 1
 			# Переходим в каталог
