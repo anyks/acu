@@ -388,6 +388,10 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 					else if(this->_fmk->compare("gz", extension))
 						// Выполняем установку типа контента
 						contentType = "application/tar+gzip";
+					// Если запрашиваемый файл является PKG
+					else if(this->_fmk->compare("pkg", extension))
+						// Выполняем установку типа контента
+						contentType = "application/vnd.apple.installer+xml";
 					// Если запрашиваемый файл является MPKG
 					else if(this->_fmk->compare("mpkg", extension))
 						// Выполняем установку типа контента
