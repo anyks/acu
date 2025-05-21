@@ -27,6 +27,22 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
+ * isEscaped Функция проверки на экранирование строки
+ * @param text текст для проверки экранирования
+ * @param pos  позиция в тексте символа скобки
+ * @return     результат проверки
+ */
+static bool isEscaped(const string & text, size_t pos) noexcept {
+	// Количество найденных экранирований
+	size_t count = 0;
+	// Выполняем поиск количество экранирований
+	while((pos >= 0) && (text.at(--pos) == '\\'))
+		// Увеличиваем найденное количество экранирований
+		count++;
+	// Если количество экранирований чётное
+	return ((count % 2) != 0);
+}
+/**
  * reset Метод сброса параметров объекта
  */
 void anyks::Grok::Variables::reset() noexcept {
@@ -785,7 +801,8 @@ vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool le
 					// Создаём суффикс формирования результирующего регулярного выражения
 					const string suffix = (lets ? ")" : "");
 					// Создаём префикс формирования результирующего регулярного выражения
-					const string prefix = (lets ? ((pos > 0) ? ((text.at(pos - 1) != '(') ? "(" : "(?:") : "(") : "");
+					// const string prefix = (lets ? ((pos > 0) ? ((text.at(pos - 1) != '(') ? "(" : "(?:") : "(") : "");
+					const string prefix = (lets ? ((pos > 0) ? (((text.at(pos - 1) != '(') || ::isEscaped(text, pos - 1)) ? "(" : "(?:") : "(") : "");
 					// Выполняем замену
 					text.replace(pos, size, prefix + pattern + suffix);
 					// Выполняем добавления переменной в список результата
