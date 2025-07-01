@@ -1768,7 +1768,7 @@ void anyks::Server::config(const json & config) noexcept {
 				   config["net"]["unixSocket"].IsString() &&
 				  (strlen(config["net"]["unixSocket"].GetString()) > 0)){
 					// Устанавливаем тип сокета unix-сокет
-					this->_core.family(awh::scheme_t::family_t::NIX);
+					this->_core.family(awh::scheme_t::family_t::IPC);
 					// Выполняем инициализацию сервера для unix-сокета
 					this->_awh.init(config["net"]["unixSocket"].GetString(), ::move(compressors));
 				// Если подключение к серверу производится по хосту и порту
@@ -2125,9 +2125,9 @@ void anyks::Server::start() noexcept {
 	// Разрешаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::ENABLED);
 	// Устанавливаем функцию обработки сигналов завершения работы приложения
-	this->_core.callback <void (const int)> ("crash", bind(&server_t::crash, this, _1));
+	this->_core.on <void (const int)> ("crash", &server_t::crash, this, _1);
 	// Устанавливаем функцию обратного вызова на запуск системы
-	this->_core.callback <void (const awh::core_t::status_t)> ("status", bind(static_cast <void (server_t::*)(const awh::core_t::status_t)> (&server_t::active), this, _1));
+	this->_core.on <void (const awh::core_t::status_t)> ("status", static_cast <void (server_t::*)(const awh::core_t::status_t)> (&server_t::active), this, _1);
 	// Выполняем запуск сервера
 	this->_awh.start();
 }
@@ -2144,19 +2144,19 @@ anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
 	// Выполняем установку идентификатора клиента
 	this->_awh.ident(AWH_SHORT_NAME, AWH_NAME, AWH_VERSION);
 	// Устанавливаем функцию извлечения пароля пользователя для авторизации
-	this->_awh.callback <string (const uint64_t, const string &)> ("extractPassword", bind(&server_t::password, this, _1, _2));
+	this->_awh.on <string (const uint64_t, const string &)> ("extractPassword", &server_t::password, this, _1, _2);
 	// Устанавливаем функцию проверки авторизации прользователя
-	this->_awh.callback <bool (const uint64_t, const string &, const string &)> ("checkPassword", bind(&server_t::auth, this, _1, _2, _3));
+	this->_awh.on <bool (const uint64_t, const string &, const string &)> ("checkPassword", &server_t::auth, this, _1, _2, _3);
 	// Установливаем функцию обратного вызова на событие активации клиента на сервере
-	this->_awh.callback <bool (const string &, const string &, const uint32_t)> ("accept", bind(&server_t::accept, this, _1, _2, _3));
+	this->_awh.on <bool (const string &, const string &, const uint32_t)> ("accept", &server_t::accept, this, _1, _2, _3);
 	// Устанавливаем функцию обратного вызова при выполнении удачного рукопожатия
-	this->_awh.callback <void (const int32_t, const uint64_t, const server::web_t::agent_t)> ("handshake", bind(&server_t::handshake, this, _1, _2, _3));
+	this->_awh.on <void (const int32_t, const uint64_t, const server::web_t::agent_t)> ("handshake", &server_t::handshake, this, _1, _2, _3);
 	// Установливаем функцию обратного вызова на событие запуска или остановки подключения
-	this->_awh.callback <void (const uint64_t, const server::web_t::mode_t)> ("active", bind(static_cast <void (server_t::*)(const uint64_t, const server::web_t::mode_t)> (&server_t::active), this, _1, _2));
+	this->_awh.on <void (const uint64_t, const server::web_t::mode_t)> ("active", static_cast <void (server_t::*)(const uint64_t, const server::web_t::mode_t)> (&server_t::active), this, _1, _2);
 	// Устанавливаем функцию обратного вызова на получение входящих сообщений запросов
-	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const unordered_multimap <string, string> &)> ("headers", bind(&server_t::headers, this, _1, _2, _3, _4, _5));
+	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const unordered_multimap <string, string> &)> ("headers", &server_t::headers, this, _1, _2, _3, _4, _5);
 	// Установливаем функцию обратного вызова на событие получения полного запроса клиента
-	this->_awh.callback <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const unordered_multimap <string, string> &)> ("complete", bind(&server_t::complete, this, _1, _2, _3, _4, _5, _6));
+	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const unordered_multimap <string, string> &)> ("complete", &server_t::complete, this, _1, _2, _3, _4, _5, _6);
 }
 /**
  * ~Server деструктор
