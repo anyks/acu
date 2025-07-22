@@ -51,13 +51,21 @@ $ sudo modprobe sctp
 $ sudo sysctl -w net.sctp.auth_enable=1
 ```
 
-### Build third party for MacOS X, Linux and FreeBSD
+#### Linux (openSUSE)
+
+```bash
+$ sudo zypper install lksctp-tools-devel
+$ sudo modprobe sctp
+$ sudo sysctl -w net.sctp.auth_enable=1
+```
+
+### Build third party for MacOS X, Linux, FreeBSD and Solaris
 
 ```bash
 $ ./build_third_party.sh
 ```
 
-### Build on MacOS X, Linux and FreeBSD
+### Build on MacOS X, Linux, FreeBSD and Solaris
 
 ```bash
 $ mkdir ./build
