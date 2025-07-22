@@ -164,6 +164,11 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 				// Устанавливаем название Операционной Системы
 				os = "FreeBSD";
 			break;
+			// Если операционной системой является Sun Solaris
+			case static_cast <uint8_t> (os_t::type_t::SOLARIS):
+				// Устанавливаем название Операционной Системы
+				os = "Solaris";
+			break;
 		}
 		// Если операционная система обнаружена
 		if(os != nullptr){
