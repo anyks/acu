@@ -94,7 +94,7 @@ namespace anyks {
 			syslog_t _syslog;
 		private:
 			// Мютекс для блокировки потока
-			recursive_mutex _mtx;
+			std::recursive_mutex _mtx;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;

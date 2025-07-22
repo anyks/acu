@@ -115,9 +115,12 @@ namespace anyks {
 			 * Mutex структура рабочих мютексов
 			 */
 			typedef struct Mutex {
-				mutex cache;    // Мютекс контроля кэша
-				mutex mapping;  // Мютекс контроля собранных соответствий
-				mutex patterns; // Мютекс контроля собранных шаблонов
+				// Мютекс контроля кэша
+				std::mutex cache;
+				// Мютекс контроля собранных соответствий
+				std::mutex mapping;
+				// Мютекс контроля собранных шаблонов
+				std::mutex patterns;
 			} mtx_t;
 			/**
 			 * Let Класс работы с блочными переменными
@@ -142,12 +145,12 @@ namespace anyks {
 					friend class Grok;
 				private:
 					// Мютекс для блокировки потока
-					mutex _mtx;
+					std::mutex _mtx;
 				private:
 					// Список имён переменных
 					vector <string> _names;
 					// Список шаблонов переменных
-					unordered_multimap <string, regex_t> _patterns;
+					std::unordered_multimap <string, regex_t> _patterns;
 				private:
 					// Объект работы с логами
 					const log_t * _log;
@@ -198,7 +201,7 @@ namespace anyks {
 				// Регулярные выражения
 				express_t express;
 				// Схема соответствий ключей
-				unordered_map <string, string> mapping;
+				std::unordered_map <string, string> mapping;
 				/**
 				 * Cache конструктор
 				 * @param log объект для работы с логами
@@ -210,15 +213,15 @@ namespace anyks {
 			mtx_t _mtx;
 		private:
 			// Список именованных групп
-			map <uint64_t, string> _nameGroups;
+			std::map <uint64_t, string> _nameGroups;
 		private:
 			// Список внутренних шаблонов для работы
-			unordered_map <string, string> _patternsInternal;
+			std::unordered_map <string, string> _patternsInternal;
 			// Список внешних шаблонов для работы
-			unordered_map <string, string> _patternsExternal;
+			std::unordered_map <string, string> _patternsExternal;
 		private:
 			// Объект кэша работы модуля
-			map <uint64_t, unique_ptr <cache_t>> _cache;
+			std::map <uint64_t, std::unique_ptr <cache_t>> _cache;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;
@@ -279,7 +282,7 @@ namespace anyks {
 			 * @param pos  начальная позиция для поиска
 			 * @return     позиция найденной именованной группы
 			 */
-			pair <ssize_t, ssize_t> namedGroup(const string & text, const size_t pos = 0) const noexcept;
+			std::pair <ssize_t, ssize_t> namedGroup(const string & text, const size_t pos = 0) const noexcept;
 		private:
 			/**
 			 * prepare Метод обработки полученной переменной Grok
@@ -287,7 +290,7 @@ namespace anyks {
 			 * @param lets разрешить обработку блочных переменных
 			 * @return     список извлечённых переменных
 			 */
-			vector <pair <string, string>> prepare(string & text, const bool lets = true) const noexcept;
+			vector <std::pair <string, string>> prepare(string & text, const bool lets = true) const noexcept;
 		public:
 			/**
 			 * patterns Метод добавления списка поддерживаемых шаблонов

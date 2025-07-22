@@ -131,9 +131,9 @@ namespace anyks {
 						/**
 						 * Если включён режим отладки
 						 */
-						#if defined(DEBUG_MODE)
+						#if DEBUG_MODE
 							// Выводим сообщение об ошибке
-							this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key), log_t::flag_t::CRITICAL, error.what());
+							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key), log_t::flag_t::CRITICAL, error.what());
 						/**
 						* Если режим отладки не включён
 						*/
@@ -323,9 +323,9 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
@@ -443,7 +443,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -535,7 +535,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -582,9 +582,9 @@ namespace anyks {
 						/**
 						 * Если включён режим отладки
 						 */
-						#if defined(DEBUG_MODE)
+						#if DEBUG_MODE
 							// Выводим сообщение об ошибке
-							this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(root, key, val), log_t::flag_t::CRITICAL, error.what());
+							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(root, key, val), log_t::flag_t::CRITICAL, error.what());
 						/**
 						* Если режим отладки не включён
 						*/
@@ -857,7 +857,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -1050,7 +1050,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -1113,7 +1113,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -1188,9 +1188,9 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(result), log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(result), log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
@@ -1221,7 +1221,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -1309,7 +1309,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -1446,7 +1446,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -1471,9 +1471,9 @@ namespace anyks {
 			 * @param args ключи для извлечения
 			 * @return     значение ключа в базе данных в виде объекта
 			 */
-			const unordered_map <string, T> obj(const bool root, Args&&... args) const noexcept {
+			const std::unordered_map <string, T> obj(const bool root, Args&&... args) const noexcept {
 				// Результат работы функции
-				unordered_map <string, T> result;
+				std::unordered_map <string, T> result;
 				/**
 				 * Выполняем отлов ошибок
 				 */
@@ -1585,7 +1585,7 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
 						this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 					/**
@@ -1651,7 +1651,7 @@ namespace anyks {
 						/**
 						 * Если включён режим отладки
 						 */
-						#if defined(DEBUG_MODE)
+						#if DEBUG_MODE
 							// Выводим сообщение об ошибке
 							this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 						/**
@@ -1686,9 +1686,9 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(config), log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(config), log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
@@ -1729,9 +1729,9 @@ namespace anyks {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename), log_t::flag_t::CRITICAL, error.what());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename), log_t::flag_t::CRITICAL, error.what());
 					/**
 					* Если режим отладки не включён
 					*/
@@ -1908,7 +1908,7 @@ namespace anyks {
 					// Значение считываемое из потока
 					string value = "";
 					// Если операционной системой является Windows
-					#if defined(_WIN32) || defined(_WIN64)
+					#if _WIN32 || _WIN64
 						// Считываем строку из буфера stdin
 						if(this->_automatic && this->env(this->_text).empty())
 							// Выполняем чтение из коммандной строки

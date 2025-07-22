@@ -190,9 +190,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 														/**
 														 * Если включён режим отладки
 														 */
-														#if defined(DEBUG_MODE)
+														#if DEBUG_MODE
 															// Выводим сообщение об ошибке
-															this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Extensions is not found");
+															this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Extensions is not found");
 														/**
 														* Если режим отладки не включён
 														*/
@@ -206,9 +206,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 													/**
 													 * Если включён режим отладки
 													 */
-													#if defined(DEBUG_MODE)
+													#if DEBUG_MODE
 														// Выводим сообщение об ошибке
-														this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
+														this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
 													/**
 													* Если режим отладки не включён
 													*/
@@ -222,9 +222,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 												/**
 												 * Если включён режим отладки
 												 */
-												#if defined(DEBUG_MODE)
+												#if DEBUG_MODE
 													// Выводим сообщение об ошибке
-													this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
+													this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Severity is not found");
 												/**
 												* Если режим отладки не включён
 												*/
@@ -238,9 +238,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 											/**
 											 * Если включён режим отладки
 											 */
-											#if defined(DEBUG_MODE)
+											#if DEBUG_MODE
 												// Выводим сообщение об ошибке
-												this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
+												this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Event name is not found");
 											/**
 											* Если режим отладки не включён
 											*/
@@ -254,9 +254,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 										/**
 										 * Если включён режим отладки
 										 */
-										#if defined(DEBUG_MODE)
+										#if DEBUG_MODE
 											// Выводим сообщение об ошибке
-											this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
+											this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Signature ID is not found");
 										/**
 										* Если режим отладки не включён
 										*/
@@ -270,9 +270,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device version is not found");
 									/**
 									* Если режим отладки не включён
 									*/
@@ -286,9 +286,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 								/**
 								 * Если включён режим отладки
 								 */
-								#if defined(DEBUG_MODE)
+								#if DEBUG_MODE
 									// Выводим сообщение об ошибке
-									this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
+									this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device product is not found");
 								/**
 								* Если режим отладки не включён
 								*/
@@ -302,9 +302,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 							/**
 							 * Если включён режим отладки
 							 */
-							#if defined(DEBUG_MODE)
+							#if DEBUG_MODE
 								// Выводим сообщение об ошибке
-								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Device vendor is not found");
 							/**
 							* Если режим отладки не включён
 							*/
@@ -318,9 +318,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 						/**
 						 * Если включён режим отладки
 						 */
-						#if defined(DEBUG_MODE)
+						#if DEBUG_MODE
 							// Выводим сообщение об ошибке
-							this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Container version must be a number");
+							this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Container version must be a number");
 						/**
 						* Если режим отладки не включён
 						*/
@@ -334,9 +334,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "Version is not found");
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "Version is not found");
 					/**
 					* Если режим отладки не включён
 					*/
@@ -350,9 +350,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 				/**
 				 * Если включён режим отладки
 				 */
-				#if defined(DEBUG_MODE)
+				#if DEBUG_MODE
 					// Выводим сообщение об ошибке
-					this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "An invalid data format was passed");
+					this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "An invalid data format was passed");
 				/**
 				* Если режим отладки не включён
 				*/
@@ -368,9 +368,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -384,9 +384,9 @@ void anyks::Cef::parse(const string & cef) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cef), log_t::flag_t::WARNING, "No parsing data passed");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cef), log_t::flag_t::WARNING, "No parsing data passed");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -454,9 +454,9 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 							/**
 							 * Если включён режим отладки
 							 */
-							#if defined(DEBUG_MODE)
+							#if DEBUG_MODE
 								// Выводим сообщение об ошибке
-								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
 							/**
 							* Если режим отладки не включён
 							*/
@@ -480,9 +480,9 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 				/**
 				 * Если включён режим отладки
 				 */
-				#if defined(DEBUG_MODE)
+				#if DEBUG_MODE
 					// Выводим сообщение об ошибке
-					this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
+					this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(extensions), log_t::flag_t::WARNING, error.c_str());
 				/**
 				* Если режим отладки не включён
 				*/
@@ -498,7 +498,7 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -917,7 +917,7 @@ string anyks::Cef::cef() const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -1365,7 +1365,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -1608,7 +1608,7 @@ void anyks::Cef::dump(const json & dump) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -1643,9 +1643,9 @@ void anyks::Cef::header(const string & header) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(header), log_t::flag_t::CRITICAL, "Header not passed");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(header), log_t::flag_t::CRITICAL, "Header not passed");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -1729,9 +1729,9 @@ anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -1748,9 +1748,9 @@ anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
  * events Метод получения списка событий
  * @return список полученных событий
  */
-unordered_map <string, string> anyks::Cef::events() const noexcept {
+std::unordered_map <string, string> anyks::Cef::events() const noexcept {
 	// Результат работы функции
-	unordered_map <string, string> result;
+	std::unordered_map <string, string> result;
 	/**
 	 * Выполняем отлов ошибок
 	 */
@@ -1774,7 +1774,7 @@ unordered_map <string, string> anyks::Cef::events() const noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**
@@ -1792,9 +1792,9 @@ unordered_map <string, string> anyks::Cef::events() const noexcept {
  * extensions Метод извлечения списка расширений
  * @return список установленных расширений
  */
-unordered_map <string, string> anyks::Cef::extensions() const noexcept {
+std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 	// Результат работы функции
-	unordered_map <string, string> result;
+	std::unordered_map <string, string> result;
 	// Если список расширений запомнен
 	if(!this->_extensions.empty()){
 		/**
@@ -2134,7 +2134,7 @@ unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -2224,9 +2224,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
 					/**
 					* Если режим отладки не включён
 					*/
@@ -2272,9 +2272,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2304,9 +2304,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2336,9 +2336,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2365,9 +2365,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2408,9 +2408,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2451,9 +2451,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2494,9 +2494,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2537,9 +2537,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2580,9 +2580,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2607,9 +2607,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2663,9 +2663,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 									/**
 									 * Если включён режим отладки
 									 */
-									#if defined(DEBUG_MODE)
+									#if DEBUG_MODE
 										// Выводим сообщение об ошибке
-										this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
+										this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, params->desc.c_str());
 									/**
 									* Если режим отладки не включён
 									*/
@@ -2689,9 +2689,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::WARNING, error.c_str());
 					/**
 					* Если режим отладки не включён
 					*/
@@ -2709,9 +2709,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, value), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -2781,7 +2781,7 @@ bool anyks::Cef::operator != (const cef_t & cef) const noexcept {
 				/**
 				 * Если включён режим отладки
 				 */
-				#if defined(DEBUG_MODE)
+				#if DEBUG_MODE
 					// Выводим сообщение об ошибке
 					this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 				/**
@@ -2837,7 +2837,7 @@ bool anyks::Cef::operator == (const cef_t & cef) const noexcept {
 				/**
 				 * Если включён режим отладки
 				 */
-				#if defined(DEBUG_MODE)
+				#if DEBUG_MODE
 					// Выводим сообщение об ошибке
 					this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 				/**
@@ -2880,7 +2880,7 @@ anyks::Cef & anyks::Cef::operator = (const cef_t & cef) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**

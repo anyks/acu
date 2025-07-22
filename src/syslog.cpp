@@ -34,7 +34,7 @@ void anyks::SysLog::clear() noexcept {
 	 */
 	try {
 		// Выполняем блокировку потока
-		const lock_guard <recursive_mutex> lock(this->_mtx);
+		const lock_guard <std::recursive_mutex> lock(this->_mtx);
 		// Устанавливаем версию сообщения
 		this->_ver = 0;
 		// Устанавливаем приоритет сообщения
@@ -60,7 +60,7 @@ void anyks::SysLog::clear() noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**
@@ -85,7 +85,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 		 */
 		try {
 			// Выполняем блокировку потока
-			const lock_guard <recursive_mutex> lock(this->_mtx);
+			const lock_guard <std::recursive_mutex> lock(this->_mtx);
 			// Определяем активированный режим парсинга
 			switch(static_cast <uint8_t> (this->_mode)){
 				// Если активирован нативный режим парсинга
@@ -198,9 +198,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 											/**
 											 * Если включён режим отладки
 											 */
-											#if defined(DEBUG_MODE)
+											#if DEBUG_MODE
 												// Выводим сообщение об ошибке
-												this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "SysLog standards are mixed up");
+												this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "SysLog standards are mixed up");
 											/**
 											* Если режим отладки не включён
 											*/
@@ -448,7 +448,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 															// Устанавливаем структурированные данные
 															i->second.emplace(::move(key), ::move(val));
 														// Иначе добавляем новые структурированные данные
-														else this->_sd.emplace(sid, unordered_map <string, string> {{::move(key), ::move(val)}});
+														else this->_sd.emplace(sid, std::unordered_map <string, string> {{::move(key), ::move(val)}});
 													}
 													// Запоминаем начало строки с версией
 													pos = (i + 1);
@@ -473,7 +473,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 															// Устанавливаем структурированные данные
 															i->second.emplace(::move(key), ::move(val));
 														// Иначе добавляем новые структурированные данные
-														else this->_sd.emplace(sid, unordered_map <string, string> {{::move(key), ::move(val)}});
+														else this->_sd.emplace(sid, std::unordered_map <string, string> {{::move(key), ::move(val)}});
 													}
 													// Запоминаем начало строки с версией
 													pos = (i + 1);
@@ -506,9 +506,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 							/**
 							 * Если включён режим отладки
 							 */
-							#if defined(DEBUG_MODE)
+							#if DEBUG_MODE
 								// Выводим сообщение об ошибке
-								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with RFC5424 SysLog standard");
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with RFC5424 SysLog standard");
 							/**
 							* Если режим отладки не включён
 							*/
@@ -665,9 +665,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 							/**
 							 * Если включён режим отладки
 							 */
-							#if defined(DEBUG_MODE)
+							#if DEBUG_MODE
 								// Выводим сообщение об ошибке
-								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with RFC3164 SysLog standard");
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with RFC3164 SysLog standard");
 							/**
 							* Если режим отладки не включён
 							*/
@@ -931,7 +931,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 																								// Устанавливаем структурированные данные
 																								l->second.emplace(key, value);
 																							// Иначе добавляем новые структурированные данные
-																							else this->_sd.emplace(sid, unordered_map <string, string> {{key,  value}});
+																							else this->_sd.emplace(sid, std::unordered_map <string, string> {{key,  value}});
 																							// Выполняем сброс позиции ключа
 																							pos1 = j;
 																							// Выполняем сброс позиции значения
@@ -979,9 +979,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 							/**
 							 * Если включён режим отладки
 							 */
-							#if defined(DEBUG_MODE)
+							#if DEBUG_MODE
 								// Выводим сообщение об ошибке
-								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with SysLog standards RFC3164 and RFC5424");
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, "Text does not comply with SysLog standards RFC3164 and RFC5424");
 							/**
 							* Если режим отладки не включён
 							*/
@@ -1000,9 +1000,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(syslog, static_cast <uint16_t> (std)), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -1080,9 +1080,9 @@ const string & anyks::SysLog::sd(const string & id, const string & key) const no
  * @param id идентификатор структурированных данных
  * @return   список структурированных данных
  */
-const unordered_map <string, string> & anyks::SysLog::sd(const string & id) const noexcept {
+const std::unordered_map <string, string> & anyks::SysLog::sd(const string & id) const noexcept {
 	// Результат работы функции
-	static const unordered_map <string, string> result;
+	static const std::unordered_map <string, string> result;
 	// Если идентификатор структурированных данных передан
 	if(!id.empty()){
 		// Выполняем извлечение данных запрашиваемого идентификатора структурированных данных
@@ -1100,7 +1100,7 @@ const unordered_map <string, string> & anyks::SysLog::sd(const string & id) cons
  * @param id идентификатор структурированных данных
  * @param sd список структурированных данных
  */
-void anyks::SysLog::sd(const string & id, const unordered_map <string, string> & sd) noexcept {
+void anyks::SysLog::sd(const string & id, const std::unordered_map <string, string> & sd) noexcept {
 	// Если идентификатор и список структурированных данных переданы
 	if(!id.empty() && !sd.empty()){
 		/**
@@ -1108,7 +1108,7 @@ void anyks::SysLog::sd(const string & id, const unordered_map <string, string> &
 		 */
 		try {
 			// Выполняем блокировку потока
-			const lock_guard <recursive_mutex> lock(this->_mtx);
+			const lock_guard <std::recursive_mutex> lock(this->_mtx);
 			// Выполняем извлечение данных запрашиваемого идентификатора структурированных данных
 			auto i = this->_sd.find(id);
 			// Если структурированные данные существуют
@@ -1131,9 +1131,9 @@ void anyks::SysLog::sd(const string & id, const unordered_map <string, string> &
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(id, sd.size()), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(id, sd.size()), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -1166,7 +1166,7 @@ uint8_t anyks::SysLog::version() const noexcept {
  */
 void anyks::SysLog::version(const uint8_t version) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Устанавливаем версию сообщения
 	this->_ver = version;
 }
@@ -1193,7 +1193,7 @@ uint8_t anyks::SysLog::importance() const noexcept {
  */
 void anyks::SysLog::pri(const uint8_t category, const uint8_t importance) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Выполняем установку приоритера сообщения
 	this->_pri = (static_cast <uint16_t> (category) * static_cast <uint16_t> (8) + static_cast <uint16_t> (importance));
 }
@@ -1211,7 +1211,7 @@ string anyks::SysLog::host() const noexcept {
  */
 void anyks::SysLog::host(const string & host) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Если хост передан
 	if(host.empty())
 		// Выполняем установку пустого значения хоста
@@ -1233,7 +1233,7 @@ string anyks::SysLog::application() const noexcept {
  */
 void anyks::SysLog::application(const string & app) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Если название приложения передано
 	if(app.empty())
 		// Выполняем установку пустого значения названия приложения
@@ -1255,7 +1255,7 @@ pid_t anyks::SysLog::pid() const noexcept {
  */
 void anyks::SysLog::pid(const pid_t pid) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Устанавливаем идентификатор процесса
 	this->_pid = pid;
 }
@@ -1273,7 +1273,7 @@ string anyks::SysLog::mid() const noexcept {
  */
 void anyks::SysLog::mid(const string & mid) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Если идентификатор сообщения передан
 	if(mid.empty())
 		// Выполняем установку пустого значения идентификатора сообщения
@@ -1295,7 +1295,7 @@ string anyks::SysLog::message() const noexcept {
  */
 void anyks::SysLog::message(const string & message) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Устанавливаем сообщение
 	this->_message = message;
 }
@@ -1313,7 +1313,7 @@ string anyks::SysLog::format() const noexcept {
  */
 void anyks::SysLog::format(const string & format) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Если формат даты передан
 	if(!format.empty())
 		// Выполняем установку формата даты
@@ -1341,7 +1341,7 @@ void anyks::SysLog::date(const string & date, const string & format) noexcept {
 	// Если данные даты переданы
 	if(!date.empty() && !format.empty()){
 		// Выполняем блокировку потока
-		const lock_guard <recursive_mutex> lock(this->_mtx);
+		const lock_guard <std::recursive_mutex> lock(this->_mtx);
 		// Если формат даты сообщения установлен
 		if(!format.empty())
 			// Выполняем парсинг даты
@@ -1530,7 +1530,7 @@ string anyks::SysLog::syslog() const noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**
@@ -1677,7 +1677,7 @@ anyks::json anyks::SysLog::dump() const noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**
@@ -1703,7 +1703,7 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 		 */
 		try {
 			// Выполняем блокировку потока
-			const lock_guard <recursive_mutex> lock(this->_mtx);
+			const lock_guard <std::recursive_mutex> lock(this->_mtx);
 			// Категория и важность сообщения
 			uint8_t category = 0, importance = 0;
 			// Если стандарт сообщения передан
@@ -1799,23 +1799,23 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 								// Если параметр является числом с отрицательным значением
 								if(item.value.IsInt64())
 									// Выполняем установку полученного числа
-									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), std::to_string(item.value.GetInt64())}});
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), std::to_string(item.value.GetInt64())}});
 								// Если параметр является числом с положительным значением
 								else if(item.value.IsUint64())
 									// Выполняем установку полученного числа
-									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), std::to_string(item.value.GetUint64())}});
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), std::to_string(item.value.GetUint64())}});
 								// Если параметр является числом с плавающей точкой
 								else if(item.value.IsNumber())
 									// Выполняем установку полученного числа
-									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), this->_fmk->noexp(item.value.GetDouble(), true)}});
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), this->_fmk->noexp(item.value.GetDouble(), true)}});
 								// Если параметр является булевым значением
 								else if(item.value.IsBool())
 									// Выполняем установку булевого значения
-									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), item.value.GetBool() ? "true" : "false"}});
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), item.value.GetBool() ? "true" : "false"}});
 								// Если параметр является строковым значением
 								else if(item.value.IsString())
 									// Выполняем установку булевого значения
-									this->_sd.emplace(m.name.GetString(), unordered_map <string, string> {{item.name.GetString(), item.value.GetString()}});
+									this->_sd.emplace(m.name.GetString(), std::unordered_map <string, string> {{item.name.GetString(), item.value.GetString()}});
 							}
 						}
 					}
@@ -1828,7 +1828,7 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -1855,7 +1855,7 @@ anyks::SysLog::mode_t anyks::SysLog::mode() const noexcept {
  */
 void anyks::SysLog::mode(const mode_t mode) noexcept {
 	// Выполняем блокировку потока
-	const lock_guard <recursive_mutex> lock(this->_mtx);
+	const lock_guard <std::recursive_mutex> lock(this->_mtx);
 	// Выполняем установку режим парсинга
 	this->_mode = mode;
 }
@@ -1896,7 +1896,7 @@ anyks::SysLog & anyks::SysLog::operator = (const syslog_t & syslog) noexcept {
 	 */
 	try {
 		// Выполняем блокировку потока
-		const lock_guard <recursive_mutex> lock(this->_mtx);
+		const lock_guard <std::recursive_mutex> lock(this->_mtx);
 		// Устанавливаем список структурированных данных
 		this->_sd = syslog._sd;
 		// Устанавливаем стандарт сообщения SysLog
@@ -1926,7 +1926,7 @@ anyks::SysLog & anyks::SysLog::operator = (const syslog_t & syslog) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**

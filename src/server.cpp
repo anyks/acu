@@ -78,7 +78,7 @@ void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t 
 			// Выполняем чтение запрошенного файла
 			const auto & buffer = this->_fs.read(filename);
 			// Выполняем добавление файла в кэш
-			this->_cache.emplace(filename, make_pair(13, buffer));
+			this->_cache.emplace(filename, std::make_pair(13, buffer));
 			// Отправляем сообщение клиенту
 			this->_awh.send(sid, bid, code, mess, buffer, {
 				{"Accept-Ranges", "bytes"},
@@ -248,7 +248,7 @@ void anyks::Server::handshake(const int32_t sid, const uint64_t bid, const serve
  * @param url     адрес входящего запроса
  * @param headers заголовки запроса
  */
-void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const unordered_multimap <string, string> & headers) noexcept {
+void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const std::unordered_multimap <string, string> & headers) noexcept {
 	// Если выполняем поиска заголовка Origin
 	auto i = headers.find("origin");
 	// Если заголовок не получен
@@ -268,7 +268,7 @@ void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::we
  * @param entity  тело запроса
  * @param headers заголовки запроса
  */
-void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const unordered_multimap <string, string> & headers) noexcept {
+void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const std::unordered_multimap <string, string> & headers) noexcept {
 	/**
 	 * Выполняем перехват ошибок
 	 */
@@ -460,7 +460,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						// Получаем хэш буфера данных
 						const uint64_t etag = CityHash64(buffer.data(), buffer.size());
 						// Выполняем добавление файла в кэш
-						this->_cache.emplace(filename, make_pair(etag, buffer));
+						this->_cache.emplace(filename, std::make_pair(etag, buffer));
 						// Выполняем поиск заголовка проверки ETag
 						auto j = headers.find("if-none-match");
 						// Если заголовок с хештегом найден
@@ -533,7 +533,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 					// Увеличиваем количество выполненных запросов
 					} else i->second.first++;
 				// Выполняем заполнение списка количества запросов
-				} else this->_counts.emplace(ip, make_pair(1, this->_chrono.timestamp(chrono_t::type_t::MILLISECONDS)));
+				} else this->_counts.emplace(ip, std::make_pair(1, this->_chrono.timestamp(chrono_t::type_t::MILLISECONDS)));
 				// Если производится вызов метода /exec
 				if(this->_fmk->compare("/exec", addr)){
 					// Объект запроса
@@ -543,9 +543,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						/**
 						 * Если включён режим отладки
 						 */
-						#if defined(DEBUG_MODE)
+						#if DEBUG_MODE
 							// Выводим сообщение об ошибке
-							this->_log->debug("Request JSON: (offset %d): %s", __PRETTY_FUNCTION__, make_tuple(sid, bid, static_cast <uint16_t> (method), url, entity.size(), headers.size()), log_t::flag_t::CRITICAL, request.GetErrorOffset(), GetParseError_En(request.GetParseError()));
+							this->_log->debug("Request JSON: (offset %d): %s", __PRETTY_FUNCTION__, std::make_tuple(sid, bid, static_cast <uint16_t> (method), url, entity.size(), headers.size()), log_t::flag_t::CRITICAL, request.GetErrorOffset(), GetParseError_En(request.GetParseError()));
 						/**
 						* Если режим отладки не включён
 						*/
@@ -2093,7 +2093,7 @@ void anyks::Server::config(const json & config) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**
@@ -2112,7 +2112,7 @@ void anyks::Server::stop() noexcept {
 	// Очищаем кэш запросов
 	this->_cache.clear();
 	// Выполняем очищение выделенной ранее памяти
-	unordered_map <string, pair <uint64_t, vector <char>>> ().swap(this->_cache);
+	std::unordered_map <string, std::pair <uint64_t, vector <char>>> ().swap(this->_cache);
 	// Запрещаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::DISABLED);
 	// Выполняем остановку сервера
@@ -2154,9 +2154,9 @@ anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
 	// Установливаем функцию обратного вызова на событие запуска или остановки подключения
 	this->_awh.on <void (const uint64_t, const server::web_t::mode_t)> ("active", static_cast <void (server_t::*)(const uint64_t, const server::web_t::mode_t)> (&server_t::active), this, _1, _2);
 	// Устанавливаем функцию обратного вызова на получение входящих сообщений запросов
-	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const unordered_multimap <string, string> &)> ("headers", &server_t::headers, this, _1, _2, _3, _4, _5);
+	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const std::unordered_multimap <string, string> &)> ("headers", &server_t::headers, this, _1, _2, _3, _4, _5);
 	// Установливаем функцию обратного вызова на событие получения полного запроса клиента
-	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const unordered_multimap <string, string> &)> ("complete", &server_t::complete, this, _1, _2, _3, _4, _5, _6);
+	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const std::unordered_multimap <string, string> &)> ("complete", &server_t::complete, this, _1, _2, _3, _4, _5, _6);
 }
 /**
  * ~Server деструктор

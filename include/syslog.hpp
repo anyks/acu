@@ -133,10 +133,10 @@ namespace anyks {
 			regexp_t _reg;
 		private:
 			// Мютекс для блокировки потока
-			recursive_mutex _mtx;
+			std::recursive_mutex _mtx;
 		private:
 			// Список структурированных данных
-			unordered_map <string, unordered_map <string, string>> _sd;
+			std::unordered_map <string, std::unordered_map <string, string>> _sd;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;
@@ -184,13 +184,13 @@ namespace anyks {
 			 * @param id идентификатор структурированных данных
 			 * @return   список структурированных данных
 			 */
-			const unordered_map <string, string> & sd(const string & id) const noexcept;
+			const std::unordered_map <string, string> & sd(const string & id) const noexcept;
 			/**
 			 * sd Метод установки структурированных данных
 			 * @param id идентификатор структурированных данных
 			 * @param sd список структурированных данных
 			 */
-			void sd(const string & id, const unordered_map <string, string> & sd) noexcept;
+			void sd(const string & id, const std::unordered_map <string, string> & sd) noexcept;
 		public:
 			/**
 			 * std Метод получения стандарта сообщения

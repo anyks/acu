@@ -51,7 +51,7 @@ void anyks::Grok::Variables::reset() noexcept {
 	 */
 	try {
 		// Выполняем блокировку потока
-		const lock_guard <mutex> lock(this->_mtx);
+		const lock_guard <std::mutex> lock(this->_mtx);
 		// Если список регулярных выражений шаблонов создан
 		if(!this->_patterns.empty()){
 			// Выполняем перебор всех шаблонов
@@ -66,7 +66,7 @@ void anyks::Grok::Variables::reset() noexcept {
 		// Выполняем очистку названий переменных
 		vector <string> ().swap(this->_names);
 		// Выполняем освобождение памяти списка шаблонов переменных
-		unordered_multimap <string, regex_t> ().swap(this->_patterns);
+		std::unordered_multimap <string, regex_t> ().swap(this->_patterns);
 	/**
 	 * Если возникает ошибка
 	 */
@@ -156,7 +156,7 @@ void anyks::Grok::Variables::push(const string & name, const string & pattern) n
 		 */
 		try {
 			// Выполняем блокировку потока
-			const lock_guard <mutex> lock(this->_mtx);
+			const lock_guard <std::mutex> lock(this->_mtx);
 			// Добавляем название переменной
 			this->_names.push_back(name);
 			// Добавляем шаблон регулярного выражения
@@ -256,7 +256,7 @@ void anyks::Grok::clear() noexcept {
 		// Выполняем очистку внешних шаблонов
 		this->clearPatterns();
 		// Выполняем полную очистку памяти кэша
-		map <uint64_t, unique_ptr <cache_t>> ().swap(this->_cache);
+		std::map <uint64_t, std::unique_ptr <cache_t>> ().swap(this->_cache);
 	/**
 	 * Если возникает ошибка
 	 */
@@ -264,7 +264,7 @@ void anyks::Grok::clear() noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**
@@ -286,7 +286,7 @@ void anyks::Grok::reset(const uint64_t cid) noexcept {
 	 */
 	try {
 		// Выполняем блокировку потока
-		const lock_guard <mutex> lock(this->_mtx.mapping);
+		const lock_guard <std::mutex> lock(this->_mtx.mapping);
 		// Выполняем поиск указанного идентификатора в кэше
 		auto i = this->_cache.find(cid);
 		// Если в кэше найден идентификатор
@@ -294,7 +294,7 @@ void anyks::Grok::reset(const uint64_t cid) noexcept {
 			// Очищаем схему соответствий ключей
 			i->second->mapping.clear();
 			// Выполняем очистку памяти ключей соответствий
-			unordered_map <string, string> ().swap(i->second->mapping);
+			std::unordered_map <string, string> ().swap(i->second->mapping);
 		}
 	/**
 	 * Если возникает ошибка
@@ -303,9 +303,9 @@ void anyks::Grok::reset(const uint64_t cid) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(cid), log_t::flag_t::CRITICAL, error.what());
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(cid), log_t::flag_t::CRITICAL, error.what());
 		/**
 		* Если режим отладки не включён
 		*/
@@ -326,15 +326,15 @@ void anyks::Grok::clearPatterns() noexcept {
 		 */
 		try {
 			// Выполняем блокировку потока
-			const lock_guard <mutex> lock(this->_mtx.patterns);
+			const lock_guard <std::mutex> lock(this->_mtx.patterns);
 			// Очищаем список именованных групп
 			this->_nameGroups.clear();
 			// Очищаем список внешних шаблонов
 			this->_patternsExternal.clear();
 			// Выполняем освобождение памяти именованных групп
-			map <uint64_t, string> ().swap(this->_nameGroups);
+			std::map <uint64_t, string> ().swap(this->_nameGroups);
 			// Выполняем освобождение памяти списка внешних шаблонов
-			unordered_map <string, string> ().swap(this->_patternsExternal);
+			std::unordered_map <string, string> ().swap(this->_patternsExternal);
 		/**
 		 * Если возникает ошибка
 		 */
@@ -342,7 +342,7 @@ void anyks::Grok::clearPatterns() noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -367,7 +367,7 @@ void anyks::Grok::removePattern(const string & name) noexcept {
 		 */
 		try {
 			// Выполняем блокировку потока
-			const lock_guard <mutex> lock(this->_mtx.patterns);
+			const lock_guard <std::mutex> lock(this->_mtx.patterns);
 			// Выполняем поиск указанного шаблона
 			auto i = this->_patternsExternal.find(name);
 			// Если шаблон найден
@@ -381,9 +381,9 @@ void anyks::Grok::removePattern(const string & name) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(name), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(name), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -455,9 +455,9 @@ void anyks::Grok::namedGroups(string & text) const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -543,9 +543,9 @@ anyks::Grok::let_t anyks::Grok::variable(const string & text) const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -591,9 +591,9 @@ void anyks::Grok::removeBrackets(string & text) const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -651,9 +651,9 @@ ssize_t anyks::Grok::bracket(const string & text, const size_t pos) const noexce
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, pos), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, pos), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -740,9 +740,9 @@ pair <ssize_t, ssize_t> anyks::Grok::namedGroup(const string & text, const size_
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, pos), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, pos), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -851,9 +851,9 @@ vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool le
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, lets), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, lets), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -880,7 +880,7 @@ void anyks::Grok::patterns(const json & patterns) noexcept {
 			// Объект блоковой переменной
 			let_t let;
 			// Список регулярных выражений в которых содержатся блоковые переменные
-			unordered_map <string, string> items;
+			std::unordered_map <string, string> items;
 			// Выполняем перебор всего списка значений
 			for(auto & m : patterns.GetObj()){
 				// Если значение является строкой
@@ -909,7 +909,7 @@ void anyks::Grok::patterns(const json & patterns) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -947,7 +947,7 @@ void anyks::Grok::pattern(const string & key, const string & val, const event_t 
 		 */
 		try {
 			// Выполняем блокировку потока
-			const lock_guard <mutex> lock(this->_mtx.patterns);
+			const lock_guard <std::mutex> lock(this->_mtx.patterns);
 			// Выполняем копирование текста регулярного выражения
 			string text = val;
 			// Выполняем удаление лишних скобок
@@ -977,9 +977,9 @@ void anyks::Grok::pattern(const string & key, const string & val, const event_t 
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, val, static_cast <uint16_t> (event)), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, val, static_cast <uint16_t> (event)), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -1048,7 +1048,7 @@ string anyks::Grok::generatePattern(const string & key, const string & val) noex
 				// Закрываем сгенерированный шаблон
 				result.append(1, '}');
 				// Выполняем блокировку потока потока
-				const lock_guard <mutex> lock(this->_mtx.cache);
+				const lock_guard <std::mutex> lock(this->_mtx.cache);
 				// Добавляем полученный результат в кэш
 				this->_nameGroups.emplace(id, result);
 			}
@@ -1059,9 +1059,9 @@ string anyks::Grok::generatePattern(const string & key, const string & val) noex
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, val), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, val), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -1105,7 +1105,7 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 				// Выполняем блокировку потока
 				const_cast <grok_t *> (this)->_mtx.cache.lock();
 				// Выполняем создании записи кэша
-				auto ret = const_cast <grok_t *> (this)->_cache.emplace(result, unique_ptr <cache_t> (new cache_t(this->_log)));
+				auto ret = const_cast <grok_t *> (this)->_cache.emplace(result, std::make_unique <cache_t> (this->_log));
 				// Выполняем разблокировку потока
 				const_cast <grok_t *> (this)->_mtx.cache.unlock();
 				// Выполняем генерацию именованных групп
@@ -1140,9 +1140,9 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 							/**
 							 * Если включён режим отладки
 							 */
-							#if defined(DEBUG_MODE)
+							#if DEBUG_MODE
 								// Выводим сообщение об ошибке
-								this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.c_str());
+								this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.c_str());
 							/**
 							* Если режим отладки не включён
 							*/
@@ -1154,7 +1154,7 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 						// Выполняем сброс собранных данных переменных
 						ret.first->second->vars.reset();
 						// Выполняем блокировку потока потока для удаления кэша
-						const lock_guard <mutex> lock(const_cast <grok_t *> (this)->_mtx.cache);
+						const lock_guard <std::mutex> lock(const_cast <grok_t *> (this)->_mtx.cache);
 						// Выполняем удаление записи из кэша
 						const_cast <grok_t *> (this)->_cache.erase(result);
 						// Выполняем зануление идентификатора записи
@@ -1165,9 +1165,9 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 					/**
 					 * Если включён режим отладки
 					 */
-					#if defined(DEBUG_MODE)
+					#if DEBUG_MODE
 						// Выводим сообщение об ошибке
-						this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(ret.first->second->express.expression), log_t::flag_t::CRITICAL, "Regular expression is broken");
+						this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(ret.first->second->express.expression), log_t::flag_t::CRITICAL, "Regular expression is broken");
 					/**
 					* Если режим отладки не включён
 					*/
@@ -1176,7 +1176,7 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 						this->_log->print("%s", log_t::flag_t::CRITICAL, "Regular expression is broken");
 					#endif
 					// Выполняем блокировку потока потока для удаления кэша
-					const lock_guard <mutex> lock(const_cast <grok_t *> (this)->_mtx.cache);
+					const lock_guard <std::mutex> lock(const_cast <grok_t *> (this)->_mtx.cache);
 					// Выполняем удаление записи из кэша
 					const_cast <grok_t *> (this)->_cache.erase(result);
 					// Выполняем зануление идентификатора записи
@@ -1190,9 +1190,9 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -1245,7 +1245,7 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
 								// Если название переменной получено
 								if(!key.empty()){
 									// Выполняем блокировку потока
-									const lock_guard <mutex> lock(this->_mtx.mapping);
+									const lock_guard <std::mutex> lock(this->_mtx.mapping);
 									// Выполняем добавления полученных данных в схему соответствий
 									i->second->mapping.emplace(key, value);
 								}
@@ -1261,9 +1261,9 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, cid), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, cid), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -1342,7 +1342,7 @@ anyks::json anyks::Grok::dump(const uint64_t cid) const noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**
@@ -1390,9 +1390,9 @@ string anyks::Grok::get(const string & key, const uint64_t cid) const noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(key, cid), log_t::flag_t::CRITICAL, error.what());
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(key, cid), log_t::flag_t::CRITICAL, error.what());
 		/**
 		* Если режим отладки не включён
 		*/

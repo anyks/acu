@@ -133,9 +133,9 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -149,9 +149,9 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -270,9 +270,9 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, function <void 
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -286,9 +286,9 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, function <void 
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(buffer, size, delim), log_t::flag_t::CRITICAL, "Data for preparing received corrupted");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -327,9 +327,9 @@ void anyks::CSV::parse(const string & text) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -392,9 +392,9 @@ void anyks::CSV::parse(const string & text, const char delim) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -408,9 +408,9 @@ void anyks::CSV::parse(const string & text, const char delim) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(text, delim), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(text, delim), log_t::flag_t::CRITICAL, "Data for parsing received corrupted");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -507,9 +507,9 @@ string anyks::CSV::row(const size_t index, const char delim) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(index, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(index, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -523,9 +523,9 @@ string anyks::CSV::row(const size_t index, const char delim) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(index, delim), log_t::flag_t::CRITICAL, "Object contains no data");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(index, delim), log_t::flag_t::CRITICAL, "Object contains no data");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -574,9 +574,9 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -591,9 +591,9 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
-				this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
+				this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, error.what());
 			/**
 			* Если режим отладки не включён
 			*/
@@ -607,9 +607,9 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for writing was not set");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for writing was not set");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -633,9 +633,9 @@ void anyks::CSV::read(const string & filename) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename), log_t::flag_t::CRITICAL, "File address for reading was not set");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename), log_t::flag_t::CRITICAL, "File address for reading was not set");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -663,9 +663,9 @@ void anyks::CSV::read(const string & filename, const char delim) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -696,9 +696,9 @@ void anyks::CSV::read(const string & filename, function <void (const vector <str
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
-			this->_log->debug("%s", __PRETTY_FUNCTION__, make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
+			this->_log->debug("%s", __PRETTY_FUNCTION__, std::make_tuple(filename, delim), log_t::flag_t::CRITICAL, "File address for reading was not set");
 		/**
 		* Если режим отладки не включён
 		*/
@@ -864,7 +864,7 @@ anyks::json anyks::CSV::dump() const noexcept {
 			/**
 			 * Если включён режим отладки
 			 */
-			#if defined(DEBUG_MODE)
+			#if DEBUG_MODE
 				// Выводим сообщение об ошибке
 				this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 			/**
@@ -969,7 +969,7 @@ void anyks::CSV::dump(const json & dump) noexcept {
 		/**
 		 * Если включён режим отладки
 		 */
-		#if defined(DEBUG_MODE)
+		#if DEBUG_MODE
 			// Выводим сообщение об ошибке
 			this->_log->debug("%s", __PRETTY_FUNCTION__, {}, log_t::flag_t::CRITICAL, error.what());
 		/**
