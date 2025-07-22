@@ -22,8 +22,8 @@
 /**
  * Подключаем модуль файловой системы
  */
-#include <sys/fs.hpp>
-#include <sys/hash.hpp>
+#include <awh/sys/fs.hpp>
+#include <awh/sys/hash.hpp>
 
 /**
  * Подписываемся на пространство имён anyks

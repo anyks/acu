@@ -46,18 +46,43 @@ mkdir -p "$PREFIX/bin"
 mkdir -p "$PREFIX/lib"
 mkdir -p "$PREFIX/include"
 
+# Если операционная система используется Solaris
+if [ $OS = "SunOS" ]; then
+	# Устанавливаем жёстко компилятор
+	export CC="gcc"
+fi
+
 # Определяем количество логических ядер
 if [ $OS = "Darwin" ]; then
 	# Устанавливаем количество ядер системы
 	numproc=$(sysctl -n hw.logicalcpu)
-	# Устанавливаем версию операционной системы
-	export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion)
-elif [ $OS = "FreeBSD" ]; then
-	# Устанавливаем количество ядер системы
-	numproc=$(sysctl -n hw.ncpu)
-else
+	# Если версия MacOS X не установлена
+	if [ ! -n "$MACOSX_DEPLOYMENT_TARGET" ]; then
+		# Устанавливаем версию операционной системы
+		export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion)
+	fi
+# Если сборка производится в операционной системе Windows, Linux или Solaris
+elif [ $OS = "Windows" ] || [ $OS = "Linux" ] || [ $OS = "SunOS" ]; then
 	# Устанавливаем количество ядер системы
 	numproc=$(nproc)
+# Если сборка производится в операционной системе FreeBSD, NetBSD или OpenBSD
+elif [ $OS = "FreeBSD" ] || [ $OS = "NetBSD" ] || [ $OS = "OpenBSD" ]; then
+	# Устанавливаем количество ядер системы
+	numproc=$(sysctl -n hw.ncpu)
+# Если операционная система не определена
+else
+	echo "Operating system not defined"
+	exit 1
+fi
+
+# Если сборка производится в операционной системе FreeBSD, NetBSD, OpenBSD или Solaris
+if [ $OS = "FreeBSD" ] || [ $OS = "NetBSD" ] || [ $OS = "OpenBSD" ] || [ $OS = "SunOS" ]; then
+	# Устанавливаем сборщик
+	MAKE="gmake"
+# Если сборка производится в другой операционной системе
+else
+	# Устанавливаем сборщик
+	MAKE="make"
 fi
 
 # Очистка директории
@@ -86,19 +111,38 @@ apply_patch(){
 
 # Фукция компенсации неверных каталогов
 restorelibs(){
-	# Если на вход получен каталог
-	if [[ -d "$1/lib64" ]]; then
-		# Переносим всё что есть в каталоге, в нужный нам каталог
-		for i in $(ls "$1/lib64");
-		do
-			# Если файла нет в каталоге
-			if [[ ! -f "$1/lib/$i" ]] && [[ -f "$1/lib64/$i" ]]; then
-				echo "Move \"$1/lib64/$i\" to \"$1/lib/$i\""
-				mv "$1/lib64/$i" "$1/lib/$i" || exit 1
-			fi
-		done
-		# Удаляем ненужный нам каталог
-		rm -rf "$1/lib64" || exit 1
+	# Если сборка производится в операционной системе Linux
+	if [ $OS = "Windows" ] || [ $OS = "Linux" ]; then
+		# Если на вход получен каталог
+		if [[ -d "$1/lib64" ]]; then
+			# Переносим всё что есть в каталоге, в нужный нам каталог
+			for i in $(ls "$1/lib64");
+			do
+				# Если файла нет в каталоге
+				if [[ ! -f "$1/lib/$i" ]] && [[ -f "$1/lib64/$i" ]]; then
+					echo "Move \"$1/lib64/$i\" to \"$1/lib/$i\""
+					mv "$1/lib64/$i" "$1/lib/$i" || exit 1
+				fi
+			done
+			# Удаляем ненужный нам каталог
+			rm -rf "$1/lib64" || exit 1
+		fi
+	# Если сборка производится в операционной системе Solaris
+	elif [ $OS = "SunOS" ]; then
+		# Если на вход получен каталог
+		if [[ -d "$1/lib/64" ]]; then
+			# Переносим всё что есть в каталоге, в нужный нам каталог
+			for i in $(ls "$1/lib/64");
+			do
+				# Если файла нет в каталоге
+				if [[ ! -f "$1/lib/$i" ]] && [[ -f "$1/lib/64/$i" ]]; then
+					echo "Move \"$1/lib/64/$i\" to \"$1/lib/$i\""
+					mv "$1/lib/64/$i" "$1/lib/$i" || exit 1
+				fi
+			done
+			# Удаляем ненужный нам каталог
+			rm -rf "$1/lib/64" || exit 1
+		fi
 	fi
 }
 

@@ -90,6 +90,9 @@ if [ -n "$1" ]; then
 
 				# Если требуется собрать зависимости с нуля
 				if [[ ! $1 = "--update" ]]; then
+					# Устанавливаем минимальную версию CMake
+					export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 					# Выполняем конфигурацию проекта
 					if [[ $OS = "Windows" ]]; then
 						# Выполняем сборку зависимостей
@@ -110,6 +113,10 @@ if [ -n "$1" ]; then
 				else
 					# Переходим на указанный коммит
 					git reset --hard $NAME
+
+					# Устанавливаем минимальную версию CMake
+					export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 					# Выполняем конфигурацию проекта
 					if [[ $OS = "Windows" ]]; then
 						# Выполняем сборку зависимостей
@@ -135,6 +142,9 @@ if [ -n "$1" ]; then
 					# Выполняем обновление репозитория
 					git pull origin
 				else
+					# Устанавливаем минимальную версию CMake
+					export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 					# Выполняем конфигурацию проекта
 					if [[ $OS = "Windows" ]]; then
 						# Выполняем сборку зависимостей
@@ -162,6 +172,9 @@ if [ -n "$1" ]; then
 					# Выполняем обновление репозитория
 					git pull origin main
 				else
+					# Устанавливаем минимальную версию CMake
+					export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 					# Выполняем конфигурацию проекта
 					if [[ $OS = "Windows" ]]; then
 						# Выполняем сборку зависимостей
@@ -205,9 +218,9 @@ if [ -n "$1" ]; then
 			fi
 
 			# Выполняем сборку на всех логических ядрах
-			make -j"$numproc" || exit 1
+			$MAKE -j"$numproc" || exit 1
 			# Выполняем установку проекта
-			make install || exit 1
+			$MAKE install || exit 1
 
 			# Выполняем компенсацию каталогов
 			restorelibs $PREFIX

@@ -34,10 +34,10 @@
 /**
  * Модули AWH
  */
-#include <sys/fmk.hpp>
-#include <sys/log.hpp>
-#include <net/net.hpp>
-#include <sys/chrono.hpp>
+#include <awh/sys/fmk.hpp>
+#include <awh/sys/log.hpp>
+#include <awh/net/net.hpp>
+#include <awh/sys/chrono.hpp>
 
 /**
  * Подключаем заголовочные файлы JSON

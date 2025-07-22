@@ -165,9 +165,9 @@ if [ -n "$1" ]; then
 			fi
 
 			# Выполняем сборку на всех логических ядрах
-			make -j"$numproc" || exit 1
+			$MAKE -j"$numproc" || exit 1
 			# Выполняем установку проекта
-			make install || exit 1
+			$MAKE install || exit 1
 
 			# Выполняем компенсацию каталогов
 			restorelibs $PREFIX

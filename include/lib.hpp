@@ -15,7 +15,7 @@
 #define __ACU_CONFIG__
 
 // Версия приложения
-#define ACU_VERSION "1.0.9"
+#define ACU_VERSION "1.1.0"
 // Короткое название библиотеки
 #define ACU_SHORT_NAME "ACU"
 // Название библиотеки
@@ -41,7 +41,7 @@
 /**
  * Если операционной системой является Windows
  */
-#if defined(_WIN32) || defined(_WIN64)
+#if _WIN32 || _WIN64
 	// Адрес каталога с PID файлами
 	#define ACU_PID_PATH ""
 	// Адрес конфигурационного файла
@@ -80,6 +80,19 @@
  * Если операционной системой является FreeBSD
  */
 #elif __FreeBSD__
+	// Адрес каталога с PID файлами
+	#define ACU_PID_PATH "/var/run"
+	// Адрес конфигурационного файла
+	#define ACU_CONFIG { \
+		"./config.json", \
+		"~/acu/config.json", \
+		"~/.acu/config.json", \
+		"/usr/local/etc/acu/config.json" \
+	}
+/**
+ * Если операционной системой является Solaris
+ */
+#elif __sun__
 	// Адрес каталога с PID файлами
 	#define ACU_PID_PATH "/var/run"
 	// Адрес конфигурационного файла

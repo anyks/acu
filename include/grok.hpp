@@ -34,8 +34,8 @@
 /**
  * Модули AWH
  */
-#include <sys/fmk.hpp>
-#include <sys/log.hpp>
+#include <awh/sys/fmk.hpp>
+#include <awh/sys/log.hpp>
 
 /**
  * Подключаем заголовочные файлы JSON

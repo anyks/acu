@@ -4,16 +4,16 @@ cmake_minimum_required(VERSION 3.15)
 project(acu LANGUAGES CXX)
 
 # Устанавливаем название приложения
-set(PROJECT_VENDOR_LONG "ANYKS - conversion utility (ACU)")
+SET(PROJECT_VENDOR_LONG "ANYKS - conversion utility (ACU)")
 
 # Опции сборки
-set(PROJECT_COPYRIGHT "Copyright (c) ${CURRENT_YEAR} ${PROJECT_VENDOR_LONG}")
+SET(PROJECT_COPYRIGHT "Copyright (c) ${CURRENT_YEAR} ${PROJECT_VENDOR_LONG}")
 
 # Тип сборки
 # cmake -DCMAKE_BUILD_TYPE=YES ..
 if (NOT CMAKE_BUILD_TYPE)
     # Активируем режим отладки
-    set(CMAKE_BUILD_TYPE Debug)
+    SET(CMAKE_BUILD_TYPE Debug)
 endif (NOT CMAKE_BUILD_TYPE)
 
 # Выводим сообщение о типе сборки
@@ -29,7 +29,7 @@ message(STATUS "Architecture: ${ARCHITECTURE}")
 string(REGEX MATCH "Linux" PROJECT_OS_LINUX ${CMAKE_SYSTEM_NAME})
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     message(STATUS "Detected OS: Linux")
-    set(DEBUGGER "-ggdb3")
+    SET(DEBUGGER "-ggdb3")
     # Используем Clang
     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -43,23 +43,55 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     endif()
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    if (NOT MACOS_VERSION)
-        EXECUTE_PROCESS(COMMAND sw_vers -productVersion COMMAND tr -d '\n' OUTPUT_VARIABLE MACOS_VERSION)
+# Если операционной системой является Solaris
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+    if (NOT OS_VERSION)
+        EXECUTE_PROCESS(COMMAND uname -a COMMAND gawk "{print $4}" COMMAND tr -d '\n' OUTPUT_VARIABLE OS_VERSION)
     endif()
-    message(STATUS "Detected OS: MacOS X v${MACOS_VERSION}")
-    set(DEBUGGER "-glldb")    
-    set(CMAKE_OSX_DEPLOYMENT_TARGET ${MACOS_VERSION})
+    message(STATUS "Detected OS: Solaris v${OS_VERSION}")
+    SET(DEBUGGER "-ggdb3")
+     # Используем Clang
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+     # Используем GCC
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl")
+    endif()
+# Если операционной системой является MacOS X
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    if (NOT OS_VERSION)
+        EXECUTE_PROCESS(COMMAND sw_vers -productVersion COMMAND tr -d '\n' OUTPUT_VARIABLE OS_VERSION)
+    endif()
+    message(STATUS "Detected OS: MacOS X v${OS_VERSION}")
+    SET(DEBUGGER "-glldb")    
+    SET(CMAKE_OSX_DEPLOYMENT_TARGET ${OS_VERSION})
+# Если операционной системой является FreeBSD
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    message(STATUS "Detected OS: FreeBSD")
-    set(DEBUGGER "-ggdb3")
+    if (NOT OS_VERSION)
+        EXECUTE_PROCESS(COMMAND uname -a COMMAND awk "{print $3}" COMMAND tr -d '\n' OUTPUT_VARIABLE OS_VERSION)
+    endif()
+    message(STATUS "Detected OS: FreeBSD v${OS_VERSION}")
+    SET(DEBUGGER "-ggdb3")
+# Если операционной системой является NetBSD
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
+    message(STATUS "Detected OS: NetBSD")
+    SET(DEBUGGER "-ggdb3")
+# Если операционной системой является OpenBSD
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+    message(STATUS "Detected OS: OpenBSD")
+    SET(DEBUGGER "-ggdb3")
+# Если операционной системой является Windows
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    message(STATUS "Detected OS: Microsoft Windows")
+    SET(DEBUGGER "-ggdb3")
+# Если операционная система не определена
 else()
-    set(DEBUGGER "")
+    SET(DEBUGGER "")
 endif()
 
 # Enable C++17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Используем Clang
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -92,29 +124,37 @@ string(TIMESTAMP CURRENT_YEAR "%Y")
 string(TIMESTAMP CURRENT_TIME "%d.%m.%Y %H:%M:%S")
 
 # Опции компилятора
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 
+# Устанавливаем параметры игнорирования ошибок для Windows
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    set(ACU_PARAMS "-municode -Wno-cpp -Wno-deprecated")
+    SET(ACU_PARAMS "-municode -Wno-cpp -Wno-deprecated")
+# Устанавливаем параметры игнорирования ошибок для Linux
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    set(ACU_PARAMS "-Wno-cpp -Wno-deprecated")
+    SET(ACU_PARAMS "-Wno-cpp -Wno-deprecated")
+# Устанавливаем параметры игнорирования ошибок для Solaris
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+    SET(ACU_PARAMS "-lsocket -lnsl -lc -Wno-cpp -Wno-deprecated")
+# Устанавливаем параметры игнорирования ошибок для MacOS X
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    set(ACU_PARAMS "-framework Carbon -Wno-cpp -Wno-deprecated -Wno-unused-command-line-argument")
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    set(ACU_PARAMS "-lutil -Wno-cpp -Wno-deprecated -Wno-unused-command-line-argument")
+    SET(ACU_PARAMS "-framework Carbon -Wno-cpp -Wno-deprecated -Wno-unused-command-line-argument")
+# Устанавливаем параметры игнорирования ошибок для FreeBSD, NetBSD и OpenBSD
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+    SET(ACU_PARAMS "-lutil -Wno-cpp -Wno-deprecated -Wno-unused-command-line-argument")
+# Если операционная система не определена
 else()
-    set(ACU_PARAMS "-Wno-unknown-attributes")
+    SET(ACU_PARAMS "-Wno-unknown-attributes")
 endif()
 
 if (${ARCHITECTURE} MATCHES "aarch64" OR ${ARCHITECTURE} MATCHES "arm*")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -pipe -DNDEBUG")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fno-permissive -Wno-pedantic -Wno-narrowing -Wno-deprecated-declarations -Wno-exceptions -Wno-unused-result ${ACU_PARAMS}")
+    SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -pipe -DNDEBUG")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fno-permissive -Wno-pedantic -Wno-narrowing -Wno-deprecated-declarations -Wno-exceptions -Wno-unused-result ${ACU_PARAMS}")
 else()
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -pipe -mrdrnd -march=core2 -DNDEBUG")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fno-permissive -Wno-pedantic -Wno-narrowing -Wno-deprecated-declarations -Wno-exceptions -Wno-unused-result ${ACU_PARAMS}")
+    SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -pipe -mrdrnd -march=core2 -DNDEBUG")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fno-permissive -Wno-pedantic -Wno-narrowing -Wno-deprecated-declarations -Wno-exceptions -Wno-unused-result ${ACU_PARAMS}")
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -DDEBUG_MODE ${DEBUGGER}")
+SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -DDEBUG_MODE ${DEBUGGER}")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "C Flags: ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
@@ -127,12 +167,12 @@ endif()
 # Если нужно собрать и динамическую библиотеку
 if (CMAKE_SHARED_BUILD_LIB)
     if (MSVC)
-        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+        SET(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif(MSVC)
 endif(CMAKE_SHARED_BUILD_LIB)
 
 # Разрешаем сборку IDN
-set(CMAKE_BUILD_IDN ON)
+SET(CMAKE_BUILD_IDN ON)
 add_compile_definitions(AWH_IDN)
 
 # Добавляем модули cmake
@@ -200,7 +240,7 @@ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/contrib/include)
 include_directories(SYSTEM ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 
 # Выполняем подключение исходников
-set(SOURCE_FILES
+SET(SOURCE_FILES
     "${SOURCE_FILES}"
     "${CMAKE_SOURCE_DIR}/src/cef.cpp"
     "${CMAKE_SOURCE_DIR}/src/csv.cpp"
@@ -211,9 +251,9 @@ set(SOURCE_FILES
 )
 
 # Задаем именя библиотеки и бинарника
-set(SERVER_APP_NAME server)
-set(ACU_LIB_NAME ${PROJECT_NAME})
-set(ACU_APP_NAME ${PROJECT_NAME}_bin)
+SET(SERVER_APP_NAME server)
+SET(ACU_LIB_NAME ${PROJECT_NAME})
+SET(ACU_APP_NAME ${PROJECT_NAME}_bin)
 
 # Если нужно собрать и динамическую библиотеку
 if (CMAKE_SHARED_BUILD_LIB)
@@ -232,11 +272,11 @@ endif (CMAKE_SHARED_BUILD_LIB)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     # export MSYS="error_start:%WD%dumper.exe -d -c %1 %2"
     # Устанавливаем необходимые зависимости для MS Windows
-    set(WINFLAGS -lws2_32 -lgdi32 -lcrypt32 -lIphlpapi -lbcrypt -flto=auto)
+    SET(WINFLAGS -lws2_32 -lgdi32 -lcrypt32 -lIphlpapi -lbcrypt -flto=auto)
 
     # Устанавливаем иконку для windows под MinGW.
-    set(RES_FILES "acu.rc")
-    set(CMAKE_RC_COMPILER_INIT windres)
+    SET(RES_FILES "acu.rc")
+    SET(CMAKE_RC_COMPILER_INIT windres)
     ENABLE_LANGUAGE(RC)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 
@@ -374,7 +414,7 @@ endif (CMAKE_SHARED_BUILD_LIB)
 # Активация формирования дампа ядра в реже отладки под MacOS X
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-        set(entitlements_file "${CMAKE_SOURCE_DIR}/segv.entitlements")
+        SET(entitlements_file "${CMAKE_SOURCE_DIR}/segv.entitlements")
         
         add_custom_command(TARGET "${ACU_APP_NAME}" POST_BUILD
             COMMAND bash "${CMAKE_SOURCE_DIR}/core_dump.sh" "$<TARGET_FILE:${ACU_APP_NAME}>" "${entitlements_file}"
@@ -407,7 +447,7 @@ endif()
 
 # Устанавливаем адрес установки, запрет установки в /usr/local
 if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local" OR "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local/")
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}")
+    SET(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}")
 endif()
 
 # Устанавливаем хидеры сторонних библиотек

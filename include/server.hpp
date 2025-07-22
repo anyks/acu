@@ -33,9 +33,9 @@
 /**
  * Модули AWH
  */
-#include <sys/chrono.hpp>
-#include <client/awh.hpp>
-#include <server/awh.hpp>
+#include <awh/sys/chrono.hpp>
+#include <awh/client/awh.hpp>
+#include <awh/server/awh.hpp>
 
 /**
  * Наши модули
