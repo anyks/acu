@@ -1176,7 +1176,7 @@ void anyks::SysLog::version(const uint8_t version) noexcept {
  */
 uint8_t anyks::SysLog::category() const noexcept {
 	// Выводим категорию сообщения
-	return static_cast <uint8_t> (::floor(this->_pri / 8));
+	return static_cast <uint8_t> (::floor(static_cast <double> (this->_pri / 8)));
 }
 /**
  * importance Метод получения важности сообщения
@@ -1184,7 +1184,7 @@ uint8_t anyks::SysLog::category() const noexcept {
  */
 uint8_t anyks::SysLog::importance() const noexcept {
 	// Выводим важность сообщения
-	return static_cast <uint8_t> (this->_pri - (::floor(this->_pri / 8) * 8));
+	return static_cast <uint8_t> (this->_pri - static_cast <uint16_t> (::floor(static_cast <double> (this->_pri / 8)) * 8));
 }
 /**
  * pri Метод установки приоритета
