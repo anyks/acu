@@ -85,14 +85,14 @@ if [ "$OS" = "FreeBSD" ]; then
 	# Выполняем создание каталога
 	mkdir -p "$BUILD_DIR/usr/local/bin" || exit 1
 	# Выполняем копирование приложений
-	cp "$EXECUTABLE_FILE" "$BUILD_DIR/usr/local/bin/" || exit 1
+	cp "$EXECUTABLE_FILE" "$BUILD_DIR/usr/local/bin"/ || exit 1
 # Если операционная система Solaris
 elif [ "$OS" = "SunOS" ]; then
 	# Выполняем создание каталогов установки
 	mkdir -p "$BUILD_DIR/usr/bin"  || exit 1
 	mkdir -p "$BUILD_DIR/opt/$PACKAGE_NAME/bin" || exit 1
 	# Выполняем копирование приложений
-	cp "$EXECUTABLE_FILE" "$BUILD_DIR/opt/$PACKAGE_NAME/bin/" || exit 1
+	cp "$EXECUTABLE_FILE" "$BUILD_DIR/opt/$PACKAGE_NAME/bin"/ || exit 1
 	# Создаём символьную ссылку на исполняемый файл
 	ln -s "$BUILD_DIR/opt/$PACKAGE_NAME/bin/$PACKAGE_NAME" "$BUILD_DIR/usr/bin/$PACKAGE_NAME" || exit 1
 # Если операционная система MacOS X
@@ -100,13 +100,13 @@ elif [ "$OS" = "Darwin" ]; then
 	# Выполняем создание каталога
 	mkdir -p "$BUILD_DIR/usr/local/bin" || exit 1
 	# Выполняем копирование приложений
-	cp "$EXECUTABLE_FILE" "$BUILD_DIR/usr/local/bin/" || exit 1
+	cp "$EXECUTABLE_FILE" "$BUILD_DIR/usr/local/bin"/ || exit 1
 # Если операционная система Linux
 elif [ "$OS" = "Linux" ]; then
 	# Выполняем создание каталога
 	mkdir -p "$BUILD_DIR/usr/bin" || exit 1
 	# Выполняем копирование приложений
-	cp "$EXECUTABLE_FILE" "$BUILD_DIR/usr/bin/" || exit 1
+	cp "$EXECUTABLE_FILE" "$BUILD_DIR/usr/bin"/ || exit 1
 # Для всех остальных операционных систем
 else
 	# Выводим сообщение об ошибке
