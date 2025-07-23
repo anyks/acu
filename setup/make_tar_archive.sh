@@ -118,6 +118,9 @@ ARCH_NAME="${PACKAGE_NAME}_${VERSION}_${OS_NAME}_${SYSTEM_ARCHITECTURE}.tar.gz"
 # Выполняем создание архива
 tar -czf ../$ARCH_NAME . || exit 1
 
+# Переходим в корневой каталог обратно
+cd $ROOT/../
+
 # Удаляем ранее собранный каталог
 rm -rf $BUILD_DIR || exit 1
 

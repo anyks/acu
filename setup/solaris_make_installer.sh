@@ -167,8 +167,8 @@ pkgsign -s $PACKAGE_NAME-repository -a sha256 '*'
 # Выполняем генерацию пакета установки
 pkgrecv -s $PACKAGE_NAME-repository -a -d $ROOT/../$PKG_NAME $PACKAGE_NAME
 
-# Возвращаемся обратно
-cd $ROOT
+# Переходим в корневой каталог обратно
+cd $ROOT/../
 
 # Выполняем удаление директории для сборки пакета
 rm -rf $WORK_PREFIX

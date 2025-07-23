@@ -396,6 +396,10 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 					else if(this->_fmk->compare("mpkg", extension))
 						// Выполняем установку типа контента
 						contentType = "application/vnd.apple.installer+xml";
+					// Если запрашиваемый файл является P5P
+					else if(this->_fmk->compare("p5p", extension))
+						// Выполняем установку типа контента
+						contentType = "application/vnd.sun.installer+xml";
 					// Если запрашиваемый файл является EXE
 					else if(this->_fmk->compare("exe", extension))
 						// Выполняем установку типа контента
