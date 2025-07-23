@@ -6,6 +6,15 @@ PACKAGE_NAME="acu.exe"
 # Получаем корневую дирректорию
 readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 
+# Получаем версию OS
+readonly OS=$(uname -a | awk '{print $1}')
+
+# Определяем является ли операционная система Microsoft Windows
+if ! [ $OS = "Windows" ]; then
+	echo "Error: Only for Microsoft Windows"
+	exit 1
+fi
+
 # Удаляем директории если существуют
 rm -rf "$ROOT/../win"
 rm -rf "$ROOT/../installer"

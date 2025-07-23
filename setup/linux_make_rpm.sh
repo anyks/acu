@@ -6,8 +6,17 @@ PACKAGE_NAME="acu"
 # Получаем корневую дирректорию
 readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 
+# Получаем версию OS
+readonly OS=$(uname -a | awk '{print $1}')
+
 # Адрес каталога с собранными бинарями
 readonly BUILD_DIR="$ROOT/../build"
+
+# Определяем является ли операционная система Linux
+if ! [ $OS = "Linux" ]; then
+	echo "Error: Only for Linux"
+	exit 1
+fi
 
 # Очистка сборочной директории
 if [ -d $BUILD_DIR ]; then

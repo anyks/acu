@@ -50,9 +50,11 @@ fi
 # Получаем полное имя ОС
 if [ "$OS" = "FreeBSD" ]; then
 	OS_NAME="FreeBSD"
+elif [ "$OS" = "SunOS" ]; then
+	OS_NAME="Solaris"
 elif [ "$OS" = "Darwin" ]; then
 	OS_NAME="MacOSX"
-else
+elif [ "$OS" = "Linux" ]; then
 	OS_NAME=$(cat /etc/os-release | grep "^NAME")
 	OS_NAME=${OS_NAME##*=}
 	OS_NAME=`echo $OS_NAME | awk '{print $1}'`
@@ -60,6 +62,11 @@ else
 	VERSION_ID=${VERSION_ID##*=}
 	OS_NAME="${OS_NAME}${VERSION_ID}"
 	OS_NAME=`echo "${OS_NAME//\"}"`
+# Для всех остальных операционных систем
+else
+	# Выводим сообщение об ошибке
+	echo "Operating system not supported"
+	exit 1
 fi
 
 # Получаем версию приложения
@@ -79,6 +86,12 @@ if [ "$OS" = "FreeBSD" ]; then
 	mkdir -p "$BUILD_DIR/usr/local/bin" || exit 1
 	# Выполняем копирование приложений
 	cp "$EXECUTABLE_FILE" "$BUILD_DIR/usr/local/bin/" || exit 1
+# Если операционная система Solaris
+elif [ "$OS" = "SunOS" ]; then
+	# Выполняем создание каталога
+	mkdir -p "$BUILD_DIR/opt/$PACKAGE_NAME/bin" || exit 1
+	# Выполняем копирование приложений
+	cp "$EXECUTABLE_FILE" "$BUILD_DIR/opt/$PACKAGE_NAME/bin/" || exit 1
 # Если операционная система MacOS X
 elif [ "$OS" = "Darwin" ]; then
 	# Выполняем создание каталога
