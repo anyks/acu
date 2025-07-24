@@ -26,7 +26,6 @@ EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTUR
 message(STATUS "Architecture: ${ARCHITECTURE}")
 
 # Проверка версии OS
-string(REGEX MATCH "Linux" PROJECT_OS_LINUX ${CMAKE_SYSTEM_NAME})
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     message(STATUS "Detected OS: Linux")
     SET(DEBUGGER "-ggdb3")
