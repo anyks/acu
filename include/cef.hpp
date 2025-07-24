@@ -454,12 +454,25 @@ namespace anyks {
 						}
 					// Если режим парсинга не установлен
 					} else {
-						// Выполняем поиск данных нашего ключа
-						auto i = this->_extensions.find(key);
-						// Если данные запрашиваемого ключа получены
-						if(i != this->_extensions.end())
-							// Устанавливаем значение ключа
-							result.assign(i->second.begin(), i->second.end());
+						// Выполняем поиск соответствие нашему ключу
+						auto i = this->_mapping.find(key);
+						// Если соответствие ключу найдено
+						if(i != this->_mapping.end()){
+							// Выполняем поиск данных нашего ключа
+							auto j = this->_extensions.find(i->second);
+							// Если данные запрашиваемого ключа получены
+							if(j != this->_extensions.end())
+								// Устанавливаем значение ключа
+								result.assign(j->second.begin(), j->second.end());
+						// Если ничего не найдено
+						} else {
+							// Выполняем поиск данных нашего ключа
+							auto i = this->_extensions.find(key);
+							// Если данные запрашиваемого ключа получены
+							if(i != this->_extensions.end())
+								// Устанавливаем значение ключа
+								result.assign(i->second.begin(), i->second.end());
+						}
 					}
 				}
 				// Выводим результат
