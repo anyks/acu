@@ -41,6 +41,9 @@ export LD_LIBRARY_PATH="$PREFIX/lib"
 # Инициализируем каталоги установки
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
 
+# Устанавливаем минимальную версию CMake
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 # Создаём каталоги
 mkdir -p "$PREFIX/bin"
 mkdir -p "$PREFIX/lib"
@@ -49,7 +52,7 @@ mkdir -p "$PREFIX/include"
 # Если операционная система используется Solaris
 if [ $OS = "SunOS" ]; then
 	# Устанавливаем жёстко компилятор
-	export CC="gcc"
+	export CC="gcc -m64"
 fi
 
 # Определяем количество логических ядер
