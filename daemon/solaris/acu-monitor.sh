@@ -5,7 +5,7 @@
 # */5 * * * * /usr/local/share/acu/monitor/acu.sh
 
 # Check server
-readonly SERVER=$(/rescue/ps -A | /usr/bin/grep acu-server | /usr/bin/sed -n '2p')
+readonly SERVER=$(/usr/bin/ps -A | /usr/bin/ggrep acu-server | /usr/bin/gsed -n '2p')
 
 # If Server is not run
 if [ ! -n "$SERVER" ]; then
