@@ -7,7 +7,7 @@ PACKAGE_NAME="acu.exe"
 readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 
 # Получаем версию OS
-readonly OS=$(uname -a | awk '{print $1}')
+OS=$(uname -a | awk '{print $1}')
 
 # Компенсируем название OS Windows
 if [[ $OS =~ "MINGW64" ]]; then
