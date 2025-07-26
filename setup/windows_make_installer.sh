@@ -9,6 +9,11 @@ readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 # Получаем версию OS
 readonly OS=$(uname -a | awk '{print $1}')
 
+# Компенсируем название OS Windows
+if [[ $OS =~ "MINGW64" ]]; then
+	OS="Windows"
+fi
+
 # Определяем является ли операционная система Microsoft Windows
 if ! [ $OS = "Windows" ]; then
 	echo "Error: Only for Microsoft Windows"

@@ -12,6 +12,7 @@ readonly PREFIX="$ROOT/third_party"
 # Получаем версию OS
 OS=$(uname -a | awk '{print $1}')
 
+# Компенсируем название OS Windows
 if [[ $OS =~ "MINGW64" ]]; then
 	OS="Windows"
 fi
@@ -53,6 +54,19 @@ mkdir -p "$PREFIX/include"
 if [ $OS = "SunOS" ]; then
 	# Устанавливаем жёстко компилятор
 	export CC="gcc -m64"
+# Если операционная система используется Linux
+elif [ $OS = "Linux" ]; then
+	# Получаем адрес расположения компилятора
+	clang=$(whereis clang | awk '{print $2}')
+	# Если компилятор clang не установлен
+	if [ ! -n "$clang" ]; then
+		# Устанавливаем жёстко компилятор
+		export CC="gcc"
+	# Если же компилятор clang установлен
+	else
+		# Устанавливаем жёстко компилятор
+		export CC="clang"
+	fi
 fi
 
 # Определяем количество логических ядер
