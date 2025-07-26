@@ -12,6 +12,12 @@ readonly PACKAGE_NAME="acu"
 # Сборочная дирректория
 readonly BUILD_DIR="$ROOT/../${PACKAGE_NAME}_build"
 
+# Если операционная система используется Solaris
+if [ $OS = "SunOS" ]; then
+	# Устанавливаем жёстко компилятор
+	export CC="gcc -m64"
+fi
+
 # Очистка сборочной директории
 if [ -d "$ROOT/../build" ]; then
 	rm -rf "$ROOT/../build" || exit 1
@@ -43,7 +49,7 @@ fi
 
 # Получаем архитектуру машины 
 SYSTEM_ARCHITECTURE=$(uname -m)
-if [ "${SYSTEM_ARCHITECTURE}" = "x86_64" ]; then
+if [ "${SYSTEM_ARCHITECTURE}" = "x86_64" ] || [ "${SYSTEM_ARCHITECTURE}" = "i86pc" ]; then
 	SYSTEM_ARCHITECTURE="amd64"
 fi
 
