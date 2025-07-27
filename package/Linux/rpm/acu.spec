@@ -1,14 +1,15 @@
-Name:      @name@
-Version:   @version@
-Release:   1
-Summary:   ANYKS - conversion utility (ACU)
-License:   GPL-3.0
-BuildArch: @architecture@
-Group:     Networking/Other
-URL:       https://acu.anyks.com
+Name:         @name@
+Version:      @version@
+Release:      @release_number@
+Summary:      @summary@
+License:      GPL-3.0
+BuildArch:    @architecture@
+Group:        Networking/Other
+URL:          @url@
+Distribution: @distribution@
 
 %description
-Cross-platform utility for converting text formats - convert utility (ACU).
+@description@
 
 %define _rpmdir @work_path@
 
@@ -24,3 +25,7 @@ install @executable_file@ $RPM_BUILD_ROOT/usr/bin
 %files
 %defattr(-,root,root)
 /usr/bin/@package_name@
+
+%changelog
+* @date@ @distribution@ <@email@> - @version@-@release_number@
+- Conversion utility version v@version@-@release_number@ release

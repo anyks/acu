@@ -12,6 +12,28 @@ readonly OS=$(uname -a | awk '{print $1}')
 # Адрес каталога с собранными бинарями
 readonly BUILD_DIR="$ROOT/../build"
 
+# Получаем текущее значение даты
+readonly CURRENT_DATE=$(date "+%Y/%m/%d %H:%M:%S")
+
+# Адрес электронной почты
+readonly PACKAGE_EMAIL="info@anyks.com"
+# URL-адрес сайта
+readonly PACKAGE_URL="https://acu.anyks.com"
+# Название продавца
+readonly PACKAGE_DISTRIBUTION="ANYKS LLC"
+# Название приложения
+readonly PACKAGE_SMMARY="ANYKS - conversion utility (ACU)"
+# Описание приложения
+readonly PACKAGE_DESCRIPTION="Cross-platform utility for converting text formats - convert utility (ACU)."
+
+# Выполняем получение номера релиза
+RELEASE_NUMBER="$1"
+# Если номер релиза не установлен
+if [ ! -n "$RELEASE_NUMBER" ]; then
+	# Устанавливаем номер релиза по умолчанию
+	RELEASE_NUMBER="1"
+fi
+
 # Определяем является ли операционная система Linux
 if ! [ $OS = "Linux" ]; then
 	echo "Error: Only for Linux"
@@ -71,12 +93,21 @@ mkdir -p $WORK_PREFIX/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 # Копируем необходимые файлы
 cp "$PACKAGE_SOURCE_DIR/$SPEC_NAME" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 
+# Заполняем поля в файле CONTROL необходимыми значениями
+sed -i "s!@url@!${PACKAGE_URL}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@name@!${PACKAGE_NAME}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@version@!${VERSION}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@date@!${CURRENT_DATE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@email@!${PACKAGE_EMAIL}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@summary@!${PACKAGE_SMMARY}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@release_number@!${RELEASE_NUMBER}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@description@!${PACKAGE_DESCRIPTION}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@architecture@!${SYSTEM_ARCHITECTURE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@distribution@!${PACKAGE_DISTRIBUTION}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+
 # Заполняем поля в файле control необходимыми значениями
 sed -i "s!@package_name@!${PACKAGE_NAME}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@work_path@!${WORK_PREFIX}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
-sed -i "s!@name@!${PACKAGE_NAME}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
-sed -i "s!@version@!${VERSION}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
-sed -i "s!@architecture@!${SYSTEM_ARCHITECTURE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@executable_file@!${EXECUTABLE_FILE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 
 # Компенсируем название архитектуры процессора
@@ -101,10 +132,10 @@ PACKAGE=$(find $WORK_PREFIX -name "${PACKAGE_NAME}*.rpm")
 
 # Если название операционной системы получено
 if [ "${OS_NAME}" = "" ]; then
-	cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-1.${SYSTEM_ARCHITECTURE}.rpm"
+	cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-${RELEASE_NUMBER}.${SYSTEM_ARCHITECTURE}.rpm"
 # Если название операционной системы не получено
 else
-	cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-1.${OS_NAME}_${SYSTEM_ARCHITECTURE}.rpm"
+	cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-${RELEASE_NUMBER}.${OS_NAME}_${SYSTEM_ARCHITECTURE}.rpm"
 fi
 
 # Очищаем сборочную директорию

@@ -12,6 +12,14 @@ readonly OS=$(uname -a | awk '{print $1}')
 # Адрес каталога с собранными бинарями
 readonly BUILD_DIR="$ROOT/../build"
 
+# Выполняем получение номера релиза
+RELEASE_NUMBER="$1"
+# Если номер релиза не установлен
+if [ ! -n "$RELEASE_NUMBER" ]; then
+	# Устанавливаем номер релиза по умолчанию
+	RELEASE_NUMBER="1"
+fi
+
 # Определяем является ли операционная система Linux
 if ! [ $OS = "Linux" ]; then
 	echo "Error: Only for Linux"
@@ -132,9 +140,9 @@ fakeroot dpkg-deb --build "$WORK_PREFIX" || exit 1
 
 # Устанавливаем имя deb пакета foo_VVV-RRR_AAA.deb
 if [ "${OS_NAME}" = "" ]; then
-	deb_name="${PACKAGE_NAME}_${VERSION}-1_${SYSTEM_ARCHITECTURE}.deb"
+	deb_name="${PACKAGE_NAME}_${VERSION}-${RELEASE_NUMBER}_${SYSTEM_ARCHITECTURE}.deb"
 else
-	deb_name="${PACKAGE_NAME}_${VERSION}-1~${OS_NAME}_${SYSTEM_ARCHITECTURE}.deb"
+	deb_name="${PACKAGE_NAME}_${VERSION}-${RELEASE_NUMBER}~${OS_NAME}_${SYSTEM_ARCHITECTURE}.deb"
 fi
 mv "${WORK_PREFIX}.deb" "$deb_name" || exit 1
 

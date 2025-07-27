@@ -112,6 +112,9 @@ bash "$ROOT/../package/MacOS/build.sh" $VERSION || exit 1
 
 # echo "Pkg path: $ROOT/../package/MacOS/target/pkg-signed"
 
+# Удаляем временный каталог
+rm -rf $APP_DIR
+
 printf "\n****************************************"
 printf "\n************   Success!!!   ************"
 printf "\n****************************************"
