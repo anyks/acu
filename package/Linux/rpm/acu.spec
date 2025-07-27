@@ -1,14 +1,14 @@
 Name:      @name@
 Version:   @version@
 Release:   1
-Summary:   acu
+Summary:   ANYKS - conversion utility (ACU)
 License:   GPL-3.0
 BuildArch: @architecture@
 Group:     Networking/Other
 URL:       https://acu.anyks.com
 
 %description
-ANYKS - convert utility (ACU)
+Cross-platform utility for converting text formats - convert utility (ACU).
 
 %define _rpmdir @work_path@
 
