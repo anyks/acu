@@ -66,7 +66,7 @@ VERSION=${VERSION#$GREP_VERSION_PHRASE}
 VERSION=`echo $VERSION | awk '{print $1}'`
 
 # Создаем необходимые каталоги
-mkdir -p "$WORK_PREFIX/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}"
+mkdir -p $WORK_PREFIX/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
 # Копируем необходимые файлы
 cp "$PACKAGE_SOURCE_DIR/$SPEC_NAME" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
@@ -79,6 +79,7 @@ sed -i "s!@version@!${VERSION}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@architecture@!${SYSTEM_ARCHITECTURE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@executable_file@!${EXECUTABLE_FILE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 
+# Компенсируем название архитектуры процессора
 if [ "${SYSTEM_ARCHITECTURE}" = "x86_64" ]; then
 	SYSTEM_ARCHITECTURE="amd64"
 fi
@@ -86,8 +87,25 @@ fi
 # Создаем RPM пакет
 rpmbuild --buildroot="$WORK_PREFIX" --target="$SYSTEM_ARCHITECTURE" --define='noclean 1' --rmspec "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp" -bb || exit 1
 
+# Получаем название операционной системы
+OS_NAME=$(cat /etc/os-release | grep "^NAME")
+OS_NAME=${OS_NAME##*=}
+OS_NAME=`echo $OS_NAME | awk '{print $1}'`
+VERSION_ID=$(cat /etc/os-release | grep VERSION_ID)
+VERSION_ID=${VERSION_ID##*=}
+OS_NAME="${OS_NAME}${VERSION_ID}"
+OS_NAME=`echo "${OS_NAME//\"}"`
+
+# Выполняем поиск созданного RPM архива
 PACKAGE=$(find $WORK_PREFIX -name "${PACKAGE_NAME}*.rpm")
-cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-1.${SYSTEM_ARCHITECTURE}.rpm"
+
+# Если название операционной системы получено
+if [ "${OS_NAME}" = "" ]; then
+	cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-1.${SYSTEM_ARCHITECTURE}.rpm"
+# Если название операционной системы не получено
+else
+	cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-1.${OS_NAME}_${SYSTEM_ARCHITECTURE}.rpm"
+fi
 
 # Очищаем сборочную директорию
 rm -rf "$WORK_PREFIX"
