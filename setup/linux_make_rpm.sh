@@ -12,9 +12,6 @@ readonly OS=$(uname -a | awk '{print $1}')
 # Адрес каталога с собранными бинарями
 readonly BUILD_DIR="$ROOT/../build"
 
-# Получаем текущее значение даты
-readonly CURRENT_DATE=$(date "+%Y/%m/%d %H:%M:%S")
-
 # Адрес электронной почты
 readonly PACKAGE_EMAIL="info@anyks.com"
 # URL-адрес сайта
@@ -97,7 +94,6 @@ cp "$PACKAGE_SOURCE_DIR/$SPEC_NAME" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@url@!${PACKAGE_URL}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@name@!${PACKAGE_NAME}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@version@!${VERSION}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
-sed -i "s!@date@!${CURRENT_DATE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@email@!${PACKAGE_EMAIL}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@summary@!${PACKAGE_SMMARY}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@release_number@!${RELEASE_NUMBER}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"

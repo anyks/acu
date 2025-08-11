@@ -13,6 +13,8 @@ Distribution: @distribution@
 
 %define _rpmdir @work_path@
 
+%define current_date %(LC_ALL=en_US.UTF-8 date +"%a %h %d %Y")
+
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 install @executable_file@ $RPM_BUILD_ROOT/usr/bin
@@ -27,5 +29,5 @@ install @executable_file@ $RPM_BUILD_ROOT/usr/bin
 /usr/bin/@package_name@
 
 %changelog
-* @date@ @distribution@ <@email@> - @version@-@release_number@
+* %{current_date} @distribution@ <@email@> - @version@-@release_number@
 - Conversion utility version v@version@-@release_number@ release
