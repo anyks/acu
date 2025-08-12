@@ -13,21 +13,20 @@ Distribution: @distribution@
 
 %define _rpmdir @work_path@
 
-%define current_date %(LC_ALL=en_US.UTF-8 date +"%a %h %d %Y")
-
 %install
-mkdir -p $RPM_BUILD_ROOT/usr/bin
-install @executable_file@ $RPM_BUILD_ROOT/usr/bin
+mkdir -p %{buildroot}/usr/bin
+install @executable_file@ %{buildroot}/usr/bin
 
 %clean
+cp $(find @work_path@ -name "@name@*.rpm") %{buildroot}/../
 %if "%{noclean}" == ""
-   rm -rf $RPM_BUILD_ROOT
+   rm -rf %{buildroot}
 %endif
 
 %files
-%defattr(-,root,root)
-/usr/bin/@package_name@
+%defattr(-,root,root,-)
+/usr/bin/@name@
 
 %changelog
-* %{current_date} @distribution@ <@email@> - @version@-@release_number@
+* @date@ @distribution@ <@email@> - @version@-@release_number@
 - Conversion utility version v@version@-@release_number@ release

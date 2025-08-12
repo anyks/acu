@@ -12,6 +12,9 @@ readonly OS=$(uname -a | awk '{print $1}')
 # Адрес каталога с собранными бинарями
 readonly BUILD_DIR="$ROOT/../build"
 
+# Получаем текущее значение даты
+readonly CURRENT_DATE=$(LC_ALL=en_US.UTF-8 date +"%a %h %d %Y")
+
 # Адрес электронной почты
 readonly PACKAGE_EMAIL="info@anyks.com"
 # URL-адрес сайта
@@ -94,6 +97,7 @@ cp "$PACKAGE_SOURCE_DIR/$SPEC_NAME" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@url@!${PACKAGE_URL}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@name@!${PACKAGE_NAME}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@version@!${VERSION}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
+sed -i "s!@date@!${CURRENT_DATE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@email@!${PACKAGE_EMAIL}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@summary@!${PACKAGE_SMMARY}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@release_number@!${RELEASE_NUMBER}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
@@ -102,14 +106,8 @@ sed -i "s!@architecture@!${SYSTEM_ARCHITECTURE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NA
 sed -i "s!@distribution@!${PACKAGE_DISTRIBUTION}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 
 # Заполняем поля в файле control необходимыми значениями
-sed -i "s!@package_name@!${PACKAGE_NAME}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@work_path@!${WORK_PREFIX}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
 sed -i "s!@executable_file@!${EXECUTABLE_FILE}!g" "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp"
-
-# Компенсируем название архитектуры процессора
-if [ "${SYSTEM_ARCHITECTURE}" = "x86_64" ]; then
-	SYSTEM_ARCHITECTURE="amd64"
-fi
 
 # Создаем RPM пакет
 rpmbuild --buildroot="$WORK_PREFIX" --target="$SYSTEM_ARCHITECTURE" --define='noclean 1' --rmspec "$PACKAGE_SOURCE_DIR/$SPEC_NAME.tmp" -bb || exit 1
@@ -124,14 +122,19 @@ OS_NAME="${OS_NAME}${VERSION_ID}"
 OS_NAME=`echo "${OS_NAME//\"}"`
 
 # Выполняем поиск созданного RPM архива
-PACKAGE=$(find $WORK_PREFIX -name "${PACKAGE_NAME}*.rpm")
+readonly PACKAGE="$ROOT/../${PACKAGE_NAME}-${VERSION}-${RELEASE_NUMBER}.${SYSTEM_ARCHITECTURE}.rpm"
+
+# Компенсируем название архитектуры процессора
+if [ "${SYSTEM_ARCHITECTURE}" = "x86_64" ]; then
+	SYSTEM_ARCHITECTURE="amd64"
+fi
 
 # Если название операционной системы получено
 if [ "${OS_NAME}" = "" ]; then
-	cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-${RELEASE_NUMBER}.${SYSTEM_ARCHITECTURE}.rpm"
+	mv $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-${RELEASE_NUMBER}.${SYSTEM_ARCHITECTURE}.rpm"
 # Если название операционной системы не получено
 else
-	cp $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-${RELEASE_NUMBER}.${OS_NAME}_${SYSTEM_ARCHITECTURE}.rpm"
+	mv $PACKAGE "$ROOT/../${PACKAGE_NAME}-${VERSION}-${RELEASE_NUMBER}.${OS_NAME}_${SYSTEM_ARCHITECTURE}.rpm"
 fi
 
 # Очищаем сборочную директорию

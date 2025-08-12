@@ -609,7 +609,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									// Выполняем копирование полученных данных
 									patterns.CopyFrom(request["patterns"], patterns.GetAllocator());
 									// Выполняем добавление поддерживаемых шаблонов
-									parser.patterns(::move(patterns));
+									parser.patterns(patterns);
 								}
 								// Если регулярное выражение передано
 								if(request.HasMember("express") && request["express"].IsString())
@@ -1774,7 +1774,7 @@ void anyks::Server::config(const json & config) noexcept {
 					// Устанавливаем тип сокета unix-сокет
 					this->_core.family(awh::scheme_t::family_t::IPC);
 					// Выполняем инициализацию сервера для unix-сокета
-					this->_awh.init(config["net"]["unixSocket"].GetString(), ::move(compressors));
+					this->_awh.init(config["net"]["unixSocket"].GetString(), compressors);
 				// Если подключение к серверу производится по хосту и порту
 				} else {
 					// Хост сервера
@@ -1883,11 +1883,11 @@ void anyks::Server::config(const json & config) noexcept {
 								break;
 							}
 							// Выполняем установку параметров SSL-шифрования
-							this->_core.ssl(::move(ssl));
+							this->_core.ssl(ssl);
 						}
 					}
 					// Выполняем инициализацию сервера
-					this->_awh.init(port, ::move(host), ::move(compressors));
+					this->_awh.init(port, host, compressors);
 				}
 				// Если ваш сервер требует аутентификации
 				if(config["net"].HasMember("authentication") && config["net"]["authentication"].IsObject()){
@@ -2129,7 +2129,7 @@ void anyks::Server::start() noexcept {
 	// Разрешаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::ENABLED);
 	// Устанавливаем функцию обработки сигналов завершения работы приложения
-	this->_core.on <void (const int)> ("crash", &server_t::crash, this, _1);
+	this->_core.on <void (const int32_t)> ("crash", &server_t::crash, this, _1);
 	// Устанавливаем функцию обратного вызова на запуск системы
 	this->_core.on <void (const awh::core_t::status_t)> ("status", static_cast <void (server_t::*)(const awh::core_t::status_t)> (&server_t::active), this, _1);
 	// Выполняем запуск сервера
