@@ -274,7 +274,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     SET(WINFLAGS -lws2_32 -lgdi32 -lcrypt32 -lIphlpapi -lbcrypt -flto=auto)
 
     # Устанавливаем иконку для windows под MinGW.
-    SET(RES_FILES "acu.rc")
+    SET(RES_FILES ${CMAKE_PROJECT_NAME}.rc)
     SET(CMAKE_RC_COMPILER_INIT windres)
     ENABLE_LANGUAGE(RC)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
