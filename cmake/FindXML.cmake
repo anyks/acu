@@ -1,7 +1,9 @@
-set(CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH FALSE)
+SET(CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH FALSE)
+
+# Если операцинная система относится к MS Windows
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    set(CMAKE_FIND_LIBRARY_PREFIXES "lib")
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+    SET(CMAKE_FIND_LIBRARY_PREFIXES "lib")
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
 endif()
 
 # Поиск пути к заголовочным файлам
