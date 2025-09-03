@@ -67,7 +67,7 @@ static void help(const string & name) noexcept {
 		"\x1B[33m\x1B[1m+\x1B[0m Date format for generating date from UnixTimeStamp: \x1B[1m[-formatDate <value> | --formatDate=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Address of the file with the regular expression in GROK format: \x1B[1m[-express <value> | --express=<value>]\x1B[0m\r\n\r\n";
 		// Выводим сообщение справки
-		printf(msg.c_str(), name.c_str());
+		::printf(msg.c_str(), name.c_str());
 	}
 }
 /**
@@ -132,7 +132,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				// Получаем название приложения
 				app = app.substr(0, pos);
 			// Выводим версию приложения
-			printf(
+			::printf(
 				"\r\n%s %s (built: %s %s)\r\n"
 				"awh: %s\r\n"
 				"target: %s\r\n"
@@ -291,7 +291,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 					env.filename(configFile);
 			}
 			// Выводим справочную информацию
-			help(name);
+			::help(name);
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
 		// Если версия получена
@@ -301,13 +301,13 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			 */
 			#if defined(_WIN32) || defined(_WIN64)
 				// Выводим версию приложения
-				version(&fmk, &log, &fs, fmk.convert(wstring(params[0])));
+				::version(&fmk, &log, &fs, fmk.convert(wstring(params[0])));
 			/**
 			 * Выполняем работу для Unix
 			 */
 			#else
 				// Выводим версию приложения
-				version(&fmk, &log, &fs, params[0]);
+				::version(&fmk, &log, &fs, params[0]);
 			#endif
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);

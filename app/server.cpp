@@ -117,7 +117,7 @@ void help(const string & name, const fmk_t * fmk, const env_t * env, const fs_t 
 		"\x1B[33m\x1B[1m+\x1B[0m \x1B[1mConfiguration file address:\x1B[0m\r\n"
 		"%s\r\n";
 		// Выводим сообщение справки
-		printf(msg.c_str(), name.c_str(), config.c_str());
+		::printf(msg.c_str(), name.c_str(), config.c_str());
 	}
 }
 /**
@@ -181,7 +181,7 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 				// Получаем название приложения
 				app = app.substr(0, pos);
 			// Выводим версию приложения
-			printf(
+			::printf(
 				"\r\n%s %s (built: %s %s)\r\n"
 				"awh: %s\r\n"
 				"target: %s\r\n"
@@ -324,7 +324,7 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 					env.filename(configFile);
 			}
 			// Выводим справочную информацию
-			help(name, &fmk, &env, &fs);
+			::help(name, &fmk, &env, &fs);
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
 		// Если версия получена
@@ -334,13 +334,13 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 			 */
 			#if defined(_WIN32) || defined(_WIN64)
 				// Выводим версию приложения
-				version(&log, &fs, fmk.convert(wstring(params[0])));
+				::version(&log, &fs, fmk.convert(wstring(params[0])));
 			/**
 			 * Выполняем работу для Unix
 			 */
 			#else
 				// Выводим версию приложения
-				version(&log, &fs, params[0]);
+				::version(&log, &fs, params[0]);
 			#endif
 			// Выходим из приложения
 			::exit(EXIT_SUCCESS);
@@ -380,7 +380,7 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 				// Выполняем установку уровня логирования из конфигурационного файла
 				log.level(static_cast <log_t::level_t> (static_cast <uint8_t> (env.get <uint32_t> (true, "logLevel"))));
 			// Выполняем запись идентификатора процесса
-			pidWrite(&fmk, &env, &fs);
+			::pidWrite(&fmk, &env, &fs);
 			// Выполняем запуск сервера
 			server.start();
 			// Выводим удачное завершение работы
