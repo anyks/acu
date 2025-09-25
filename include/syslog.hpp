@@ -47,7 +47,8 @@
 #include <rapidjson/document.h>
 
 /**
- * anyks пространство имён
+ * @brief пространство имён
+ *
  */
 namespace anyks {
 	/**
@@ -63,7 +64,8 @@ namespace anyks {
 	 */
 	using json = Document;
 	/**
-	 * SysLog Класс модуля парсера SysLog (RFC3164/RFC5424)
+	 * @brief Класс модуля парсера SysLog (RFC3164/RFC5424)
+	 *
 	 */
 	typedef class ACUSHARED_EXPORT SysLog {
 		public:
@@ -85,7 +87,8 @@ namespace anyks {
 			};
 		private:
 			/**
-			 * RegExp Структура регулярных выражений
+			 * @brief Структура регулярных выражений
+			 *
 			 */
 			typedef struct RegExp {
 				regexp_t::exp_t date1;   // Регулярное выражение для распознавания формат даты (Sat Jan  8 20:07:41 2011)
@@ -143,29 +146,35 @@ namespace anyks {
 			// Объект работы с логами
 			const log_t * _log;
 		private:
-			// Максимальный размер буфера данных на чтение из файла
+			/**
+			 * Максимальный размер буфера данных на чтение из файла
+			 */
 			static constexpr const char FORMAT[] = "%Y-%m-%dT%H:%M:%S.%sZ";
 		public:
 			/**
-			 * clear Метод очистки данных
+			 * @brief Метод очистки данных
+			 *
 			 */
 			void clear() noexcept;
 		public:
 			/**
-			 * parse Метод парсинга строки в формате SysLog
+			 * @brief Метод парсинга строки в формате SysLog
+			 *
 			 * @param syslog строка в формате SysLog
 			 * @param std    стандарт SysLog
 			 */
 			void parse(const string & syslog, const std_t std = std_t::AUTO) noexcept;
 		public:
 			/**
-			 * has Метод проверки существования идентификатора структурированных данных
+			 * @brief Метод проверки существования идентификатора структурированных данных
+			 *
 			 * @param id идентификатор структурированных данных для проверки
 			 * @return   результат проверки существования идентификатора структурированных данных
 			 */
 			bool has(const string & id) const noexcept;
 			/**
-			 * has Метод проверки существования ключа структурированных данных
+			 * @brief Метод проверки существования ключа структурированных данных
+			 *
 			 * @param id  идентификатор структурированных данных
 			 * @param key ключ структурированных данных для проверки
 			 * @return    результат проверки существования структурированных данных
@@ -173,213 +182,249 @@ namespace anyks {
 			bool has(const string & id, const string & key) const noexcept;
 		public:
 			/**
-			 * sd Метод получения структурированных данных
+			 * @brief Метод получения структурированных данных
+			 *
 			 * @param id  идентификатор структурированных данных
 			 * @param key ключ структурированных данных для извлечения
 			 * @return    структурированные данные
 			 */
 			const string & sd(const string & id, const string & key) const noexcept;
 			/**
-			 * sd Метод получения списка структурированных данных
+			 * @brief Метод получения списка структурированных данных
+			 *
 			 * @param id идентификатор структурированных данных
 			 * @return   список структурированных данных
 			 */
 			const std::unordered_map <string, string> & sd(const string & id) const noexcept;
 			/**
-			 * sd Метод установки структурированных данных
+			 * @brief Метод установки структурированных данных
+			 *
 			 * @param id идентификатор структурированных данных
 			 * @param sd список структурированных данных
 			 */
 			void sd(const string & id, const std::unordered_map <string, string> & sd) noexcept;
 		public:
 			/**
-			 * std Метод получения стандарта сообщения
+			 * @brief Метод получения стандарта сообщения
+			 *
 			 * @return стандарт сообщения
 			 */
 			std_t std() const noexcept;
 		public:
 			/**
-			 * version Метод извлечения версии сообщения
+			 * @brief Метод извлечения версии сообщения
+			 *
 			 * @return версия сообщения
 			 */
 			uint8_t version() const noexcept;
 			/**
-			 * version Метод установки версии сообщения
+			 * @brief Метод установки версии сообщения
+			 *
 			 * @param version версия сообщения для установки
 			 */
 			void version(const uint8_t version) noexcept;
 		public:
 			/**
-			 * category Метод извлечения категории сообщения
+			 * @brief Метод извлечения категории сообщения
+			 *
 			 * @return категория сообщения
 			 */
 			uint8_t category() const noexcept;
 			/**
-			 * importance Метод получения важности сообщения
+			 * @brief Метод получения важности сообщения
+			 *
 			 * @return важность сообщения
 			 */
 			uint8_t importance() const noexcept;
 			/**
-			 * pri Метод установки приоритета
+			 * @brief Метод установки приоритета
+			 *
 			 * @param category   категория сообщения для установки
 			 * @param importance важность сообщения для установки
 			 */
 			void pri(const uint8_t category, const uint8_t importance) noexcept;
 		public:
 			/**
-			 * host Метод получения хоста сообщения
+			 * @brief Метод получения хоста сообщения
+			 *
 			 * @return хост сообщения
 			 */
 			string host() const noexcept;
 			/**
-			 * host Метод установки хоста сообщения
+			 * @brief Метод установки хоста сообщения
+			 *
 			 * @param host хост сообщения для установки
 			 */
 			void host(const string & host) noexcept;
 		public:
 			/**
-			 * application Метод получения названия приложения сообщения
+			 * @brief Метод получения названия приложения сообщения
+			 *
 			 * @return название приложения сообщения
 			 */
 			string application() const noexcept;
 			/**
-			 * application Метод установки названия приложения сообщения
+			 * @brief Метод установки названия приложения сообщения
+			 *
 			 * @param app назование приложения для установки
 			 */
 			void application(const string & app) noexcept;
 		public:
 			/**
-			 * pid Метод получения идентификатора процесса сообщения
+			 * @brief Метод получения идентификатора процесса сообщения
+			 *
 			 * @return идентификатор процесса сообщения
 			 */
 			pid_t pid() const noexcept;
 			/**
-			 * pid Метод установки идентификатора процесса
+			 * @brief Метод установки идентификатора процесса
+			 *
 			 * @param pid идентификатор процесса для установки
 			 */
 			void pid(const pid_t pid) noexcept;
 		public:
 			/**
-			 * mid Метод получения идентификатора сообщения
-			 * @return идентификатор полученного сообщения 
+			 * @brief Метод получения идентификатора сообщения
+			 *
+			 * @return идентификатор полученного сообщения
 			 */
 			string mid() const noexcept;
 			/**
-			 * mid Метод установки идентификатора сообщения
+			 * @brief Метод установки идентификатора сообщения
+			 *
 			 * @param mid идентификатор сообщения для установки
 			 */
 			void mid(const string & mid) noexcept;
 		public:
 			/**
-			 * message Метод получения сообщения
+			 * @brief Метод получения сообщения
+			 *
 			 * @return полученное сообщение
 			 */
 			string message() const noexcept;
 			/**
-			 * message Метод установки сообщения
+			 * @brief Метод установки сообщения
+			 *
 			 * @param message сообщение для установки
 			 */
 			void message(const string & message) noexcept;
 		public:
 			/**
-			 * format Метод получения установленного формата даты
+			 * @brief Метод получения установленного формата даты
+			 *
 			 * @return установленный формат даты
 			 */
 			string format() const noexcept;
 			/**
-			 * format Метод установки формата даты
+			 * @brief Метод установки формата даты
+			 *
 			 * @param format формат даты для установки
 			 */
 			void format(const string & format) noexcept;
 		public:
 			/**
-			 * date Метод получения даты сообщения
+			 * @brief Метод получения даты сообщения
+			 *
 			 * @param format формат даты сообщения
 			 * @return       дата сообщения в указанном формате
 			 */
 			string date(const string & format = FORMAT) const noexcept;
 			/**
-			 * date Метод установки даты сообщения
+			 * @brief Метод установки даты сообщения
+			 *
 			 * @param date   дата сообщения для установки
 			 * @param format формат даты сообщения для установки
 			 */
 			void date(const string & date, const string & format) noexcept;
 		public:
 			/**
-			 * syslog Метод получения данных в формате SysLog
+			 * @brief Метод получения данных в формате SysLog
+			 *
 			 * @return данные в формате SysLog
 			 */
 			string syslog() const noexcept;
 		public:
 			/**
-			 * dump Метод извлечения данных в виде JSON
+			 * @brief Метод извлечения данных в виде JSON
+			 *
 			 * @return json объект дампа данных
 			 */
 			json dump() const noexcept;
 			/**
-			 * dump Метод установки данных в формате JSON
+			 * @brief Метод установки данных в формате JSON
+			 *
 			 * @param dump данные в формате JSON
 			 */
 			void dump(const json & dump) noexcept;
 		public:
 			/**
-			 * mode Метод получения установленного режима парсинга
+			 * @brief Метод получения установленного режима парсинга
+			 *
 			 * @return установленный режим парсинга
 			 */
 			mode_t mode() const noexcept;
 			/**
-			 * mode Метод установки режима парсинга
+			 * @brief Метод установки режима парсинга
+			 *
 			 * @param mode режим парсинга для установки
 			 */
 			void mode(const mode_t mode) noexcept;
 		public:
 			/**
-			 * Оператор вывода данные контейнера в качестве строки
+			 * @brief Оператор вывода данные контейнера в качестве строки
+			 *
 			 * @return данные контейнера в качестве строки
 			 */
 			operator string() const noexcept;
 		public:
 			/**
-			 * Оператор [!=] сравнения контейнеров
+			 * @brief Оператор [!=] сравнения контейнеров
+			 *
 			 * @param syslog контенер для сравнения
 			 * @return       результат сравнения
 			 */
 			bool operator != (const SysLog & syslog) const noexcept;
 			/**
-			 * Оператор [==] сравнения контейнеров
+			 * @brief Оператор [==] сравнения контейнеров
+			 *
 			 * @param syslog контенер для сравнения
 			 * @return       результат сравнения
 			 */
 			bool operator == (const SysLog & syslog) const noexcept;
 		public:
 			/**
-			 * Оператор [=] присвоения контейнеров
+			 * @brief Оператор [=] присвоения контейнеров
+			 *
 			 * @param syslog контенер для присвоения
 			 * @return       текущий объект
 			 */
 			SysLog & operator = (const SysLog & syslog) noexcept;
 			/**
-			 * Оператор [=] присвоения контейнеров
+			 * @brief Оператор [=] присвоения контейнеров
+			 *
 			 * @param syslog контенер для присвоения
 			 * @return       текущий объект
 			 */
 			SysLog & operator = (const string & syslog) noexcept;
 		public:
 			/**
-			 * SysLog Конструктор
+			 * @brief Конструктор
+			 *
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
 			SysLog(const fmk_t * fmk, const log_t * log) noexcept;
 	} syslog_t;
 	/**
-	 * Оператор [>>] чтения из потока SysLog контейнера
+	 * @brief Оператор [>>] чтения из потока SysLog контейнера
+	 *
 	 * @param is     поток для чтения
 	 * @param syslog контенер для присвоения
 	 */
 	ACUSHARED_EXPORT istream & operator >> (istream & is, syslog_t & syslog) noexcept;
 	/**
-	 * Оператор [<<] вывода в поток SysLog контейнера
+	 * @brief Оператор [<<] вывода в поток SysLog контейнера
+	 *
 	 * @param os     поток куда нужно вывести данные
 	 * @param syslog контенер для присвоения
 	 */

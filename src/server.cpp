@@ -31,7 +31,8 @@ using namespace rapidjson;
 using namespace placeholders;
 
 /**
- * crash Метод обработки вызова крашей в приложении
+ * @brief Метод обработки вызова крашей в приложении
+ *
  * @param sig номер сигнала операционной системы
  */
 void anyks::Server::crash(const int32_t sig) noexcept {
@@ -49,7 +50,8 @@ void anyks::Server::crash(const int32_t sig) noexcept {
 	::exit(sig);
 }
 /**
- * error Метод генерации ошибки
+ * @brief Метод генерации ошибки
+ *
  * @param sid  идентификатор потока
  * @param bid  идентификатор брокера
  * @param code код ответа сервера
@@ -119,7 +121,8 @@ void anyks::Server::error(const int32_t sid, const uint64_t bid, const uint16_t 
 	}
 }
 /**
- * password Метод извлечения пароля (для авторизации методом Digest)
+ * @brief Метод извлечения пароля (для авторизации методом Digest)
+ *
  * @param bid   идентификатор брокера (клиента)
  * @param login логин пользователя
  * @return      пароль пользователя хранящийся в базе данных
@@ -135,7 +138,8 @@ string anyks::Server::password(const uint64_t bid, const string & login) noexcep
 	return "";
 }
 /**
- * auth Метод проверки авторизации пользователя (для авторизации методом Basic)
+ * @brief Метод проверки авторизации пользователя (для авторизации методом Basic)
+ *
  * @param bid      идентификатор брокера (клиента)
  * @param login    логин пользователя (от клиента)
  * @param password пароль пользователя (от клиента)
@@ -152,7 +156,8 @@ bool anyks::Server::auth(const uint64_t bid, const string & login, const string 
 	return false;
 }
 /**
- * accept Метод активации клиента на сервере
+ * @brief Метод активации клиента на сервере
+ *
  * @param ip   адрес интернет подключения
  * @param mac  аппаратный адрес подключения
  * @param port порт подключения
@@ -179,11 +184,14 @@ bool anyks::Server::accept(const string & ip, const string & mac, const uint32_t
 	return true;
 }
 /**
- * active Метод вывода статуса работы сетевого ядра
+ * @brief Метод вывода статуса работы сетевого ядра
+ *
  * @param status флаг запуска сетевого ядра
  */
 void anyks::Server::active(const awh::core_t::status_t status) noexcept {
-	// Определяем статус активности сетевого ядра
+	/**
+	 * Определяем статус активности сетевого ядра
+	 */
 	switch(static_cast <uint8_t> (status)){
 		// Если система запущена
 		case static_cast <uint8_t> (awh::core_t::status_t::START):
@@ -204,12 +212,15 @@ void anyks::Server::active(const awh::core_t::status_t status) noexcept {
 	}
 }
 /**
- * active Метод идентификации активности на Web сервере
+ * @brief Метод идентификации активности на Web сервере
+ *
  * @param bid  идентификатор брокера (клиента)
  * @param mode режим события подключения
  */
 void anyks::Server::active(const uint64_t bid, const server::web_t::mode_t mode) noexcept {
-	// Определяем тип события
+	/**
+	 * Определяем тип события
+	 */
 	switch(static_cast <uint8_t> (mode)){
 		// Если произведено подключение клиента к серверу
 		case static_cast <uint8_t> (server::web_t::mode_t::CONNECT): {
@@ -226,7 +237,8 @@ void anyks::Server::active(const uint64_t bid, const server::web_t::mode_t mode)
 	}
 }
 /**
- * handshake Метод получения удачного запроса
+ * @brief Метод получения удачного запроса
+ *
  * @param sid   идентификатор потока
  * @param bid   идентификатор брокера
  * @param agent идентификатор агента клиента
@@ -241,7 +253,8 @@ void anyks::Server::handshake(const int32_t sid, const uint64_t bid, const serve
 	}
 }
 /**
- * request Метод вывода входящего запроса
+ * @brief Метод вывода входящего запроса
+ *
  * @param sid     идентификатор входящего потока
  * @param bid     идентификатор брокера (клиента)
  * @param method  метод входящего запроса
@@ -260,7 +273,8 @@ void anyks::Server::headers(const int32_t sid, const uint64_t bid, const awh::we
 	}
 }
 /**
- * complete Метод завершения получения запроса клиента
+ * @brief Метод завершения получения запроса клиента
+ *
  * @param sid     идентификатор потока
  * @param bid     идентификатор брокера
  * @param method  метод запроса
@@ -277,7 +291,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 		bool result = false;
 		// Формируем адрес запроса
 		string addr = this->_uri.joinPath(url.path);
-		// Определяем метод входящего запроса
+		/**
+		 * Определяем метод входящего запроса
+		 */
 		switch(static_cast <uint8_t> (method)){
 			// Если мы получили GET запрос
 			case static_cast <uint8_t> (awh::web_t::method_t::GET): {
@@ -462,7 +478,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						// Выполняем чтение запрошенного файла
 						const auto & buffer = this->_fs.read(filename);
 						// Получаем хэш буфера данных
-						const uint64_t etag = CityHash64(buffer.data(), buffer.size());
+						const uint64_t etag = ::CityHash64(buffer.data(), buffer.size());
 						// Выполняем добавление файла в кэш
 						this->_cache.emplace(filename, std::make_pair(etag, buffer));
 						// Выполняем поиск заголовка проверки ETag
@@ -712,7 +728,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								hmac = request["hmac"].GetString();
 								// Если ключ подтверждения подлинности получен
 								if(!hmac.empty()){
-									// Проверяем формат данных для конвертации
+									/**
+									 * Проверяем формат данных для конвертации
+									 */
 									switch(static_cast <uint8_t> (to)){
 										// Если формат исходящих данных указан как MD5
 										case static_cast <uint8_t> (type_t::MD5):
@@ -749,7 +767,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							}
 							// Объект ответа парсера в формате JSON
 							json answer(kObjectType);
-							// Определяем формат данных
+							/**
+							 * Определяем формат данных
+							 */
 							switch(static_cast <uint8_t> (from)){
 								// Если формат входящих данных указан как Text
 								case static_cast <uint8_t> (type_t::TEXT):
@@ -815,7 +835,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 							if(!answer.IsNull()){
 								// Текст сформированного ответа
 								string text = "";
-								// Определяем формат данных
+								/**
+								 * Определяем формат данных
+								 */
 								switch(static_cast <uint8_t> (to)){
 									// Если формат входящих данных указан как Text
 									case static_cast <uint8_t> (type_t::TEXT):
@@ -1401,7 +1423,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 											size = (text.length() / 8);
 										// Получам размер бинарного буфера
 										else size = ((text.length() + (8 - count)) / 8);
-										// Определяем размер бинарного буфера
+										/**
+										 * Определяем размер бинарного буфера
+										 */
 										switch(size){
 											// Если размер бинарного буфера состоит из одного байта
 											case 1: {
@@ -1649,7 +1673,8 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 	}
 }
 /**
- * config Метод установки конфигурационных параметров в формате JSON
+ * @brief Метод установки конфигурационных параметров в формате JSON
+ *
  * @param config объект конфигурационных параметров в формате JSON
  */
 void anyks::Server::config(const json & config) noexcept {
@@ -1781,7 +1806,9 @@ void anyks::Server::config(const json & config) noexcept {
 					string host = SERVER_HOST;
 					// Порт сервера
 					uint32_t port = SERVER_PORT;
-					// Определяем версию IP протокола
+					/**
+					 * Определяем версию IP протокола
+					 */
 					switch(config["net"].HasMember("ipv") && config["net"]["ipv"].IsUint() ? config["net"]["ipv"].GetUint() : 4){
 						// Если версия IPv4
 						case 4: this->_core.family(awh::scheme_t::family_t::IPV4); break;
@@ -1869,7 +1896,9 @@ void anyks::Server::config(const json & config) noexcept {
 							if(config["net"].HasMember("proto") && config["net"]["proto"].IsString() && this->_fmk->compare(config["net"]["proto"].GetString(), "http2"))
 								// Выполняем установку поддержку протокола HTTP/2
 								this->_core.proto(awh::engine_t::proto_t::HTTP2);
-							// Определяем тип установленного сокета
+							/**
+							 * Определяем тип установленного сокета
+							 */
 							switch(static_cast <uint8_t> (sonet)){
 								// Если тип сокета установлен как TCP
 								case static_cast <uint8_t> (awh::scheme_t::sonet_t::TCP):
@@ -1995,7 +2024,9 @@ void anyks::Server::config(const json & config) noexcept {
 							if(v.IsString()){
 								// Получаем тип передаваемого адреса
 								type = net.host(v.GetString());
-								// Определяем тип фильтра
+								/**
+								 * Определяем тип фильтра
+								 */
 								switch(static_cast <uint8_t> (filter)){
 									// Если очищается IP-адрес
 									case static_cast <uint8_t> (filtred_t::IP): {
@@ -2029,7 +2060,9 @@ void anyks::Server::config(const json & config) noexcept {
 							if(v.IsString()){
 								// Получаем тип передаваемого адреса
 								type = net.host(v.GetString());
-								// Определяем тип фильтра
+								/**
+								 * Определяем тип фильтра
+								 */
 								switch(static_cast <uint8_t> (filter)){
 									// Если очищается IP-адрес
 									case static_cast <uint8_t> (filtred_t::IP): {
@@ -2054,17 +2087,17 @@ void anyks::Server::config(const json & config) noexcept {
 						}
 					}
 				}
-			}{
-				// Создаём объект работы с операционной системой
-				os_t os;
-				// Если требуется перенастроить сервер на максимальную производительность
-				if(config.HasMember("boost") && config["boost"].IsBool() && config["boost"].GetBool())
-					// Выполняем перенастрофку сервера на максимальную производительность
-					os.boost();
+			}
+			/**
+			 * Для Unix-подобных операционных систем
+			 */
+			#if !_WIN32 && !_WIN64
 				// Если пользователь получен
 				if(config.HasMember("user")){
 					// Если пользователь указан как число или как строка но не строка в виде "auto"
 					if(config["user"].IsUint() || (config["user"].IsString() && !this->_fmk->compare("auto", config["user"].GetString()))){
+						// Создаём объект работы с операционной системой
+						os_t os;
 						// Если пользователь указан как число
 						if(config["user"].IsUint()){
 							// Идентификатор группы
@@ -2088,7 +2121,7 @@ void anyks::Server::config(const json & config) noexcept {
 						}
 					}
 				}
-			}
+			#endif
 		}
 	/**
 	 * Если возникает ошибка
@@ -2110,7 +2143,8 @@ void anyks::Server::config(const json & config) noexcept {
 	}
 }
 /**
- * stop Метод остановки работы сервера
+ * @brief Метод остановки работы сервера
+ *
  */
 void anyks::Server::stop() noexcept {
 	// Очищаем кэш запросов
@@ -2123,7 +2157,8 @@ void anyks::Server::stop() noexcept {
 	this->_awh.stop();
 }
 /**
- * start Метод запуска работы сервера
+ * @brief Метод запуска работы сервера
+ *
  */
 void anyks::Server::start() noexcept {
 	// Разрешаем перехват сигналов
@@ -2136,7 +2171,8 @@ void anyks::Server::start() noexcept {
 	this->_awh.start();
 }
 /**
- * Server конструктор
+ * @brief конструктор
+ *
  * @param fmk объект фреймворка
  * @param log объект для работы с логами
  */
@@ -2163,7 +2199,8 @@ anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
 	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const std::unordered_multimap <string, string> &)> ("complete", &server_t::complete, this, _1, _2, _3, _4, _5, _6);
 }
 /**
- * ~Server деструктор
+ * @brief деструктор
+ *
  */
 anyks::Server::~Server() noexcept {
 	// Запрещаем перехват сигналов

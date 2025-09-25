@@ -26,7 +26,8 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
- * prepare Метод выполнения препарирования полученных данных строки
+ * @brief Метод выполнения препарирования полученных данных строки
+ *
  * @param buffer буфер данных для препарирования
  * @param size   размер буфера данных для препарирования
  * @param delim  используемый разделитель
@@ -162,7 +163,8 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, const char deli
 	}
 }
 /**
- * prepare Метод выполнения препарирования полученных данных строки
+ * @brief Метод выполнения препарирования полученных данных строки
+ *
  * @param buffer   буфер данных для препарирования
  * @param size     размер буфера данных для препарирования
  * @param callback функция обратного вызова
@@ -299,14 +301,16 @@ void anyks::CSV::prepare(const char * buffer, const size_t size, function <void 
 	}
 }
 /**
- * clear Метод очистки данных
+ * @brief Метод очистки данных
+ *
  */
 void anyks::CSV::clear() noexcept {
 	// Выполняем очистку собранных данных
 	this->_mapping.clear();
 }
 /**
- * header Метод установки флага использования заголовков
+ * @brief Метод установки флага использования заголовков
+ *
  * @param mode флаг использования заголовков
  */
 void anyks::CSV::header(const bool mode) noexcept {
@@ -314,7 +318,8 @@ void anyks::CSV::header(const bool mode) noexcept {
 	this->_header = mode;
 }
 /**
- * parse Метод выполнения парсинга текста
+ * @brief Метод выполнения парсинга текста
+ *
  * @param text текст для парсинга
  */
 void anyks::CSV::parse(const string & text) noexcept {
@@ -340,7 +345,8 @@ void anyks::CSV::parse(const string & text) noexcept {
 	}
 }
 /**
- * parse Метод выполнения парсинга текста
+ * @brief Метод выполнения парсинга текста
+ *
  * @param text  текст для парсинга
  * @param delim используемый разделитель
  */
@@ -421,7 +427,8 @@ void anyks::CSV::parse(const string & text, const char delim) noexcept {
 	}
 }
 /**
- * cols Метод получения количества столбцов
+ * @brief Метод получения количества столбцов
+ *
  * @return количество столбцов
  */
 size_t anyks::CSV::cols() const noexcept {
@@ -433,7 +440,8 @@ size_t anyks::CSV::cols() const noexcept {
 	return 0;
 }
 /**
- * rows Метод получения количества строк
+ * @brief Метод получения количества строк
+ *
  * @return количество строк
  */
 size_t anyks::CSV::rows() const noexcept {
@@ -441,7 +449,8 @@ size_t anyks::CSV::rows() const noexcept {
 	return this->_mapping.size();
 }
 /**
- * row Метод получения строки
+ * @brief Метод получения строки
+ *
  * @param index индекс строки
  * @param delim используемый разделитель
  * @return      сформированная строка
@@ -538,7 +547,8 @@ string anyks::CSV::row(const size_t index, const char delim) noexcept {
 	return result;
 }
 /**
- * write Метод записи данных в файл
+ * @brief Метод записи данных в файл
+ *
  * @param filename адрес файла контейнера CSV для записи
  * @param delim    используемый разделитель
  */
@@ -620,7 +630,8 @@ void anyks::CSV::write(const string & filename, const char delim) noexcept {
 	}
 }
 /**
- * read Метод чтения данных из файла
+ * @brief Метод чтения данных из файла
+ *
  * @param filename адрес файла контейнера CSV для чтения
  */
 void anyks::CSV::read(const string & filename) noexcept {
@@ -646,7 +657,8 @@ void anyks::CSV::read(const string & filename) noexcept {
 	}
 }
 /**
- * read Метод чтения данных из файла
+ * @brief Метод чтения данных из файла
+ *
  * @param filename адрес файла контейнера CSV для чтения
  * @param delim    используемый разделитель
  */
@@ -676,7 +688,8 @@ void anyks::CSV::read(const string & filename, const char delim) noexcept {
 	}
 }
 /**
- * read Метод чтения данных из файла
+ * @brief Метод чтения данных из файла
+ *
  * @param filename адрес файла контейнера CSV для чтения
  * @param callback функция обратного вызова
  * @param delim    используемый разделитель
@@ -709,7 +722,8 @@ void anyks::CSV::read(const string & filename, function <void (const vector <str
 	}
 }
 /**
- * dump Метод создания дампа данных
+ * @brief Метод создания дампа данных
+ *
  * @return дамп данных в формате JSON
  */
 anyks::json anyks::CSV::dump() const noexcept {
@@ -880,7 +894,8 @@ anyks::json anyks::CSV::dump() const noexcept {
 	return result;
 }
 /**
- * dump Метод установки дампа данных
+ * @brief Метод установки дампа данных
+ *
  * @param dump дамп данных в формате JSON
  */
 void anyks::CSV::dump(const json & dump) noexcept {
@@ -982,7 +997,8 @@ void anyks::CSV::dump(const json & dump) noexcept {
 	}
 }
 /**
- * get Метод извлечения данных контейнера
+ * @brief Метод извлечения данных контейнера
+ *
  * @return собранные данные контейнера
  */
 const vector <vector <string>> & anyks::CSV::get() const noexcept {
@@ -990,7 +1006,8 @@ const vector <vector <string>> & anyks::CSV::get() const noexcept {
 	return this->_mapping;
 }
 /**
- * Оператор вывода данные контейнера в качестве строки
+ * @brief Оператор вывода данные контейнера в качестве строки
+ *
  * @return данные контейнера в качестве строки
  */
 anyks::CSV::operator string() const noexcept {
@@ -1006,7 +1023,8 @@ anyks::CSV::operator string() const noexcept {
 	return data.GetString();
 }
 /**
- * Оператор [=] присвоения контейнеров
+ * @brief Оператор [=] присвоения контейнеров
+ *
  * @param csv контенер для присвоения
  * @return    текущий объект
  */
@@ -1019,7 +1037,8 @@ anyks::CSV & anyks::CSV::operator = (const CSV & csv) noexcept {
 	return (* this);
 }
 /**
- * Оператор [=] присвоения контейнеров
+ * @brief Оператор [=] присвоения контейнеров
+ *
  * @param csv контенер для присвоения
  * @return    текущий объект
  */
@@ -1030,7 +1049,8 @@ anyks::CSV & anyks::CSV::operator = (const string & csv) noexcept {
 	return (* this);
 }
 /**
- * Оператор [>>] чтения из потока CSV контейнера
+ * @brief Оператор [>>] чтения из потока CSV контейнера
+ *
  * @param is  поток для чтения
  * @param csv контенер для присвоения
  */
@@ -1047,7 +1067,8 @@ istream & anyks::operator >> (istream & is, csv_t & csv) noexcept {
 	return is;
 }
 /**
- * Оператор [<<] вывода в поток CSV контейнера
+ * @brief Оператор [<<] вывода в поток CSV контейнера
+ *
  * @param os  поток куда нужно вывести данные
  * @param csv контенер для присвоения
  */

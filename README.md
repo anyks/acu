@@ -524,7 +524,6 @@ For **UNIX-like** operating systems, parameters can be specified using environme
 	"workers": 0,
 	"user": "auto",
 	"group": "auto",
-	"boost": true,
 	"maxRequests": 600,
 	"root": "./html",
 	"log": "./acu.log",
@@ -570,7 +569,6 @@ For **UNIX-like** operating systems, parameters can be specified using environme
 | **workers** | Number of cluster processes, if the value is not set or set to -1, the cluster will not be activated. Set to 0, the cluster will automatically create the number of processes for your machine. |
 | **user** | Name or user ID under which the application should be launched. The "auto" parameter sets the current user. |
 | **group** | Name or identifier of the user group under which the application should be launched. The "auto" parameter sets the current user group. |
-| **boost** | Flag for activating reconfiguration of the operating system kernel for maximum network protocol performance. |
 | **maxRequests** | Maximum number of requests to the server per day available to one specific user. |
 | **root** | Catalog with the site location in HTML format. |
 | **log** | Address of the log file where the processes occurring on the server will be recorded. |

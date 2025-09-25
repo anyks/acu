@@ -68,7 +68,8 @@
 #include <syslog.hpp>
 
 /**
- * anyks пространство имён
+ * @brief пространство имён
+ *
  */
 namespace anyks {
 	/**
@@ -80,7 +81,8 @@ namespace anyks {
 	 */
 	using namespace rapidjson;
 	/**
-	 * Parser Класс парсера
+	 * @brief Класс парсера
+	 *
 	 */
 	typedef class ACUSHARED_EXPORT Parser {
 		private:
@@ -102,63 +104,73 @@ namespace anyks {
 			const log_t * _log;
 		public:
 			/**
-			 * clearPatterns Метод сброса списка добавленных шаблонов GROK
+			 * @brief Метод сброса списка добавленных шаблонов GROK
+			 *
 			 */
 			void clearPatterns() noexcept;
 		public:
 			/**
-			 * patterns Метод добавления списка поддерживаемых шаблонов
+			 * @brief Метод добавления списка поддерживаемых шаблонов
+			 *
 			 * @param patterns список поддерживаемых шаблонов
 			 */
 			void patterns(const Document & patterns) noexcept;
 			/**
-			 * pattern Метод добавления шаблона GROK
+			 * @brief Метод добавления шаблона GROK
+			 *
 			 * @param key название переменной
 			 * @param val регуляреное выражение соответствующее переменной
 			 */
 			void pattern(const string & key, const string & val) noexcept;
 		public:
 			/**
-			 * yaml Метод конвертации текста в формате YAML в объект JSON
+			 * @brief Метод конвертации текста в формате YAML в объект JSON
+			 *
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
 			Document yaml(const string & text) noexcept;
 			/**
-			 * yaml Метод конвертации объекта JSON в текст в формате YAML
+			 * @brief Метод конвертации объекта JSON в текст в формате YAML
+			 *
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
 			string yaml(const Document & data) noexcept;
 		public:
 			/**
-			 * ini Метод конвертации текста в формате INI в объект JSON
+			 * @brief Метод конвертации текста в формате INI в объект JSON
+			 *
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
 			Document ini(const string & text) noexcept;
 			/**
-			 * ini Метод конвертации объекта JSON в текст в формате INI
+			 * @brief Метод конвертации объекта JSON в текст в формате INI
+			 *
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
 			string ini(const Document & data) noexcept;
 		public:
 			/**
-			 * syslog Метод конвертации текста в формате SysLog в объект JSON
+			 * @brief Метод конвертации текста в формате SysLog в объект JSON
+			 *
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
 			Document syslog(const string & text) noexcept;
 			/**
-			 * syslog Метод конвертации объекта JSON в текст в формате SysLog
+			 * @brief Метод конвертации объекта JSON в текст в формате SysLog
+			 *
 			 * @param data данные в объекте JSON
 			 * @return     текст после конвертации
 			 */
 			string syslog(const Document & data) noexcept;
 		public:
 			/**
-			 * grok Метод конвертации текста в формате GROK в объект JSON
+			 * @brief Метод конвертации текста в формате GROK в объект JSON
+			 *
 			 * @param text    текст для конвертации
 			 * @param pattern регулярное выражение в формате GROK
 			 * @return        объект в формате JSON
@@ -166,14 +178,16 @@ namespace anyks {
 			Document grok(const string & text, const string & pattern) noexcept;
 		public:
 			/**
-			 * csv Метод конвертации текста в формате CSV в объект JSON
+			 * @brief Метод конвертации текста в формате CSV в объект JSON
+			 *
 			 * @param text   текст для конвертации
 			 * @param header флаг формирования заголовков
 			 * @return       объект в формате JSON
 			 */
 			Document csv(const string & text, const bool header = true) noexcept;
 			/**
-			 * csv Метод конвертации объекта JSON в текст в формате CSV
+			 * @brief Метод конвертации объекта JSON в текст в формате CSV
+			 *
 			 * @param data   данные в объекте JSON
 			 * @param header флаг формирования заголовков
 			 * @param delim  используемый разделитель
@@ -182,13 +196,15 @@ namespace anyks {
 			string csv(const Document & data, const bool header = true, const char delim = ';') noexcept;
 		public:
 			/**
-			 * xml Метод конвертации текста в формате XML в объект JSON
+			 * @brief Метод конвертации текста в формате XML в объект JSON
+			 *
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
 			Document xml(const string & text) noexcept;
 			/**
-			 * xml Метод конвертации объекта JSON в текст в формате XML
+			 * @brief Метод конвертации объекта JSON в текст в формате XML
+			 *
 			 * @param data     данные в объекте JSON
 			 * @param prettify флаг генерации читаемого формата
 			 * @return         текст после конвертации
@@ -196,13 +212,15 @@ namespace anyks {
 			string xml(const Document & data, const bool prettify = false) noexcept;
 		public:
 			/**
-			 * json Метод конвертации текста в формате JSON в объект JSON
+			 * @brief Метод конвертации текста в формате JSON в объект JSON
+			 *
 			 * @param text текст для конвертации
 			 * @return     объект в формате JSON
 			 */
 			Document json(const string & text) noexcept;
 			/**
-			 * json Метод конвертации объекта JSON в текст в формате JSON
+			 * @brief Метод конвертации объекта JSON в текст в формате JSON
+			 *
 			 * @param data     данные в объекте JSON
 			 * @param prettify флаг генерации читаемого формата
 			 * @return         текст после конвертации
@@ -210,14 +228,16 @@ namespace anyks {
 			string json(const Document & data, const bool prettify = false) noexcept;
 		public:
 			/**
-			 * cef Метод конвертации текста в формате CEF в объект JSON
+			 * @brief Метод конвертации текста в формате CEF в объект JSON
+			 *
 			 * @param text текст для конвертации
 			 * @param mode режим парсинга
 			 * @return     объект в формате JSON
 			 */
 			Document cef(const string & text, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
 			/**
-			 * cef Метод конвертации объекта JSON в текст в формате CEF
+			 * @brief Метод конвертации объекта JSON в текст в формате CEF
+			 *
 			 * @param data данные в объекте JSON
 			 * @param mode режим парсинга
 			 * @return     текст после конвертации
@@ -225,7 +245,8 @@ namespace anyks {
 			string cef(const Document & data, const cef_t::mode_t mode = cef_t::mode_t::STRONG) noexcept;
 		public:
 			/**
-			 * Parser Конструктор
+			 * @brief Конструктор
+			 *
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
@@ -233,7 +254,8 @@ namespace anyks {
 			 _cef(fmk, log), _csv(fmk, log), _grok(fmk, log),
 			 _syslog(fmk, log), _fmk(fmk), _log(log) {}
 			/**
-			 * ~Parser Деструктор
+			 * @brief Деструктор
+			 *
 			 */
 			~Parser() noexcept {}
 	} parser_t;

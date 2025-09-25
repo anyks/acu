@@ -204,6 +204,7 @@ if [ -n "$1" ]; then
 			if [[ $OS = "Windows" ]]; then
 				cmake \
 				 -DCMAKE_BUILD_IDN="ON" \
+				 -DCMAKE_BOOSTING_NET="YES" \
 				 -DCMAKE_BUILD_TYPE=Release \
 				 -DCMAKE_SYSTEM_NAME=Windows \
 				 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
@@ -212,6 +213,7 @@ if [ -n "$1" ]; then
 			else
 				cmake \
 				 -DCMAKE_BUILD_IDN="ON" \
+				 -DCMAKE_BOOSTING_NET="YES" \
 				 -DCMAKE_BUILD_TYPE=Release \
 				 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
 				 .. || exit 1

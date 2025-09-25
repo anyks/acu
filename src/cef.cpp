@@ -26,7 +26,478 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
- * clear Метод очистки данных
+ * @brief Шаблон метода записи числовых данных в контейнер
+ *
+ * @tparam T тип данных для записи в контейнер
+ */
+template <typename T>
+/**
+ * @brief Метод записи числовых данных в контейнер
+ *
+ * @param key   ключ записи
+ * @param value значение для добавления
+ */
+void anyks::Cef::_set(const string & key, const T value) noexcept {
+	// Выполняем поиск указанного ключа в списке расширений
+	auto i = this->_extensions.find(key);
+	// Если ключ расширения найдено, удаляем его
+	if(i != this->_extensions.end())
+		// Удаляем переданное расширение
+		this->_extensions.erase(i);
+	// Выполняем добавление расширение
+	this->extension(key, std::to_string(value));
+}
+/**
+ * Объявляем прототипы для метода записи числовых данных в контейнер
+ */
+template void anyks::Cef::_set <int8_t> (const string &, const int8_t) noexcept;
+template void anyks::Cef::_set <uint8_t> (const string &, const uint8_t) noexcept;
+template void anyks::Cef::_set <int16_t> (const string &, const int16_t) noexcept;
+template void anyks::Cef::_set <uint16_t> (const string &, const uint16_t) noexcept;
+template void anyks::Cef::_set <int32_t> (const string &, const int32_t) noexcept;
+template void anyks::Cef::_set <uint32_t> (const string &, const uint32_t) noexcept;
+template void anyks::Cef::_set <int64_t> (const string &, const int64_t) noexcept;
+template void anyks::Cef::_set <uint64_t> (const string &, const uint64_t) noexcept;
+template void anyks::Cef::_set <float> (const string &, const float) noexcept;
+template void anyks::Cef::_set <double> (const string &, const double) noexcept;
+/**
+ * Если операционной системой является MacOS X или Linux
+ */
+#if __APPLE__ || __MACH__ || __Linux__
+	template void anyks::Cef::_set <size_t> (const string &, const size_t) noexcept;
+	template void anyks::Cef::_set <ssize_t> (const string &, const ssize_t) noexcept;
+#endif
+/**
+ * @brief Метод записи строковых данных в контейнер
+ *
+ * @param key   ключ записи
+ * @param value значение для добавления
+ */
+void anyks::Cef::_set(const string & key, const string & value) noexcept {
+	// Выполняем поиск указанного ключа в списке расширений
+	auto i = this->_extensions.find(key);
+	// Если ключ расширения найдено, удаляем его
+	if(i != this->_extensions.end())
+		// Удаляем переданное расширение
+		this->_extensions.erase(i);
+	// Выполняем добавление расширение
+	this->extension(key, value);
+}
+/**
+ * @brief Шаблон метода записи данных в контейнер
+ *
+ * @tparam T тип данных для записи в контейнер
+ */
+template <typename T>
+/**
+ * @brief Метод записи данных в контейнер
+ *
+ * @param key   ключ записи
+ * @param value значение для добавления
+ */
+void anyks::Cef::set(const string & key, const T value) noexcept {
+	// Если данные являются основными
+	if(is_class <T>::value || is_integral <T>::value || is_floating_point <T>::value){
+		// Выполняем поиск соответствие нашему ключу
+		auto i = this->_mapping.find(key);
+		// Если соответствие ключу найдено
+		if(i != this->_mapping.end())
+			// Добавляем полученные данные в контейнер
+			this->_set(i->second, value);
+		// Если мы получили непонятный ключ и включён не строгий режим
+		else if(this->_mode == mode_t::NONE)
+			// Добавляем полученные данные в контейнер
+			this->_set(key, value);
+	}
+}
+/**
+ * Объявляем прототипы для метода записи данных в контейнер
+ */
+template void anyks::Cef::set <int8_t> (const string &, const int8_t) noexcept;
+template void anyks::Cef::set <uint8_t> (const string &, const uint8_t) noexcept;
+template void anyks::Cef::set <int16_t> (const string &, const int16_t) noexcept;
+template void anyks::Cef::set <uint16_t> (const string &, const uint16_t) noexcept;
+template void anyks::Cef::set <int32_t> (const string &, const int32_t) noexcept;
+template void anyks::Cef::set <uint32_t> (const string &, const uint32_t) noexcept;
+template void anyks::Cef::set <int64_t> (const string &, const int64_t) noexcept;
+template void anyks::Cef::set <uint64_t> (const string &, const uint64_t) noexcept;
+template void anyks::Cef::set <float> (const string &, const float) noexcept;
+template void anyks::Cef::set <double> (const string &, const double) noexcept;
+template void anyks::Cef::set <const string &> (const string &, const string &) noexcept;
+/**
+ * Если операционной системой является MacOS X или Linux
+ */
+#if __APPLE__ || __MACH__ || __Linux__
+	template void anyks::Cef::set <size_t> (const string &, const size_t) noexcept;
+	template void anyks::Cef::set <ssize_t> (const string &, const ssize_t) noexcept;
+#endif
+/**
+ * @brief Шаблон метода чтения данных из контейнера
+ *
+ * @tparam T тип данных для извлечения из контейнера
+ */
+template <typename T>
+/**
+ * @brief Метод чтения данных из контейнера
+ *
+ * @param key ключ записи
+ * @return    результат работы функции
+ */
+T anyks::Cef::get(const string & key) noexcept {
+	// Результат работы функции
+	T result;
+	// Если ключ передан
+	if(!key.empty() && !this->_extensions.empty() && is_class <T>::value){
+		// Если режим парсинга установлен
+		if(this->_mode != mode_t::NONE){
+			// Выполняем поиск соответствие нашему ключу
+			auto i = this->_mapping.find(key);
+			// Если соответствие ключу найдено
+			if(i != this->_mapping.end()){
+				// Выполняем поиск данных нашего ключа
+				auto j = this->_extensions.find(i->second);
+				// Если данные запрашиваемого ключа получены
+				if(j != this->_extensions.end()){
+					// Создаём объект параметров расширения
+					const ext_t * params = nullptr;
+					// Выполняем поиск параметров ключа
+					auto i = this->_extensionSEFv0.find(j->first);
+					// Если параметры ключа найдены
+					if(i != this->_extensionSEFv0.end())
+						// Получаем параметры ключа
+						params = &i->second;
+					// Если параметры ключа не найдены и версия протокола №1
+					else if(this->_version > .0) {
+						// Выполняем поиск параметров ключа
+						auto i = this->_extensionSEFv1.find(j->first);
+						// Если параметры ключа найдены
+						if(i != this->_extensionSEFv0.end())
+							// Получаем параметры ключа
+							params = &i->second;
+					}
+					// Если параметры ключа получены
+					if(params != nullptr){
+						/**
+						 * Определяем тип ключа
+						 */
+						switch(static_cast <uint8_t> (params->type)){
+							// Если тип ключа является IP-адресом
+							case static_cast <uint8_t> (type_t::IP): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Если количество байт в буфере 4
+									if(j->second.size() == 4){
+										// Формируем число из бинарного буфера
+										uint32_t value = 0;
+										// Копируем в бинарный буфер данные IP адреса
+										::memcpy(&value, j->second.data(), j->second.size());
+										// Устанавливаем данные адреса в объект сети
+										net.v4(value);
+									// Если количество байт в буфере 16
+									} else if(j->second.size() == 16){
+										// Формируем бинарный буфер данных
+										array <uint64_t, 2> buffer;
+										// Копируем в бинарный буфер данные IP адреса
+										::memcpy(buffer.data(), j->second.data(), j->second.size());
+										// Устанавливаем данные адреса в объект сети
+										net.v6(buffer);
+									}
+									// Извлекаем данные IP адреса
+									const string & ip = net.get();
+									// Устанавливаем значение ключа
+									result.assign(ip.begin(), ip.end());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является MAC-адресом
+							case static_cast <uint8_t> (type_t::MAC): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Формируем число из бинарного буфера
+									uint64_t value = 0;
+									// Копируем в бинарный буфер данные IP адреса
+									::memcpy(&value, j->second.data(), j->second.size());
+									// Устанавливаем данные адреса в объект сети
+									net.mac(value);
+									// Извлекаем данные MAC адреса
+									const string & mac = net.get();
+									// Устанавливаем значение ключа
+									result.assign(mac.begin(), mac.end());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является IPV4-адресом
+							case static_cast <uint8_t> (type_t::IPV4): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Формируем число из бинарного буфера
+									uint32_t value = 0;
+									// Копируем в бинарный буфер данные IP адреса
+									::memcpy(&value, j->second.data(), j->second.size());
+									// Устанавливаем данные адреса в объект сети
+									net.v4(value);
+									// Извлекаем данные IP адреса
+									const string & ip = net.get();
+									// Устанавливаем значение ключа
+									result.assign(ip.begin(), ip.end());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является IPV6-адресом
+							case static_cast <uint8_t> (type_t::IPV6): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Создаём объект сети
+									net_t net(this->_log);
+									// Формируем бинарный буфер данных
+									array <uint64_t, 2> buffer;
+									// Копируем в бинарный буфер данные IP адреса
+									::memcpy(buffer.data(), j->second.data(), j->second.size());
+									// Устанавливаем данные адреса в объект сети
+									net.v6(buffer);
+									// Извлекаем данные IP адреса
+									const string & ip = net.get();
+									// Устанавливаем значение ключа
+									result.assign(ip.begin(), ip.end());
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является LONG
+							case static_cast <uint8_t> (type_t::LONG): {
+								// Если включён простой режим парсинга
+								if(this->_mode == mode_t::LOW)
+									// Устанавливаем значение ключа
+									result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является INT32
+							case static_cast <uint8_t> (type_t::INT32): {
+								// Если включён простой режим парсинга
+								if(this->_mode == mode_t::LOW)
+									// Устанавливаем значение ключа
+									result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является INT64
+							case static_cast <uint8_t> (type_t::INT64): {
+								// Если включён простой режим парсинга
+								if(this->_mode == mode_t::LOW)
+									// Устанавливаем значение ключа
+									result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является FLOAT
+							case static_cast <uint8_t> (type_t::FLOAT): {
+								// Если включён простой режим парсинга
+								if(this->_mode == mode_t::LOW)
+									// Устанавливаем значение ключа
+									result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является DOUBLE
+							case static_cast <uint8_t> (type_t::DOUBLE): {
+								// Если включён простой режим парсинга
+								if(this->_mode == mode_t::LOW)
+									// Устанавливаем значение ключа
+									result.assign(j->second.begin(), j->second.end());
+							} break;
+							// Если тип ключа является STRING
+							case static_cast <uint8_t> (type_t::STRING):
+								// Устанавливаем значение ключа
+								result.assign(j->second.begin(), j->second.end());
+							break;
+							// Если тип ключа является TIMESTAMP
+							case static_cast <uint8_t> (type_t::TIMESTAMP): {
+								// Если включён строгий режим парсинга
+								if(this->_mode == mode_t::STRONG){
+									// Если формат даты установлен
+									if(!this->_format.empty()){
+										// Формируем число из бинарного буфера
+										uint64_t date = 0;
+										// Извлекаем из буфера данные числа
+										::memcpy(&date, j->second.data(), j->second.size());
+										// Получаем дату в формате строки
+										const string & timestamp = this->_chrono.format(date, this->_format);
+										// Устанавливаем значение ключа
+										result.assign(timestamp.begin(), timestamp.end());
+									}
+								// Если строгий режим парсинга не активирован, устанавливаем значение ключа
+								} else result.assign(j->second.begin(), j->second.end());
+							} break;
+						}
+					}
+				}
+			}
+		// Если режим парсинга не установлен
+		} else {
+			// Выполняем поиск соответствие нашему ключу
+			auto i = this->_mapping.find(key);
+			// Если соответствие ключу найдено
+			if(i != this->_mapping.end()){
+				// Выполняем поиск данных нашего ключа
+				auto j = this->_extensions.find(i->second);
+				// Если данные запрашиваемого ключа получены
+				if(j != this->_extensions.end())
+					// Устанавливаем значение ключа
+					result.assign(j->second.begin(), j->second.end());
+			// Если ничего не найдено
+			} else {
+				// Выполняем поиск данных нашего ключа
+				auto i = this->_extensions.find(key);
+				// Если данные запрашиваемого ключа получены
+				if(i != this->_extensions.end())
+					// Устанавливаем значение ключа
+					result.assign(i->second.begin(), i->second.end());
+			}
+		}
+	}
+	// Выводим результат
+	return result;
+}
+/**
+ * Объявляем прототипы для метода чтения данных из контейнера
+ */
+template string anyks::Cef::get <string> (const string &) noexcept;
+template vector <char> anyks::Cef::get <vector <char>> (const string &) noexcept;
+/**
+ * @brief Шаблон метода чтения данных из контейнера
+ *
+ * @tparam T тип данных для извлечения из контейнера
+ */
+template <typename T>
+/**
+ * @brief Метод чтения данных из контейнера
+ *
+ * @param key      ключ записи
+ * @param response значение по умолчанию
+ * @return         результат работы функции
+ */
+T anyks::Cef::get(const string & key, T response) noexcept {
+	// Результат работы функции
+	T result = response;
+	// Если ключ передан
+	if(!key.empty() && (is_integral <T>::value || is_floating_point <T>::value)){
+		// Если режим парсинга установлен
+		if((this->_mode == mode_t::STRONG) || (this->_mode == mode_t::MEDIUM)){
+			// Выполняем поиск соответствие нашему ключу
+			auto i = this->_mapping.find(key);
+			// Если соответствие ключу найдено
+			if(i != this->_mapping.end()){
+				// Выполняем поиск данных нашего ключа
+				auto j = this->_extensions.find(i->second);
+				// Если данные запрашиваемого ключа получены
+				if(j != this->_extensions.end()){
+					// Создаём объект параметров расширения
+					const ext_t * params = nullptr;
+					// Выполняем поиск параметров ключа
+					auto i = this->_extensionSEFv0.find(j->first);
+					// Если параметры ключа найдены
+					if(i != this->_extensionSEFv0.end())
+						// Получаем параметры ключа
+						params = &i->second;
+					// Если параметры ключа не найдены и версия протокола №1
+					else if(this->_version > .0) {
+						// Выполняем поиск параметров ключа
+						auto i = this->_extensionSEFv1.find(j->first);
+						// Если параметры ключа найдены
+						if(i != this->_extensionSEFv0.end())
+							// Получаем параметры ключа
+							params = &i->second;
+					}
+					// Если параметры ключа получены
+					if(params != nullptr){
+						/**
+						 * Определяем тип ключа
+						 */
+						switch(static_cast <uint8_t> (params->type)){
+							// Если тип ключа является LONG
+							case static_cast <uint8_t> (type_t::LONG): {
+								// Формируем число из бинарного буфера
+								long value = 0;
+								// Извлекаем из буфера данные числа
+								::memcpy(&value, j->second.data(), j->second.size());
+								// Устанавливаем значение ключа
+								result = value;
+							} break;
+							// Если тип ключа является INT32
+							case static_cast <uint8_t> (type_t::INT32): {
+								// Формируем число из бинарного буфера
+								int32_t value = 0;
+								// Извлекаем из буфера данные числа
+								::memcpy(&value, j->second.data(), j->second.size());
+								// Устанавливаем значение ключа
+								result = value;
+							} break;
+							// Если тип ключа является INT64
+							case static_cast <uint8_t> (type_t::INT64): {
+								// Формируем число из бинарного буфера
+								int64_t value = 0;
+								// Извлекаем из буфера данные числа
+								::memcpy(&value, j->second.data(), j->second.size());
+								// Устанавливаем значение ключа
+								result = value;
+							} break;
+							// Если тип ключа является FLOAT
+							case static_cast <uint8_t> (type_t::FLOAT): {
+								// Формируем число из бинарного буфера
+								float value = .0f;
+								// Извлекаем из буфера данные числа
+								::memcpy(&value, j->second.data(), j->second.size());
+								// Устанавливаем значение ключа
+								result = value;
+							} break;
+							// Если тип ключа является DOUBLE
+							case static_cast <uint8_t> (type_t::DOUBLE): {
+								// Формируем число из бинарного буфера
+								double value = .0;
+								// Извлекаем из буфера данные числа
+								::memcpy(&value, j->second.data(), j->second.size());
+								// Устанавливаем значение ключа
+								result = value;
+							} break;
+							// Если тип ключа является TIMESTAMP
+							case static_cast <uint8_t> (type_t::TIMESTAMP): {
+								// Формируем число из бинарного буфера
+								uint64_t date = 0;
+								// Извлекаем из буфера данные числа
+								::memcpy(&date, j->second.data(), j->second.size());
+								// Устанавливаем значение ключа
+								result = date;
+							} break;
+						}
+					}
+				}
+			}
+		}
+	}
+	// Выводим результат
+	return result;
+}
+/**
+ * Объявляем прототипы для метода чтения данных из контейнера
+ */
+template int8_t anyks::Cef::get <int8_t> (const string &, const int8_t) noexcept;
+template uint8_t anyks::Cef::get <uint8_t> (const string &, const uint8_t) noexcept;
+template int16_t anyks::Cef::get <int16_t> (const string &, const int16_t) noexcept;
+template uint16_t anyks::Cef::get <uint16_t> (const string &, const uint16_t) noexcept;
+template int32_t anyks::Cef::get <int32_t> (const string &, const int32_t) noexcept;
+template uint32_t anyks::Cef::get <uint32_t> (const string &, const uint32_t) noexcept;
+template int64_t anyks::Cef::get <int64_t> (const string &, const int64_t) noexcept;
+template uint64_t anyks::Cef::get <uint64_t> (const string &, const uint64_t) noexcept;
+template float anyks::Cef::get <float> (const string &, const float) noexcept;
+template double anyks::Cef::get <double> (const string &, const double) noexcept;
+/**
+ * Если операционной системой является MacOS X или Linux
+ */
+#if __APPLE__ || __MACH__ || __Linux__
+	template size_t anyks::Cef::get <size_t> (const string &, const size_t) noexcept;
+	template ssize_t anyks::Cef::get <ssize_t> (const string &, const ssize_t) noexcept;
+#endif
+/**
+ * @brief Метод очистки данных
+ *
  */
 void anyks::Cef::clear() noexcept {
 	// Выполняем очистку заголовка CEF
@@ -43,7 +514,8 @@ void anyks::Cef::clear() noexcept {
 	this->_mode = mode_t::STRONG;
 }
 /**
- * parse Метод парсинга строки в формате CEF
+ * @brief Метод парсинга строки в формате CEF
+ *
  * @param cef строка в формате CEF
  */
 void anyks::Cef::parse(const string & cef) noexcept {
@@ -397,7 +869,8 @@ void anyks::Cef::parse(const string & cef) noexcept {
 	}
 }
 /**
- * prepare Метод препарирования расширений
+ * @brief Метод препарирования расширений
+ *
  * @param extensions строка с расширениями
  */
 void anyks::Cef::prepare(const string & extensions) noexcept {
@@ -414,7 +887,8 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 				// Если включён строгий режим парсинга
 				if(this->_mode == mode_t::STRONG){
 					/**
-					 * matchFn Функция матчинга ключа расширения для CEF
+					 * @brief Функция матчинга ключа расширения для CEF
+					 *
 					 * @param key ключ для матчинга
 					 * @return    результат сравнения
 					 */
@@ -512,7 +986,8 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 	}
 }
 /**
- * mode Метод установки режима парсинга
+ * @brief Метод установки режима парсинга
+ *
  * @param mode режим парсинга для установки
  */
 void anyks::Cef::mode(const mode_t mode) noexcept {
@@ -520,7 +995,8 @@ void anyks::Cef::mode(const mode_t mode) noexcept {
 	this->_mode = mode;
 }
 /**
- * version Метод извлечения версии контейнера
+ * @brief Метод извлечения версии контейнера
+ *
  * @return версия контейнера
  */
 double anyks::Cef::version() const noexcept {
@@ -528,7 +1004,8 @@ double anyks::Cef::version() const noexcept {
 	return this->_version;
 }
 /**
- * version Метод установки версии контейнера
+ * @brief Метод установки версии контейнера
+ *
  * @param version версия контейнера для установки
  */
 void anyks::Cef::version(const double version) noexcept {
@@ -536,7 +1013,8 @@ void anyks::Cef::version(const double version) noexcept {
 	this->_version = version;
 }
 /**
- * cef Метод получения данных в формате CEF
+ * @brief Метод получения данных в формате CEF
+ *
  * @return данные в формате CEF
  */
 string anyks::Cef::cef() const noexcept {
@@ -617,7 +1095,9 @@ string anyks::Cef::cef() const noexcept {
 						if(result.back() != '|')
 							// Устанавливаем разделитель расширений
 							result.append(1, ' ');
-						// Определяем тип ключа
+						/**
+						 * Определяем тип ключа
+						 */
 						switch(static_cast <uint8_t> (params->type)){
 							// Если тип ключа является IP-адресом
 							case static_cast <uint8_t> (type_t::IP): {
@@ -933,7 +1413,8 @@ string anyks::Cef::cef() const noexcept {
 	return result;
 }
 /**
- * dump Метод извлечения данных в виде JSON
+ * @brief Метод извлечения данных в виде JSON
+ *
  * @return json объект дампа данных
  */
 anyks::json anyks::Cef::dump() const noexcept {
@@ -947,7 +1428,9 @@ anyks::json anyks::Cef::dump() const noexcept {
 		try {
 			// Создаём объект параметров расширения
 			const ext_t * params = nullptr;
-			// Определяем активный режим парсинга
+			/**
+			 * Определяем активный режим парсинга
+			 */
 			switch(static_cast <uint8_t> (this->_mode)){
 				// Если режим парсинга не активирован
 				case static_cast <uint8_t> (mode_t::NONE):
@@ -1048,7 +1531,9 @@ anyks::json anyks::Cef::dump() const noexcept {
 					}
 					// Если параметры ключа получены
 					if(params != nullptr){
-						// Определяем тип ключа
+						/**
+						 * Определяем тип ключа
+						 */
 						switch(static_cast <uint8_t> (params->type)){
 							// Если тип ключа является IP-адресом
 							case static_cast <uint8_t> (type_t::IP): {
@@ -1381,7 +1866,8 @@ anyks::json anyks::Cef::dump() const noexcept {
 	return result;
 }
 /**
- * dump Метод установки данных в формате JSON
+ * @brief Метод установки данных в формате JSON
+ *
  * @param dump данные в формате JSON
  */
 void anyks::Cef::dump(const json & dump) noexcept {
@@ -1558,7 +2044,9 @@ void anyks::Cef::dump(const json & dump) noexcept {
 						}
 						// Если параметры ключа получены
 						if(params != nullptr){
-							// Определяем тип ключа
+							/**
+							 * Определяем тип ключа
+							 */
 							switch(static_cast <uint8_t> (params->type)){
 								// Если тип ключа является LONG
 								case static_cast <uint8_t> (type_t::LONG):
@@ -1622,7 +2110,8 @@ void anyks::Cef::dump(const json & dump) noexcept {
 	}
 }
 /**
- * header Метод извлечения заголовка
+ * @brief Метод извлечения заголовка
+ *
  * @return заголовок контейнера
  */
 const string & anyks::Cef::header() const noexcept {
@@ -1630,7 +2119,8 @@ const string & anyks::Cef::header() const noexcept {
 	return this->_header;
 }
 /**
- * header Метод установки заголовка контейнера
+ * @brief Метод установки заголовка контейнера
+ *
  * @param header заголовок контейнера
  */
 void anyks::Cef::header(const string & header) noexcept {
@@ -1656,7 +2146,8 @@ void anyks::Cef::header(const string & header) noexcept {
 	}
 }
 /**
- * event Метод извлечения события
+ * @brief Метод извлечения события
+ *
  * @return событие контейнера
  */
 const anyks::Cef::event_t & anyks::Cef::event() const noexcept {
@@ -1664,7 +2155,8 @@ const anyks::Cef::event_t & anyks::Cef::event() const noexcept {
 	return this->_event;
 }
 /**
- * event Метод установки события
+ * @brief Метод установки события
+ *
  * @param event данные события
  */
 void anyks::Cef::event(const event_t & event) noexcept {
@@ -1672,7 +2164,8 @@ void anyks::Cef::event(const event_t & event) noexcept {
 	this->_event = event;
 }
 /**
- * format Метод установки формата даты
+ * @brief Метод установки формата даты
+ *
  * @param format формат даты
  */
 void anyks::Cef::format(const string & format) noexcept {
@@ -1680,7 +2173,8 @@ void anyks::Cef::format(const string & format) noexcept {
 	this->_format = format;
 }
 /**
- * type Метод извлечения типа ключа
+ * @brief Метод извлечения типа ключа
+ *
  * @param key ключ для извлечения типа расширения
  * @return    тип данных которому соответствует ключ
  */
@@ -1745,7 +2239,8 @@ anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
 	return type_t::NONE;
 }
 /**
- * events Метод получения списка событий
+ * @brief Метод получения списка событий
+ *
  * @return список полученных событий
  */
 std::unordered_map <string, string> anyks::Cef::events() const noexcept {
@@ -1789,7 +2284,8 @@ std::unordered_map <string, string> anyks::Cef::events() const noexcept {
 	return result;
 }
 /**
- * extensions Метод извлечения списка расширений
+ * @brief Метод извлечения списка расширений
+ *
  * @return список установленных расширений
  */
 std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
@@ -1824,7 +2320,9 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 					}
 					// Если параметры ключа получены
 					if(params != nullptr){
-						// Определяем тип ключа
+						/**
+						 * Определяем тип ключа
+						 */
 						switch(static_cast <uint8_t> (params->type)){
 							// Если тип ключа является IP-адресом
 							case static_cast <uint8_t> (type_t::IP): {
@@ -2150,7 +2648,8 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 	return result;
 }
 /**
- * extension Метод извлечения расширения в бинарном виде
+ * @brief Метод извлечения расширения в бинарном виде
+ *
  * @param key ключ для извлечения расширения
  * @return    данные расширения в бинарном виде
  */
@@ -2170,7 +2669,8 @@ const vector <char> & anyks::Cef::extension(const string & key) const noexcept {
 	return result;
 }
 /**
- * extension Метод установки расширения в бинарном виде
+ * @brief Метод установки расширения в бинарном виде
+ *
  * @param key   ключ расширения
  * @param value значение расширения
  */
@@ -2239,7 +2739,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 				}
 				// Если параметры ключа получены
 				if(params != nullptr){
-					// Определяем тип ключа
+					/**
+					 * Определяем тип ключа
+					 */
 					switch(static_cast <uint8_t> (params->type)){
 						// Если тип ключа является IP-адресом
 						case static_cast <uint8_t> (type_t::IP): {
@@ -2247,7 +2749,9 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 							if(this->_mode == mode_t::STRONG){
 								// Выполняем парсинг сетевого адреса
 								if(this->_net.parse(value)){
-									// Выполняем определение типа IP адреса
+									/**
+									 * Выполняем определение типа IP адреса
+									 */
 									switch(static_cast <uint8_t> (this->_net.type())){
 										// Если IP адрес определён как IPv4
 										case static_cast <uint8_t> (net_t::type_t::IPV4): {
@@ -2723,7 +3227,8 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 	}
 }
 /**
- * extension Метод установки расширения в бинарном виде
+ * @brief Метод установки расширения в бинарном виде
+ *
  * @param key   ключ расширения
  * @param value значение расширения
  */
@@ -2734,7 +3239,8 @@ void anyks::Cef::extension(const string & key, const vector <char> & value) noex
 		this->_extensions.emplace(key, value);
 }
 /**
- * Оператор вывода данные контейнера в качестве строки
+ * @brief Оператор вывода данные контейнера в качестве строки
+ *
  * @return данные контейнера в качестве строки
  */
 anyks::Cef::operator string() const noexcept {
@@ -2742,7 +3248,8 @@ anyks::Cef::operator string() const noexcept {
 	return this->cef();
 }
 /**
- * Оператор [!=] сравнения контейнеров
+ * @brief Оператор [!=] сравнения контейнеров
+ *
  * @param cef контенер для сравнения
  * @return    результат сравнения
  */
@@ -2798,7 +3305,8 @@ bool anyks::Cef::operator != (const cef_t & cef) const noexcept {
 	return !result;
 }
 /**
- * Оператор [==] сравнения контейнеров
+ * @brief Оператор [==] сравнения контейнеров
+ *
  * @param cef контенер для сравнения
  * @return    результат сравнения
  */
@@ -2854,7 +3362,8 @@ bool anyks::Cef::operator == (const cef_t & cef) const noexcept {
 	return result;
 }
 /**
- * Оператор [=] присвоения контейнеров
+ * @brief Оператор [=] присвоения контейнеров
+ *
  * @param cef контенер для присвоения
  * @return    текущий объект
  */
@@ -2895,7 +3404,8 @@ anyks::Cef & anyks::Cef::operator = (const cef_t & cef) noexcept {
 	return (* this);
 }
 /**
- * Оператор [=] присвоения режима парсинга
+ * @brief Оператор [=] присвоения режима парсинга
+ *
  * @param mode режим парсинга для установки
  * @return     текущий объект
  */
@@ -2906,7 +3416,8 @@ anyks::Cef & anyks::Cef::operator = (const mode_t mode) noexcept {
 	return (* this);
 }
 /**
- * Оператор [=] присвоения контейнеров
+ * @brief Оператор [=] присвоения контейнеров
+ *
  * @param cef контенер для присвоения
  * @return    текущий объект
  */
@@ -2919,7 +3430,8 @@ anyks::Cef & anyks::Cef::operator = (const string & cef) noexcept {
 	return (* this);
 }
 /**
- * Cef Конструктор
+ * @brief Конструктор
+ *
  * @param fmk объект фреймворка
  * @param log объект для работы с логами
  */
@@ -3291,7 +3803,8 @@ anyks::Cef::Cef(const fmk_t * fmk, const log_t * log) noexcept :
 	};
 };
 /**
- * Оператор [>>] чтения из потока CEF контейнера
+ * @brief Оператор [>>] чтения из потока CEF контейнера
+ *
  * @param is  поток для чтения
  * @param cef контенер для присвоения
  */
@@ -3308,7 +3821,8 @@ istream & anyks::operator >> (istream & is, cef_t & cef) noexcept {
 	return is;
 }
 /**
- * Оператор [<<] вывода в поток CEF контейнера
+ * @brief Оператор [<<] вывода в поток CEF контейнера
+ *
  * @param os  поток куда нужно вывести данные
  * @param cef контенер для присвоения
  */

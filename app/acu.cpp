@@ -83,40 +83,40 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 		// Название операционной системы
 		const char * os = nullptr;
 		// Определяем название операционной системы
-		switch(static_cast <uint8_t> (os_t().type())){
+		switch(static_cast <uint8_t> (os_t().family())){
 			// Если операционной системой является Unix
-			case static_cast <uint8_t> (os_t::type_t::UNIX):
+			case static_cast <uint8_t> (os_t::family_t::UNIX):
 				// Устанавливаем название Операционной Системы
 				os = "Unix";
 			break;
 			// Если операционной системой является Linux
-			case static_cast <uint8_t> (os_t::type_t::LINUX):
+			case static_cast <uint8_t> (os_t::family_t::LINUX):
 				// Устанавливаем название Операционной Системы
 				os = "Linux";
 			break;
 			// Если операционной системой является неизвестной
-			case static_cast <uint8_t> (os_t::type_t::NONE):
+			case static_cast <uint8_t> (os_t::family_t::NONE):
 				// Устанавливаем название Операционной Системы
 				os = "Unknown";
 			break;
 			// Если операционной системой является Windows
-			case static_cast <uint8_t> (os_t::type_t::WIND32):
-			case static_cast <uint8_t> (os_t::type_t::WIND64):
+			case static_cast <uint8_t> (os_t::family_t::WIND32):
+			case static_cast <uint8_t> (os_t::family_t::WIND64):
 				// Устанавливаем название Операционной Системы
 				os = "Windows";
 			break;
 			// Если операционной системой является MacOS X
-			case static_cast <uint8_t> (os_t::type_t::MACOSX):
+			case static_cast <uint8_t> (os_t::family_t::MACOSX):
 				// Устанавливаем название Операционной Системы
 				os = "MacOS X";
 			break;
 			// Если операционной системой является FreeBSD
-			case static_cast <uint8_t> (os_t::type_t::FREEBSD):
+			case static_cast <uint8_t> (os_t::family_t::FREEBSD):
 				// Устанавливаем название Операционной Системы
 				os = "FreeBSD";
 			break;
 			// Если операционной системой является Sun Solaris
-			case static_cast <uint8_t> (os_t::type_t::SOLARIS):
+			case static_cast <uint8_t> (os_t::family_t::SOLARIS):
 				// Устанавливаем название Операционной Системы
 				os = "Solaris";
 			break;
@@ -128,7 +128,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			// Определяем адрес приложения
 			string app = fs->realPath(address);
 			// Ищем каталог
-			if((pos = app.rfind(FS_SEPARATOR)) != string::npos)
+			if((pos = app.rfind(AWH_FS_SEPARATOR)) != string::npos)
 				// Получаем название приложения
 				app = app.substr(0, pos);
 			// Выводим версию приложения
@@ -267,7 +267,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				// Позиция разделителя каталога
 				size_t pos = 0;
 				// Выполняем поиск разделителя каталога
-				if((pos = string(filename).rfind(FS_SEPARATOR)) != string::npos){
+				if((pos = string(filename).rfind(AWH_FS_SEPARATOR)) != string::npos){
 					// Извлекаем путь сохранения файла лога
 					const string & path = fs.realPath(filename.substr(0, pos));
 					// Если путь для сохранения каталога не существует
@@ -652,7 +652,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 								// Переводим расширение в нижний регистр
 								fmk.transform(extension, fmk_t::transform_t::LOWER);
 								// Выполняем создание адреса файла для сохранения
-								filename = fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, "result", extension.c_str());
+								filename = fmk.format("%s%s%s.%s", addr.c_str(), AWH_FS_SEPARATOR, "result", extension.c_str());
 							}
 							// Буфер данных для записи
 							string buffer = "";
@@ -1191,7 +1191,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 											// Переводим расширение в нижний регистр
 											fmk.transform(extension, fmk_t::transform_t::LOWER);
 											// Выполняем запись данных в файл
-											fs.write(fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, name.c_str(), extension.c_str()), buffer.data(), buffer.size());
+											fs.write(fmk.format("%s%s%s.%s", addr.c_str(), AWH_FS_SEPARATOR, name.c_str(), extension.c_str()), buffer.data(), buffer.size());
 										// Выводим сообщение об ошибке
 										} else log.print("Conversion from \"%s\" format to \"%s\" format is failed", log_t::flag_t::WARNING, fmk.transform(env.get <string> (false, "from"), fmk_t::transform_t::UPPER).c_str(), fmk.transform(env.get <string> (false, "to"), fmk_t::transform_t::UPPER).c_str());
 										// Выводим удачное завершение работы
@@ -1439,7 +1439,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 										// Переводим расширение в нижний регистр
 										fmk.transform(extension, fmk_t::transform_t::LOWER);
 										// Выполняем создание адреса файла для сохранения
-										filename = fmk.format("%s%s%s.%s", addr.c_str(), FS_SEPARATOR, name.c_str(), extension.c_str());
+										filename = fmk.format("%s%s%s.%s", addr.c_str(), AWH_FS_SEPARATOR, name.c_str(), extension.c_str());
 									}
 									// Буфер данных для записи
 									string buffer = "";

@@ -43,7 +43,8 @@
 #include <rapidjson/stringbuffer.h>
 
 /**
- * anyks пространство имён
+ * @brief пространство имён
+ *
  */
 namespace anyks {
 	/**
@@ -59,7 +60,8 @@ namespace anyks {
 	 */
 	using json = Document;
 	/**
-	 * CSV Класс модуля CSV
+	 * @brief Класс модуля CSV
+	 *
 	 */
 	typedef class ACUSHARED_EXPORT CSV {
 		private:
@@ -77,18 +79,22 @@ namespace anyks {
 			// Объект работы с логами
 			const log_t * _log;
 		private:
-			// Максимальный размер буфера данных на чтение из файла
+			/**
+			 * Максимальный размер буфера данных на чтение из файла
+			 */
 			static constexpr uintmax_t CSV_BUFFER_SIZE = 0x10000;
 		private:
 			/**
-			 * prepare Метод выполнения препарирования полученных данных строки
+			 * @brief Метод выполнения препарирования полученных данных строки
+			 *
 			 * @param buffer буфер данных для препарирования
 			 * @param size   размер буфера данных для препарирования
 			 * @param delim  используемый разделитель
 			 */
 			void prepare(const char * buffer, const size_t size, const char delim = ',') noexcept;
 			/**
-			 * prepare Метод выполнения препарирования полученных данных строки
+			 * @brief Метод выполнения препарирования полученных данных строки
+			 *
 			 * @param buffer   буфер данных для препарирования
 			 * @param size     размер буфера данных для препарирования
 			 * @param callback функция обратного вызова
@@ -97,41 +103,48 @@ namespace anyks {
 			void prepare(const char * buffer, const size_t size, function <void (const vector <string> &)> callback, const char delim = ',') noexcept;
 		public:
 			/**
-			 * clear Метод очистки данных
+			 * @brief Метод очистки данных
+			 *
 			 */
 			void clear() noexcept;
 		public:
 			/**
-			 * header Метод установки флага использования заголовков
+			 * @brief Метод установки флага использования заголовков
+			 *
 			 * @param mode флаг использования заголовков
 			 */
 			void header(const bool mode) noexcept;
 		public:
 			/**
-			 * parse Метод выполнения парсинга текста
+			 * @brief Метод выполнения парсинга текста
+			 *
 			 * @param text текст для парсинга
 			 */
 			void parse(const string & text) noexcept;
 			/**
-			 * parse Метод выполнения парсинга текста
+			 * @brief Метод выполнения парсинга текста
+			 *
 			 * @param text  текст для парсинга
 			 * @param delim используемый разделитель
 			 */
 			void parse(const string & text, const char delim) noexcept;
 		public:
 			/**
-			 * cols Метод получения количества столбцов
+			 * @brief Метод получения количества столбцов
+			 *
 			 * @return количество столбцов
 			 */
 			size_t cols() const noexcept;
 			/**
-			 * rows Метод получения количества строк
+			 * @brief Метод получения количества строк
+			 *
 			 * @return количество строк
 			 */
 			size_t rows() const noexcept;
 		public:
 			/**
-			 * row Метод получения строки
+			 * @brief Метод получения строки
+			 *
 			 * @param index индекс строки
 			 * @param delim используемый разделитель
 			 * @return      сформированная строка
@@ -139,25 +152,29 @@ namespace anyks {
 			string row(const size_t index, const char delim = ';') noexcept;
 		public:
 			/**
-			 * write Метод записи данных в файл
+			 * @brief Метод записи данных в файл
+			 *
 			 * @param filename адрес файла контейнера CSV для записи
 			 * @param delim    используемый разделитель
 			 */
 			void write(const string & filename, const char delim = ';') noexcept;
 		public:
 			/**
-			 * read Метод чтения данных из файла
+			 * @brief Метод чтения данных из файла
+			 *
 			 * @param filename адрес файла контейнера CSV для чтения
 			 */
 			void read(const string & filename) noexcept;
 			/**
-			 * read Метод чтения данных из файла
+			 * @brief Метод чтения данных из файла
+			 *
 			 * @param filename адрес файла контейнера CSV для чтения
 			 * @param delim    используемый разделитель
 			 */
 			void read(const string & filename, const char delim) noexcept;
 			/**
-			 * read Метод чтения данных из файла
+			 * @brief Метод чтения данных из файла
+			 *
 			 * @param filename адрес файла контейнера CSV для чтения
 			 * @param callback функция обратного вызова
 			 * @param delim    используемый разделитель
@@ -165,60 +182,70 @@ namespace anyks {
 			void read(const string & filename, function <void (const vector <string> &)> callback, const char delim = '0') noexcept;
 		public:
 			/**
-			 * dump Метод создания дампа данных
+			 * @brief Метод создания дампа данных
+			 *
 			 * @return дамп данных в формате JSON
 			 */
 			json dump() const noexcept;
 			/**
-			 * dump Метод установки дампа данных
+			 * @brief Метод установки дампа данных
+			 *
 			 * @param dump дамп данных в формате JSON
 			 */
 			void dump(const json & dump) noexcept;
 		public:
 			/**
-			 * get Метод извлечения данных контейнера
+			 * @brief Метод извлечения данных контейнера
+			 *
 			 * @return собранные данные контейнера
 			 */
 			const vector <vector <string>> & get() const noexcept;
 		public:
 			/**
-			 * Оператор вывода данные контейнера в качестве строки
+			 * @brief Оператор вывода данные контейнера в качестве строки
+			 *
 			 * @return данные контейнера в качестве строки
 			 */
 			operator string() const noexcept;
 		public:
 			/**
-			 * Оператор [=] присвоения контейнеров
+			 * @brief Оператор [=] присвоения контейнеров
+			 *
 			 * @param csv контенер для присвоения
 			 * @return    текущий объект
 			 */
 			CSV & operator = (const CSV & csv) noexcept;
 			/**
-			 * Оператор [=] присвоения контейнеров
+			 * @brief Оператор [=] присвоения контейнеров
+			 *
 			 * @param csv контенер для присвоения
 			 * @return    текущий объект
 			 */
 			CSV & operator = (const string & csv) noexcept;
 		public:
 			/**
-			 * CSV Конструктор
+			 * @brief Конструктор
+			 *
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
 			CSV(const fmk_t * fmk, const log_t * log) noexcept : _header(false), _fs(fmk, log), _fmk(fmk), _log(log) {}
 			/**
-			 * ~CSV Деструктор
+			 * @brief Деструктор
+			 *
 			 */
 			~CSV() noexcept {}
 	} csv_t;
 	/**
-	 * Оператор [>>] чтения из потока CSV контейнера
+	 * @brief Оператор [>>] чтения из потока CSV контейнера
+	 *
 	 * @param is  поток для чтения
 	 * @param csv контенер для присвоения
 	 */
 	ACUSHARED_EXPORT istream & operator >> (istream & is, csv_t & csv) noexcept;
 	/**
-	 * Оператор [<<] вывода в поток CSV контейнера
+	 * @brief Оператор [<<] вывода в поток CSV контейнера
+	 *
 	 * @param os  поток куда нужно вывести данные
 	 * @param csv контенер для присвоения
 	 */

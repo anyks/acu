@@ -26,7 +26,8 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
- * clearPatterns Метод сброса списка добавленных шаблонов GROK
+ * @brief Метод сброса списка добавленных шаблонов GROK
+ *
  */
 void anyks::Parser::clearPatterns() noexcept {
 	// Выполняем блокировку потока
@@ -35,7 +36,8 @@ void anyks::Parser::clearPatterns() noexcept {
 	this->_grok.clearPatterns();
 }
 /**
- * pattern Метод добавления шаблона GROK
+ * @brief Метод добавления шаблона GROK
+ *
  * @param key название переменной
  * @param val регуляреное выражение соответствующее переменной
  */
@@ -46,7 +48,8 @@ void anyks::Parser::pattern(const string & key, const string & val) noexcept {
 	this->_grok.pattern(key, val);
 }
 /**
- * patterns Метод добавления списка поддерживаемых шаблонов
+ * @brief Метод добавления списка поддерживаемых шаблонов
+ *
  * @param patterns список поддерживаемых шаблонов
  */
 void anyks::Parser::patterns(const Document & patterns) noexcept {
@@ -56,7 +59,8 @@ void anyks::Parser::patterns(const Document & patterns) noexcept {
 	this->_grok.patterns(patterns);
 }
 /**
- * yaml Метод конвертации текста в формате YAML в объект JSON
+ * @brief Метод конвертации текста в формате YAML в объект JSON
+ *
  * @param text текст для конвертации
  * @return     объект в формате JSON
  */
@@ -72,20 +76,24 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 		 */
 		try {
 			/**
-			 * parseFn Прототип функции парсинга XML документа
+			 * @brief Прототип функции парсинга XML документа
+			 *
 			 * @param таблица результатов
 			 * @param название ключа куда добавляется содержимое ноды
 			 * @param объект текущей ноды
 			 */
 			function <void (Document &, const Value &, const YAML::Node &)> parseFn;
 			/**
-			 * parseFn Функция парсинга XML документа
+			 * @brief Функция парсинга XML документа
+			 *
 			 * @param root корень объекта для записи результата
 			 * @param name название ключа куда добавляется содержимое ноды
 			 * @param node объект текущей ноды
 			 */
 			parseFn = [&parseFn, this](Document & root, const Value & name, const YAML::Node & node) noexcept -> void {
-				// Определяем тип полученной ноды
+				/**
+				 * Определяем тип полученной ноды
+				 */
 				switch(node.Type()){
 					// Если объект определён как не существующий
 					case YAML::NodeType::Null: {
@@ -232,7 +240,9 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 			};
 			// Выполняем загрузку текстовых данных YAML
 			YAML::Node node = YAML::Load(text);
-			// Определяем тип полученной ноды
+			/**
+			 * Определяем тип полученной ноды
+			 */
 			switch(node.Type()){
 				// Если объект определён как не существующий
 				case YAML::NodeType::Null:
@@ -347,7 +357,8 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 	return result;
 }
 /**
- * yaml Метод конвертации объекта JSON в текст в формате YAML
+ * @brief Метод конвертации объекта JSON в текст в формате YAML
+ *
  * @param data данные в объекте JSON
  * @return     текст после конвертации
  */
@@ -363,14 +374,16 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 		 */
 		try {
 			/**
-			 * parseFn Прототип функции парсинга XML документа
+			 * @brief Прототип функции парсинга XML документа
+			 *
 			 * @param таблица результатов
 			 * @param название ключа куда добавляется содержимое ноды
 			 * @param объект текущей ноды
 			 */
 			function <void (YAML::Node &, const Value &, const Value &)> parseFn;
 			/**
-			 * parseFn Функция парсинга XML документа
+			 * @brief Функция парсинга XML документа
+			 *
 			 * @param node  корень объекта для записи результата
 			 * @param name  название ключа куда добавляется содержимое ноды
 			 * @param value объект текущей ноды
@@ -551,7 +564,8 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 	return result;
 }
 /**
- * ini Метод конвертации текста в формате INI в объект JSON
+ * @brief Метод конвертации текста в формате INI в объект JSON
+ *
  * @param text текст для конвертации
  * @return     объект в формате JSON
  */
@@ -644,7 +658,8 @@ Document anyks::Parser::ini(const string & text) noexcept {
 	return result;
 }
 /**
- * ini Метод конвертации объекта JSON в текст в формате INI
+ * @brief Метод конвертации объекта JSON в текст в формате INI
+ *
  * @param data данные в объекте JSON
  * @return     текст после конвертации
  */
@@ -732,7 +747,8 @@ string anyks::Parser::ini(const Document & data) noexcept {
 	return result;
 }
 /**
- * syslog Метод конвертации текста в формате SysLog в объект JSON
+ * @brief Метод конвертации текста в формате SysLog в объект JSON
+ *
  * @param text текст для конвертации
  * @return     объект в формате JSON
  */
@@ -776,7 +792,8 @@ Document anyks::Parser::syslog(const string & text) noexcept {
 	return result;
 }
 /**
- * syslog Метод конвертации объекта JSON в текст в формате SysLog
+ * @brief Метод конвертации объекта JSON в текст в формате SysLog
+ *
  * @param data данные в объекте JSON
  * @return     текст после конвертации
  */
@@ -818,7 +835,8 @@ string anyks::Parser::syslog(const Document & data) noexcept {
 	return "";
 }
 /**
- * grok Метод конвертации текста в формате GROK в объект JSON
+ * @brief Метод конвертации текста в формате GROK в объект JSON
+ *
  * @param text    текст для конвертации
  * @param pattern регулярное выражение в формате GROK
  * @return        объект в формате JSON
@@ -867,7 +885,8 @@ Document anyks::Parser::grok(const string & text, const string & pattern) noexce
 	return result;
 }
 /**
- * csv Метод конвертации текста в формате CSV в объект JSON
+ * @brief Метод конвертации текста в формате CSV в объект JSON
+ *
  * @param text   текст для конвертации
  * @param header флаг формирования заголовков
  * @return       объект в формате JSON
@@ -914,7 +933,8 @@ Document anyks::Parser::csv(const string & text, const bool header) noexcept {
 	return result;
 }
 /**
- * csv Метод конвертации объекта JSON в текст в формате CSV
+ * @brief Метод конвертации объекта JSON в текст в формате CSV
+ *
  * @param data   данные в объекте JSON
  * @param header флаг формирования заголовков
  * @param delim  используемый разделитель
@@ -967,7 +987,8 @@ string anyks::Parser::csv(const Document & data, const bool header, const char d
 	return result;
 }
 /**
- * xml Метод конвертации текста в формате XML в объект JSON
+ * @brief Метод конвертации текста в формате XML в объект JSON
+ *
  * @param text текст для конвертации
  * @return     объект в формате JSON
  */
@@ -1013,20 +1034,24 @@ Document anyks::Parser::xml(const string & text) noexcept {
 				// Если корневая нода получена
 				if(node != nullptr){
 					/**
-					 * parseFn Прототип функции парсинга XML документа
+					 * @brief Прототип функции парсинга XML документа
+					 *
 					 * @param таблица результатов
 					 * @param объект текущей ноды
 					 * @param аллокатор для копирования
 					 */
 					function <void (Value &, xmlNodePtr, Document::AllocatorType &)> parseFn;
 					/**
-					 * parseFn Функция парсинга XML документа
+					 * @brief Функция парсинга XML документа
+					 *
 					 * @param root      корень объекта для записи результата
 					 * @param node      объект текущей ноды
 					 * @param allocator аллокатор для копирования
 					 */
 					parseFn = [&parseFn, this](Value & root, xmlNodePtr node, Document::AllocatorType & allocator) noexcept -> void {
-						// Если переданная нода существует
+						/**
+						 *  Если переданная нода существует
+						 */
 						while(node != nullptr){
 							// Если нода передана не системная
 							if((node->type == XML_ELEMENT_NODE) && !xmlIsBlankNode(node)){
@@ -1071,7 +1096,9 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										if(node->properties != nullptr){
 											// Получаем список атрибутов
 											xmlAttr * attribute = node->properties;
-											// Выполняем перебор всего списка атрибутов
+											/**
+											 *  Выполняем перебор всего списка атрибутов
+											 */
 											while((attribute != nullptr) && (attribute->name != nullptr) && (attribute->children != nullptr)){
 												// Выполняем получение значения
 												xmlChar * value = xmlNodeListGetString(node->doc, attribute->children, 1);
@@ -1223,7 +1250,9 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										if(node->properties != nullptr){
 											// Получаем список атрибутов
 											xmlAttr * attribute = node->properties;
-											// Выполняем перебор всего списка атрибутов
+											/**
+											 *  Выполняем перебор всего списка атрибутов
+											 */
 											while((attribute != nullptr) && (attribute->name != nullptr) && (attribute->children != nullptr)){
 												// Выполняем получение значения
 												xmlChar * value = xmlNodeListGetString(node->doc, attribute->children, 1);
@@ -1351,7 +1380,9 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										string key("value");
 										// Если элемент не является массивом
 										if(root[reinterpret_cast <const char *> (node->name)].IsObject()){
-											// Если такой ключ уже существует в объекте
+											/**
+											 *  Если такой ключ уже существует в объекте
+											 */
 											while(root[reinterpret_cast <const char *> (node->name)].HasMember(key.c_str()))
 												// Выполняем изменение ключа
 												key.insert(key.begin(), '_');
@@ -1359,7 +1390,9 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										} else if(root[reinterpret_cast <const char *> (node->name)].IsArray()) {
 											// Получаем количество элементов в массиве
 											const SizeType size = root[reinterpret_cast <const char *> (node->name)].Size();
-											// Если такой ключ уже существует в объекте
+											/**
+											 *  Если такой ключ уже существует в объекте
+											 */
 											while(root[reinterpret_cast <const char *> (node->name)][size - 1].HasMember(key.c_str()))
 												// Выполняем изменение ключа
 												key.insert(key.begin(), '_');
@@ -1567,7 +1600,9 @@ Document anyks::Parser::xml(const string & text) noexcept {
 										} else root.AddMember(Value(reinterpret_cast <const char *> (node->name), allocator).Move(), Value(kObjectType).Move(), allocator);
 										// Получаем список атрибутов
 										xmlAttr * attribute = node->properties;
-										// Выполняем перебор всего списка атрибутов
+										/**
+										 *  Выполняем перебор всего списка атрибутов
+										 */
 										while((attribute != nullptr) && (attribute->name != nullptr) && (attribute->children != nullptr)){
 											// Выполняем получение значения
 											xmlChar * value = xmlNodeListGetString(node->doc, attribute->children, 1);
@@ -1713,7 +1748,9 @@ Document anyks::Parser::xml(const string & text) noexcept {
 					if(node->properties != nullptr){
 						// Получаем список атрибутов
 						xmlAttr * attribute = node->properties;
-						// Выполняем перебор всего списка атрибутов
+						/**
+						 *  Выполняем перебор всего списка атрибутов
+						 */
 						while((attribute != nullptr) && (attribute->name != nullptr) && (attribute->children != nullptr)){
 							// Выполняем получение значения
 							xmlChar * value = xmlNodeListGetString(node->doc, attribute->children, 1);
@@ -1782,7 +1819,9 @@ Document anyks::Parser::xml(const string & text) noexcept {
 							string key("value");
 							// Если элемент не является массивом
 							if(result[reinterpret_cast <const char *> (node->name)].IsObject()){
-								// Если такой ключ уже существует в объекте
+								/**
+								 *  Если такой ключ уже существует в объекте
+								 */
 								while(result[reinterpret_cast <const char *> (node->name)].HasMember(key.c_str()))
 									// Выполняем изменение ключа
 									key.insert(key.begin(), '_');
@@ -1790,7 +1829,9 @@ Document anyks::Parser::xml(const string & text) noexcept {
 							} else if(result[reinterpret_cast <const char *> (node->name)].IsArray()) {
 								// Получаем количество элементов в массиве
 								const SizeType size = result[reinterpret_cast <const char *> (node->name)].Size();
-								// Если такой ключ уже существует в объекте
+								/**
+								 *  Если такой ключ уже существует в объекте
+								 */
 								while(result[reinterpret_cast <const char *> (node->name)][size - 1].HasMember(key.c_str()))
 									// Выполняем изменение ключа
 									key.insert(key.begin(), '_');
@@ -2032,7 +2073,8 @@ Document anyks::Parser::xml(const string & text) noexcept {
 	return result;
 }
 /**
- * xml Метод конвертации объекта JSON в текст в формате XML
+ * @brief Метод конвертации объекта JSON в текст в формате XML
+ *
  * @param data     данные в объекте JSON
  * @param prettify флаг генерации читаемого формата
  * @return         текст после конвертации
@@ -2049,7 +2091,8 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 		 */
 		try {
 			/**
-			 * Symbol Структура поиска запрещённого символа
+			 * @brief Структура поиска запрещённого символа
+			 *
 			 */
 			typedef struct Symbol {
 				// Позиция символа для замены
@@ -2057,12 +2100,14 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 				// Текст замены
 				string val;
 				/**
-				 * Symbol Конструктор
+				 * @brief Конструктор
+				 *
 				 */
 				Symbol() noexcept : pos(string::npos), val{""} {}
 			} symbol_t;
 			/**
-			 * findSymbolFn Функция поиска запрещённого символа
+			 * @brief Функция поиска запрещённого символа
+			 *
 			 * @param text текст для поиска
 			 * @param pos  начальная позиция поиска
 			 * @return     позиция найденного символа
@@ -2074,7 +2119,9 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 				if(!text.empty()){
 					// Перебираем полученный текст
 					for(size_t i = pos; i < text.length(); i++){
-						// Выполняем проверку символа
+						/**
+						 * Выполняем проверку символа
+						 */
 						switch(text.at(i)){
 							// Если найден символ кавычка
 							case '"': {
@@ -2128,7 +2175,8 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 				return result;
 			};
 			/**
-			 * removeBracketsFn Метод удаления скобок
+			 * @brief Метод удаления скобок
+			 *
 			 * @param text текст в котором следует удалить скобки
 			 */
 			auto removeBracketsFn = [&findSymbolFn](const string & text) noexcept -> string {
@@ -2164,7 +2212,8 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 				// Выполняем добавление переноса строк
 				result.append(1, '\n');
 			/**
-			 * parseFn Прототип функции парсинга XML документа
+			 * @brief Прототип функции парсинга XML документа
+			 *
 			 */
 			function <void (string &, const Document &, const uint16_t)> parseFn;
 			/**
@@ -2172,7 +2221,8 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 			 */
 			function <void (const string &, const Value &, string &, const uint16_t)> simpleFn, arrayFn, objectFn;
 			/**
-			 * arrayFn Функция формирования разметки массива
+			 * @brief Функция формирования разметки массива
+			 *
 			 * @param key    ключ записи для формирования
 			 * @param value  значение записи для формирования
 			 * @param result итоговый собранный результат в формате XML
@@ -2496,7 +2546,8 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 				}
 			};
 			/**
-			 * objectFn Функция формирования разметки объекта
+			 * @brief Функция формирования разметки объекта
+			 *
 			 * @param key    ключ записи для формирования
 			 * @param value  значение записи для формирования
 			 * @param result итоговый собранный результат в формате XML
@@ -2773,7 +2824,8 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 				}
 			};
 			/**
-			 * simpleFn Функция формирования разметки простых данных
+			 * @brief Функция формирования разметки простых данных
+			 *
 			 * @param key    ключ записи для формирования
 			 * @param value  значение записи для формирования
 			 * @param result итоговый собранный результат в формате XML
@@ -3044,7 +3096,8 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 					arrayFn(key, value, result, tabs);
 			};
 			/**
-			 * parseFn Функция парсинга XML документа
+			 * @brief Функция парсинга XML документа
+			 *
 			 * @param root корень объекта для записи результата
 			 * @param node объект текущей ноды
 			 * @param tabs количество отступов
@@ -3139,7 +3192,8 @@ string anyks::Parser::xml(const Document & data, const bool prettify) noexcept {
 	return result;
 }
 /**
- * json Метод конвертации текста в формате JSON в объект JSON
+ * @brief Метод конвертации текста в формате JSON в объект JSON
+ *
  * @param text текст для конвертации
  * @return     объект в формате JSON
  */
@@ -3193,7 +3247,8 @@ Document anyks::Parser::json(const string & text) noexcept {
 	return result;
 }
 /**
- * json Метод конвертации объекта JSON в текст в формате JSON
+ * @brief Метод конвертации объекта JSON в текст в формате JSON
+ *
  * @param data     данные в объекте JSON
  * @param prettify флаг генерации читаемого формата
  * @return         текст после конвертации
@@ -3249,7 +3304,8 @@ string anyks::Parser::json(const Document & data, const bool prettify) noexcept 
 	return "";
 }
 /**
- * cef Метод конвертации текста в формате CEF в объект JSON
+ * @brief Метод конвертации текста в формате CEF в объект JSON
+ *
  * @param text текст для конвертации
  * @param mode режим парсинга
  * @return     объект в формате JSON
@@ -3296,7 +3352,8 @@ Document anyks::Parser::cef(const string & text, const cef_t::mode_t mode) noexc
 	return result;
 }
 /**
- * cef Метод конвертации объекта JSON в текст в формате CEF
+ * @brief Метод конвертации объекта JSON в текст в формате CEF
+ *
  * @param data данные в объекте JSON
  * @param mode режим парсинга
  * @return     текст после конвертации

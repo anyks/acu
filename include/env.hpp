@@ -45,7 +45,8 @@
 #include <rapidjson/stringbuffer.h>
 
 /**
- * anyks пространство имён
+ * @brief пространство имён
+ *
  */
 namespace anyks {
 	/**
@@ -61,7 +62,8 @@ namespace anyks {
 	 */
 	using json = Document;
 	/**
-	 * Env Класс модуля работы с переменными окружения
+	 * @brief Класс модуля работы с переменными окружения
+	 *
 	 */
 	typedef class Env {
 		private:
@@ -103,7 +105,8 @@ namespace anyks {
 			const log_t * _log;
 		private:
 			/**
-			 * env Метод извлечения переменной окружения
+			 * @brief Метод извлечения переменной окружения
+			 *
 			 * @param key переменная окружения
 			 * @return    значение переменной
 			 */
@@ -148,7 +151,8 @@ namespace anyks {
 			}
 		private:
 			/**
-			 * set Метод выполнения установку значения в базу данных
+			 * @brief Метод выполнения установку значения в базу данных
+			 *
 			 * @param key   ключ записи для установки
 			 * @param value текстовое значение для установки
 			 */
@@ -341,7 +345,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * count Метод извлечения количества аргументов
+			 * @brief Метод извлечения количества аргументов
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     количество полученных аргументов
@@ -463,7 +468,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * exist Метод проверки на существование ключа
+			 * @brief Метод проверки на существование ключа
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -551,7 +557,8 @@ namespace anyks {
 			}
 		public:
 			/**
-			 * is Метод проверки наличия и значения переменной
+			 * @brief Метод проверки наличия и значения переменной
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param key  ключ переменной для проверки
 			 * @param val  значение переменной для проверки (если требуется)
@@ -603,7 +610,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isType Метод проверки ключа записи на тип данных
+			 * @brief Метод проверки ключа записи на тип данных
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param type тип элемента который необходимо проверить
 			 * @param args ключи для извлечения
@@ -666,7 +674,9 @@ namespace anyks {
 							else break;
 							// Если мы перебрали все ключи
 							if((i == (keys.size() - 1))){
-								// Определяем тип запрашиваемого элемента
+								/**
+								 * Определяем тип запрашиваемого элемента
+								 */
 								switch(static_cast <uint8_t> (type)){
 									// Если тип элемента является объектом
 									case static_cast <uint8_t> (type_t::ENV_OBJECT):
@@ -730,7 +740,9 @@ namespace anyks {
 					} else {
 						// Если нужно выполнить поиск в корневом элементе
 						if(root){
-							// Определяем тип запрашиваемого элемента
+							/**
+							 * Определяем тип запрашиваемого элемента
+							 */
 							switch(static_cast <uint8_t> (type)){
 								// Если тип элемента является объектом
 								case static_cast <uint8_t> (type_t::ENV_OBJECT):
@@ -790,7 +802,9 @@ namespace anyks {
 							}
 						// Если нужно выполнить поиск в рабочем объекте
 						} else if(this->_data.HasMember("work")) {
-							// Определяем тип запрашиваемого элемента
+							/**
+							 * Определяем тип запрашиваемого элемента
+							 */
 							switch(static_cast <uint8_t> (type)){
 								// Если тип элемента является объектом
 								case static_cast <uint8_t> (type_t::ENV_OBJECT):
@@ -877,7 +891,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isArray Метод проверки ключа записи на тип Array
+			 * @brief Метод проверки ключа записи на тип Array
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -891,7 +906,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isObject Метод проверки ключа записи на тип Object
+			 * @brief Метод проверки ключа записи на тип Object
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -905,7 +921,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isNumber Метод проверки ключа записи на тип Number
+			 * @brief Метод проверки ключа записи на тип Number
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -919,7 +936,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isInt Метод проверки ключа записи на тип Integer
+			 * @brief Метод проверки ключа записи на тип Integer
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -933,7 +951,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isUint Метод проверки ключа записи на тип Unsigned Integer
+			 * @brief Метод проверки ключа записи на тип Unsigned Integer
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -947,7 +966,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isInt64 Метод проверки ключа записи на тип Integer 64
+			 * @brief Метод проверки ключа записи на тип Integer 64
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -961,7 +981,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isUint64 Метод проверки ключа записи на тип Unsigned Integer 64
+			 * @brief Метод проверки ключа записи на тип Unsigned Integer 64
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -975,7 +996,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isDouble Метод проверки ключа записи на тип Double
+			 * @brief Метод проверки ключа записи на тип Double
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -989,7 +1011,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isFloat Метод проверки ключа записи на тип Float
+			 * @brief Метод проверки ключа записи на тип Float
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -1003,7 +1026,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isString Метод проверки ключа записи на тип String
+			 * @brief Метод проверки ключа записи на тип String
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -1017,7 +1041,8 @@ namespace anyks {
 			 */
 			template <typename... Args>
 			/**
-			 * isBoolean Метод проверки ключа записи на тип Boolean
+			 * @brief Метод проверки ключа записи на тип Boolean
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     результат проверки
@@ -1028,7 +1053,8 @@ namespace anyks {
 			}
 		private:
 			/**
-			 * get Метод извлечения записи в виде булевого значения
+			 * @brief Метод извлечения записи в виде булевого значения
+			 *
 			 * @param item   объект для извлечения данных
 			 * @param result полученный результат
 			 */
@@ -1067,7 +1093,8 @@ namespace anyks {
 			 */
 			template <typename T>
 			/**
-			 * get Метод извлечения записи в виде числа
+			 * @brief Метод извлечения записи в виде числа
+			 *
 			 * @param item   объект для извлечения данных
 			 * @param result полученный результат
 			 */
@@ -1126,7 +1153,8 @@ namespace anyks {
 				}
 			}
 			/**
-			 * get Метод извлечения записи в виде строки
+			 * @brief Метод извлечения записи в виде строки
+			 *
 			 * @param item   объект для извлечения данных
 			 * @param result полученный результат
 			 */
@@ -1201,7 +1229,8 @@ namespace anyks {
 				}
 			}
 			/**
-			 * get Метод извлечения записи в виде JSON
+			 * @brief Метод извлечения записи в виде JSON
+			 *
 			 * @param item   объект для извлечения данных
 			 * @param result полученный результат
 			 */
@@ -1239,7 +1268,8 @@ namespace anyks {
 			 */
 			template <typename T, typename... Args>
 			/**
-			 * get Метод извлечения значения ключа из базы данных
+			 * @brief Метод извлечения значения ключа из базы данных
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     значение ключа в базе данных
@@ -1329,7 +1359,8 @@ namespace anyks {
 			 */
 			template <typename T, typename... Args>
 			/**
-			 * arr Метод извлечения значения ключа из базы данных в виде массива
+			 * @brief Метод извлечения значения ключа из базы данных в виде массива
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     значение ключа в базе данных в виде массива
@@ -1466,7 +1497,8 @@ namespace anyks {
 			 */
 			template <typename T, typename... Args>
 			/**
-			 * obj Метод извлечения значения ключа из базы данных в виде объекта
+			 * @brief Метод извлечения значения ключа из базы данных в виде объекта
+			 *
 			 * @param root флаг чтения из корневого раздела
 			 * @param args ключи для извлечения
 			 * @return     значение ключа в базе данных в виде объекта
@@ -1601,7 +1633,8 @@ namespace anyks {
 			}
 		public:
 			/**
-			 * config Метод получения конфигурационных данных в формате JSON
+			 * @brief Метод получения конфигурационных данных в формате JSON
+			 *
 			 * @return конфигурационные данные
 			 */
 			const json & config() const noexcept {
@@ -1609,7 +1642,8 @@ namespace anyks {
 				return this->_data;
 			}
 			/**
-			 * config Метод добавления данных конфига в формате JSON
+			 * @brief Метод добавления данных конфига в формате JSON
+			 *
 			 * @param config данные в формате JSON
 			 */
 			void config(const json & config) noexcept {
@@ -1665,7 +1699,8 @@ namespace anyks {
 				}
 			}
 			/**
-			 * config Метод добавления данных конфига в формате строки JSON
+			 * @brief Метод добавления данных конфига в формате строки JSON
+			 *
 			 * @param config данные в формате строки JSON
 			 */
 			void config(const string & config) noexcept {
@@ -1700,7 +1735,8 @@ namespace anyks {
 			}
 		public:
 			/**
-			 * filename Метод загрузки данных JSON из файла
+			 * @brief Метод загрузки данных JSON из файла
+			 *
 			 * @param filename адрес файла для загрузки
 			 */
 			void filename(const string & filename) noexcept {
@@ -1743,7 +1779,8 @@ namespace anyks {
 			}
 		public:
 			/**
-			 * text Метод установки списка имён которые нужно извлечь
+			 * @brief Метод установки списка имён которые нужно извлечь
+			 *
 			 * @param text название переменной для извлечения текстовой информации из потока (если параметром не передана)
 			 */
 			void text(const string & text) noexcept {
@@ -1751,7 +1788,8 @@ namespace anyks {
 				this->_text = text;
 			}
 			/**
-			 * prefix Метод установки префикса переменной окружения
+			 * @brief Метод установки префикса переменной окружения
+			 *
 			 * @param prefix префикс переменной окружения
 			 */
 			void prefix(const string & prefix) noexcept {
@@ -1765,7 +1803,8 @@ namespace anyks {
 			}
 		public:
 			/**
-			 * allowAutoRead Метод разрешения или запрещения автоматического чтения текстовой переменной
+			 * @brief Метод разрешения или запрещения автоматического чтения текстовой переменной
+			 *
 			 * @param flag значение флага
 			 */
 			void allowAutoRead(const bool flag = true) noexcept {
@@ -1774,7 +1813,8 @@ namespace anyks {
 			}
 		public:
 			/**
-			 * init Метод инициализации параметров запуска приложения
+			 * @brief Метод инициализации параметров запуска приложения
+			 *
 			 * @param args  список переменных окружения
 			 * @param count количество переменных окружения
 			 */
@@ -1845,7 +1885,8 @@ namespace anyks {
 				}
 			}
 			/**
-			 * init Метод инициализации параметров запуска приложения
+			 * @brief Метод инициализации параметров запуска приложения
+			 *
 			 * @param args  список переменных окружения
 			 * @param count количество переменных окружения
 			 */
@@ -1928,7 +1969,8 @@ namespace anyks {
 			}
 		public:
 			/**
-			 * operator Создаём оператор извлечения JSON объекта
+			 * @brief Создаём оператор извлечения JSON объекта
+			 *
 			 * @return конфигурационные данные
 			 */
 			operator const json & () const noexcept {
@@ -1937,7 +1979,8 @@ namespace anyks {
 			}
 		public:
 			/**
-			 * Env Конструктор
+			 * @brief Конструктор
+			 *
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
@@ -1945,7 +1988,8 @@ namespace anyks {
 			 _fs(fmk, log), _data(kObjectType), _automatic(false),
 			 _text{""}, _prefix{ACU_SHORT_NAME}, _fmk(fmk), _log(log) {}
 			/**
-			 * Env Конструктор
+			 * @brief Конструктор
+			 *
 			 * @param prefix префикс переменной окружения
 			 * @param fmk    объект фреймворка
 			 * @param log    объект для работы с логами
@@ -1956,7 +2000,8 @@ namespace anyks {
 				this->_fmk->transform(this->_prefix, fmk_t::transform_t::UPPER);
 			}
 			/**
-			 * Env Конструктор
+			 * @brief Конструктор
+			 *
 			 * @param prefix префикс переменной окружения
 			 * @param text   название переменной для извлечения текстовой информации из потока (если параметром не передана)
 			 * @param fmk    объект фреймворка

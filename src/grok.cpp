@@ -27,7 +27,8 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
- * isEscaped Функция проверки на экранирование строки
+ * @brief Функция проверки на экранирование строки
+ *
  * @param text текст для проверки экранирования
  * @param pos  позиция в тексте символа скобки
  * @return     результат проверки
@@ -35,7 +36,9 @@ using namespace rapidjson;
 static bool isEscaped(const string & text, size_t pos) noexcept {
 	// Количество найденных экранирований
 	size_t count = 0;
-	// Выполняем поиск количество экранирований
+	/**
+	 *  Выполняем поиск количество экранирований
+	 */
 	while((pos >= 0) && (text.at(--pos) == '\\'))
 		// Увеличиваем найденное количество экранирований
 		count++;
@@ -43,7 +46,8 @@ static bool isEscaped(const string & text, size_t pos) noexcept {
 	return ((count % 2) != 0);
 }
 /**
- * reset Метод сброса параметров объекта
+ * @brief Метод сброса параметров объекта
+ *
  */
 void anyks::Grok::Variables::reset() noexcept {
 	/**
@@ -76,7 +80,8 @@ void anyks::Grok::Variables::reset() noexcept {
 	}
 }
 /**
- * count Метод получения количество добавленных переменных
+ * @brief Метод получения количество добавленных переменных
+ *
  * @return количество добавленных переменных
  */
 uint8_t anyks::Grok::Variables::count() const noexcept {
@@ -84,7 +89,8 @@ uint8_t anyks::Grok::Variables::count() const noexcept {
 	return static_cast <uint8_t> (this->_names.size());
 }
 /**
- * get Метод извлечения названия переменной которой соответствует текст
+ * @brief Метод извлечения названия переменной которой соответствует текст
+ *
  * @param text  для получения переменной передан
  * @param index индекс запрашиваемой переменной
  * @return      название переменной, которой соответствует текст
@@ -144,7 +150,8 @@ string anyks::Grok::Variables::get(const string & text, const uint8_t index) noe
 	return "";
 }
 /**
- * push Метод добавления переменной
+ * @brief Метод добавления переменной
+ *
  * @param name    название переменной
  * @param pattern шаблон регулярного выражения переменной
  */
@@ -221,7 +228,8 @@ void anyks::Grok::Variables::push(const string & name, const string & pattern) n
 	}
 }
 /**
- * ~Variables деструктор
+ * @brief деструктор
+ *
  */
 anyks::Grok::Variables::~Variables() noexcept {
 	/**
@@ -244,7 +252,8 @@ anyks::Grok::Variables::~Variables() noexcept {
 	}
 }
 /**
- * clear Метод очистки параметров модуля
+ * @brief Метод очистки параметров модуля
+ *
  */
 void anyks::Grok::clear() noexcept {
 	/**
@@ -277,7 +286,8 @@ void anyks::Grok::clear() noexcept {
 	}
 }
 /**
- * reset Метод сброса собранных данных
+ * @brief Метод сброса собранных данных
+ *
  * @param cid идентификатор записи в кэше
  */
 void anyks::Grok::reset(const uint64_t cid) noexcept {
@@ -316,7 +326,8 @@ void anyks::Grok::reset(const uint64_t cid) noexcept {
 	}
 }
 /**
- * clearPatterns Метод очистки списка добавленных шаблонов
+ * @brief Метод очистки списка добавленных шаблонов
+ *
  */
 void anyks::Grok::clearPatterns() noexcept {
 	// Если список ключей существует
@@ -356,7 +367,8 @@ void anyks::Grok::clearPatterns() noexcept {
 	}
 }
 /**
- * removePattern Метод удаления добавленного шаблона
+ * @brief Метод удаления добавленного шаблона
+ *
  * @param name название шаблона для удаления
  */
 void anyks::Grok::removePattern(const string & name) noexcept {
@@ -395,7 +407,8 @@ void anyks::Grok::removePattern(const string & name) noexcept {
 	}
 }
 /**
- * namedGroups Метод извлечения именованных групп
+ * @brief Метод извлечения именованных групп
+ *
  * @param text текст для извлечения именованных групп
  */
 void anyks::Grok::namedGroups(string & text) const noexcept {
@@ -417,7 +430,9 @@ void anyks::Grok::namedGroups(string & text) const noexcept {
 					size_t beginGroup = 0, endGrounp = 0;
 					// Выполняем перебор всех полученных символов
 					for(size_t i = (result.first + 2); i < (result.second - 1); i++){
-						// Определяем текущий символ
+						/**
+						 * Определяем текущий символ
+						 */
 						switch(text.at(i)){
 							// Если символом является символ начального экранирования названия группы
 							case '<':
@@ -469,7 +484,8 @@ void anyks::Grok::namedGroups(string & text) const noexcept {
 	}
 }
 /**
- * variable Метод извлечения первой блоковой переменной в тексте
+ * @brief Метод извлечения первой блоковой переменной в тексте
+ *
  * @param text текст из которого следует извлечь переменные
  * @return     первая блоковая переменная
  */
@@ -488,7 +504,9 @@ anyks::Grok::let_t anyks::Grok::variable(const string & text) const noexcept {
 			size_t begin = 0, end = 0;
 			// Перебираем полученный текст
 			for(size_t i = 0; i < text.length(); i++){
-				// Определяем текущий статус
+				/**
+				 * Определяем текущий статус
+				 */
 				switch(static_cast <uint8_t> (ss)){
 					// Статус разделителя не определён
 					case static_cast <uint8_t> (ss_t::NONE): {
@@ -511,7 +529,9 @@ anyks::Grok::let_t anyks::Grok::variable(const string & text) const noexcept {
 					} break;
 					// Статус разделителя определён как конечный
 					case static_cast <uint8_t> (ss_t::SECOND): {
-						// Определяем символ
+						/**
+						 * Определяем символ
+						 */
 						switch(text.at(i)){
 							// Если найдено конечное экранирование
 							case '}': {
@@ -559,7 +579,8 @@ anyks::Grok::let_t anyks::Grok::variable(const string & text) const noexcept {
 	return result;
 }
 /**
- * removeBrackets Метод удаления скобок
+ * @brief Метод удаления скобок
+ *
  * @param text текст в котором следует удалить скобки
  */
 void anyks::Grok::removeBrackets(string & text) const noexcept {
@@ -605,7 +626,8 @@ void anyks::Grok::removeBrackets(string & text) const noexcept {
 	}
 }
 /**
- * bracket Метод поиска скобки для замены
+ * @brief Метод поиска скобки для замены
+ *
  * @param text текст для поиска
  * @param pos  начальная позиция для поиска
  * @return     позиция найденной скобки
@@ -621,7 +643,9 @@ ssize_t anyks::Grok::bracket(const string & text, const size_t pos) const noexce
 			uint16_t shielding = 0;
 			// Перебираем полученный текст
 			for(size_t i = pos; i < text.length(); i++){
-				// Определяем текущий символ
+				/**
+				 * Определяем текущий символ
+				 */
 				switch(text.at(i)){
 					// Если символом является символ экранирования
 					case '\\':
@@ -667,14 +691,15 @@ ssize_t anyks::Grok::bracket(const string & text, const size_t pos) const noexce
 	return -1;
 }
 /**
- * namedGroup Метод получения позиции именованной группы
+ * @brief Метод получения позиции именованной группы
+ *
  * @param text текст для поиска
  * @param pos  начальная позиция для поиска
  * @return     позиция найденной именованной группы
  */
-pair <ssize_t, ssize_t> anyks::Grok::namedGroup(const string & text, const size_t pos) const noexcept {
+std::pair <ssize_t, ssize_t> anyks::Grok::namedGroup(const string & text, const size_t pos) const noexcept {
 	// Результат работы функции
-	pair <ssize_t, ssize_t> result = {-1, -1};
+	std::pair <ssize_t, ssize_t> result = {-1, -1};
 	// Если текст передан не пустой
 	if(!text.empty()){
 		/**
@@ -687,7 +712,9 @@ pair <ssize_t, ssize_t> anyks::Grok::namedGroup(const string & text, const size_
 			uint16_t openBracket = 0, indexBracket = 0;
 			// Перебираем полученный текст
 			for(size_t i = pos; i < text.length(); i++){
-				// Определяем текущий символ
+				/**
+				 * Определяем текущий символ
+				 */
 				switch(text.at(i)){
 					// Если символом является символ экранирования
 					case '\\':
@@ -756,14 +783,15 @@ pair <ssize_t, ssize_t> anyks::Grok::namedGroup(const string & text, const size_
 	return result;
 }
 /**
- * prepare Метод обработки полученной переменной Grok
+ * @brief Метод обработки полученной переменной Grok
+ *
  * @param text текст в котором найдена переменная Grok
  * @param lets разрешить обработку блочных переменных
  * @return     список извлечённых переменных
  */
-vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool lets) const noexcept {
+vector <std::pair <string, string>> anyks::Grok::prepare(string & text, const bool lets) const noexcept {
 	// Результат работы функции
-	vector <pair <string, string>> result;
+	vector <std::pair <string, string>> result;
 	// Если текст для обработки передан
 	if(!text.empty()){
 		/**
@@ -867,7 +895,8 @@ vector <pair <string, string>> anyks::Grok::prepare(string & text, const bool le
 	return result;
 }
 /**
- * patterns Метод добавления списка поддерживаемых шаблонов
+ * @brief Метод добавления списка поддерживаемых шаблонов
+ *
  * @param patterns список поддерживаемых шаблонов
  */
 void anyks::Grok::patterns(const json & patterns) noexcept {
@@ -923,7 +952,8 @@ void anyks::Grok::patterns(const json & patterns) noexcept {
 	}
 }
 /**
- * pattern Метод добавления шаблона
+ * @brief Метод добавления шаблона
+ *
  * @param key название переменной
  * @param val регуляреное выражение соответствующее переменной
  */
@@ -934,7 +964,8 @@ void anyks::Grok::pattern(const string & key, const string & val) noexcept {
 		this->pattern(key, val, event_t::EXTERNAL);
 }
 /**
- * pattern Метод добавления шаблона
+ * @brief Метод добавления шаблона
+ *
  * @param key   название переменной
  * @param val   регуляреное выражение соответствующее переменной
  * @param event тип выполняемого события
@@ -956,7 +987,9 @@ void anyks::Grok::pattern(const string & key, const string & val, const event_t 
 			this->prepare(text, false);
 			// Если текст регулярного выражения получен
 			if(!text.empty()){
-				// Определяем тип события
+				/**
+				 * Определяем тип события
+				 */
 				switch(static_cast <uint8_t> (event)){
 					// Если событие является внутренним
 					case static_cast <uint8_t> (event_t::INTERNAL):
@@ -991,7 +1024,8 @@ void anyks::Grok::pattern(const string & key, const string & val, const event_t 
 	}
 }
 /**
- * generatePattern Метод генерации шаблона
+ * @brief Метод генерации шаблона
+ *
  * @param key название шаблона в виде <name>
  * @param val значение шиблок (Регулярное выражение или Grok-шаблон)
  * @return    сгенерированный шаблон
@@ -1012,7 +1046,7 @@ string anyks::Grok::generatePattern(const string & key, const string & val) noex
 			// Добавляем значение
 			name.append(val);
 			// Выполняем генерацию идентификатора кэша
-			const uint64_t id = CityHash64(name.c_str(), name.size());
+			const uint64_t id = ::CityHash64(name.c_str(), name.size());
 			// Выполняем поиск идентификатора в списке переменных
 			auto i = this->_nameGroups.find(id);
 			// Если менованная группа найдена
@@ -1075,7 +1109,8 @@ string anyks::Grok::generatePattern(const string & key, const string & val) noex
 	return result;
 }
 /**
- * build Метод сборки регулярного выражения
+ * @brief Метод сборки регулярного выражения
+ *
  * @param text текст регулярного выражения для сборки
  * @return     идентификатор записи в кэше
  */
@@ -1085,7 +1120,7 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 	// Если текст передан
 	if(!text.empty()){
 		// Выполняем генерацию идентификатора кэша
-		result = CityHash64(text.c_str(), text.size());
+		result = ::CityHash64(text.c_str(), text.size());
 		/**
 		 * Выполняем отлов ошибок
 		 */
@@ -1206,7 +1241,8 @@ uint64_t anyks::Grok::build(string & text) const noexcept {
 	return result;
 }
 /**
- * parse Метод выполнения парсинга текста
+ * @brief Метод выполнения парсинга текста
+ *
  * @param text текст для парсинга
  * @param cid  идентификатор записи в кэше
  * @return     результат выполнения регулярного выражения
@@ -1277,7 +1313,8 @@ bool anyks::Grok::parse(const string & text, const uint64_t cid) noexcept {
 	return result;
 }
 /**
- * dump Метод извлечения данных в виде JSON
+ * @brief Метод извлечения данных в виде JSON
+ *
  * @param cid идентификатор записи в кэше
  * @return    json объект дампа данных
  */
@@ -1357,7 +1394,8 @@ anyks::json anyks::Grok::dump(const uint64_t cid) const noexcept {
 	return result;
 }
 /**
- * get Метод извлечения записи по ключу
+ * @brief Метод извлечения записи по ключу
+ *
  * @param key ключ записи для извлечения
  * @param cid идентификатор записи в кэше
  * @return    значение записи ключа
@@ -1405,7 +1443,8 @@ string anyks::Grok::get(const string & key, const uint64_t cid) const noexcept {
 	return result;
 }
 /**
- * Grok Конструктор
+ * @brief Конструктор
+ *
  * @param fmk объект фреймворка
  * @param log объект для работы с логами
  */

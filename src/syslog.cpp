@@ -26,7 +26,8 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
- * clear Метод очистки данных
+ * @brief Метод очистки данных
+ *
  */
 void anyks::SysLog::clear() noexcept {
 	/**
@@ -73,7 +74,8 @@ void anyks::SysLog::clear() noexcept {
 	}
 }
 /**
- * parse Метод парсинга строки в формате SysLog
+ * @brief Метод парсинга строки в формате SysLog
+ *
  * @param syslog строка в формате SysLog
  * @param std    стандарт SysLog
  */
@@ -86,7 +88,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 		try {
 			// Выполняем блокировку потока
 			const lock_guard <std::recursive_mutex> lock(this->_mtx);
-			// Определяем активированный режим парсинга
+			/**
+			 * Определяем активированный режим парсинга
+			 */
 			switch(static_cast <uint8_t> (this->_mode)){
 				// Если активирован нативный режим парсинга
 				case static_cast <uint8_t> (mode_t::NATIVE): {
@@ -125,7 +129,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 						} else {
 							// Если статус поиска установлен как поиск приоритета или версии сообщения
 							if((status == 0) || (status == 1)){
-								// Определяем статус парсинга
+								/**
+								 * Определяем статус парсинга
+								 */
 								switch(status){
 									// Если производится сбор приоритета
 									case 0: {
@@ -213,11 +219,15 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 								}
 							// Если статус поиска производится другой
 							} else {
-								// Определяем тип стандарта
+								/**
+								 * Определяем тип стандарта
+								 */
 								switch(static_cast <uint8_t> (std)){
 									// Если установлен стандарт RFC3164
 									case static_cast <uint8_t> (std_t::RFC3164): {
-										// Определяем статус парсинга
+										/**
+										 * Определяем статус парсинга
+										 */
 										switch(status){
 											// Если производится сбор даты
 											case 2: {
@@ -314,7 +324,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 									} break;
 									// Если установлен стандарт RFC5424
 									case static_cast <uint8_t> (std_t::RFC5424): {
-										// Определяем статус парсинга
+										/**
+										 * Определяем статус парсинга
+										 */
 										switch(status){
 											// Если производится сбор даты сообщения
 											case 2: {
@@ -525,7 +537,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 							const string & item = result.at(i);
 							// Если значение получено
 							if(!item.empty()){
-								// Определяем номер элемента
+								/**
+								 * Определяем номер элемента
+								 */
 								switch(i){
 									// Если мы получили приоритетное значение
 									case 1: {
@@ -555,7 +569,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 											for(size_t j = 1; j < date.size(); j++){
 												// Если дата получена
 												if(!date.at(j).empty()){
-													// Определяем тип полученных данных
+													/**
+													 * Определяем тип полученных данных
+													 */
 													switch(j){
 														// Если мы получили день недели
 														case 1:
@@ -688,7 +704,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 								const string & item = result.at(i);
 								// Если значение получено
 								if(!item.empty()){
-									// Определяем номер элемента
+									/**
+									 * Определяем номер элемента
+									 */
 									switch(i){
 										// Если мы получили приоритетное значение
 										case 1: {
@@ -734,7 +752,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 												for(size_t j = 1; j < date.size(); j++){
 													// Если дата получена
 													if(!date.at(j).empty()){
-														// Определяем тип полученных данных
+														/**
+														 * Определяем тип полученных данных
+														 */
 														switch(j){
 															// Если мы получили день недели
 															case 1:
@@ -846,7 +866,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 											string sid = "", key = "", value = "";
 											// Выполняем перебор всего текста
 											for(size_t i = 0; i < item.length(); i++){
-												// Определяем значение текущего символа
+												/**
+												 * Определяем значение текущего символа
+												 */
 												switch(item.at(i)){
 													// Если это пробел, пропускаем
 													case ' ': break;
@@ -872,7 +894,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 															end = (i + 1);
 															// Выполняем перебор диапазона параметров
 															for(size_t j = begin; j < i; j++){
-																// Определяем параметры
+																/**
+																 * Определяем параметры
+																 */
 																switch(item.at(j)){
 																	// Если мы обнаружили пробел
 																	case ' ': {
@@ -898,7 +922,9 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 																			value.clear();
 																			// Выполняем перебор всего текста
 																			for(size_t k = j; k < i; k++){
-																				// Определяем значение текущего символа
+																				/**
+																				 * Определяем значение текущего символа
+																				 */
 																				switch(item.at(k)){
 																					// Если символ является пробелом
 																					case ' ':
@@ -1014,7 +1040,8 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 	}
 }
 /**
- * has Метод проверки существования идентификатора структурированных данных
+ * @brief Метод проверки существования идентификатора структурированных данных
+ *
  * @param id идентификатор структурированных данных для проверки
  * @return   результат проверки существования идентификатора структурированных данных
  */
@@ -1029,7 +1056,8 @@ bool anyks::SysLog::has(const string & id) const noexcept {
 	return result;
 }
 /**
- * has Метод проверки существования ключа структурированных данных
+ * @brief Метод проверки существования ключа структурированных данных
+ *
  * @param id  идентификатор структурированных данных
  * @param key ключ структурированных данных для проверки
  * @return    результат проверки существования структурированных данных
@@ -1050,7 +1078,8 @@ bool anyks::SysLog::has(const string & id, const string & key) const noexcept {
 	return result;
 }
 /**
- * sd Метод получения структурированных данных
+ * @brief Метод получения структурированных данных
+ *
  * @param id  идентификатор структурированных данных
  * @param key ключ структурированных данных для извлечения
  * @return    структурированные данные
@@ -1076,7 +1105,8 @@ const string & anyks::SysLog::sd(const string & id, const string & key) const no
 	return result;
 }
 /**
- * sd Метод получения списка структурированных данных
+ * @brief Метод получения списка структурированных данных
+ *
  * @param id идентификатор структурированных данных
  * @return   список структурированных данных
  */
@@ -1096,7 +1126,8 @@ const std::unordered_map <string, string> & anyks::SysLog::sd(const string & id)
 	return result;
 }
 /**
- * sd Метод установки структурированных данных
+ * @brief Метод установки структурированных данных
+ *
  * @param id идентификатор структурированных данных
  * @param sd список структурированных данных
  */
@@ -1145,7 +1176,8 @@ void anyks::SysLog::sd(const string & id, const std::unordered_map <string, stri
 	}
 }
 /**
- * std Метод получения стандарта сообщения
+ * @brief Метод получения стандарта сообщения
+ *
  * @return стандарт сообщения
  */
 anyks::SysLog::std_t anyks::SysLog::std() const noexcept {
@@ -1153,7 +1185,8 @@ anyks::SysLog::std_t anyks::SysLog::std() const noexcept {
 	return this->_std;
 }
 /**
- * version Метод извлечения версии сообщения
+ * @brief Метод извлечения версии сообщения
+ *
  * @return версия сообщения
  */
 uint8_t anyks::SysLog::version() const noexcept {
@@ -1161,7 +1194,8 @@ uint8_t anyks::SysLog::version() const noexcept {
 	return this->_ver;
 }
 /**
- * version Метод установки версии сообщения
+ * @brief Метод установки версии сообщения
+ *
  * @param version версия сообщения для установки
  */
 void anyks::SysLog::version(const uint8_t version) noexcept {
@@ -1171,7 +1205,8 @@ void anyks::SysLog::version(const uint8_t version) noexcept {
 	this->_ver = version;
 }
 /**
- * category Метод извлечения категории сообщения
+ * @brief Метод извлечения категории сообщения
+ *
  * @return категория сообщения
  */
 uint8_t anyks::SysLog::category() const noexcept {
@@ -1179,7 +1214,8 @@ uint8_t anyks::SysLog::category() const noexcept {
 	return static_cast <uint8_t> (::floor(static_cast <double> (this->_pri / 8)));
 }
 /**
- * importance Метод получения важности сообщения
+ * @brief Метод получения важности сообщения
+ *
  * @return важность сообщения
  */
 uint8_t anyks::SysLog::importance() const noexcept {
@@ -1187,7 +1223,8 @@ uint8_t anyks::SysLog::importance() const noexcept {
 	return static_cast <uint8_t> (this->_pri - static_cast <uint16_t> (::floor(static_cast <double> (this->_pri / 8)) * 8));
 }
 /**
- * pri Метод установки приоритета
+ * @brief Метод установки приоритета
+ *
  * @param category   категория сообщения для установки
  * @param importance важность сообщения для установки
  */
@@ -1198,7 +1235,8 @@ void anyks::SysLog::pri(const uint8_t category, const uint8_t importance) noexce
 	this->_pri = (static_cast <uint16_t> (category) * static_cast <uint16_t> (8) + static_cast <uint16_t> (importance));
 }
 /**
- * host Метод получения хоста сообщения
+ * @brief Метод получения хоста сообщения
+ *
  * @return хост сообщения
  */
 string anyks::SysLog::host() const noexcept {
@@ -1206,7 +1244,8 @@ string anyks::SysLog::host() const noexcept {
 	return this->_host;
 }
 /**
- * host Метод установки хоста сообщения
+ * @brief Метод установки хоста сообщения
+ *
  * @param host хост сообщения для установки
  */
 void anyks::SysLog::host(const string & host) noexcept {
@@ -1220,7 +1259,8 @@ void anyks::SysLog::host(const string & host) noexcept {
 	else this->_host = host;
 }
 /**
- * application Метод получения названия приложения сообщения
+ * @brief Метод получения названия приложения сообщения
+ *
  * @return название приложения сообщения
  */
 string anyks::SysLog::application() const noexcept {
@@ -1228,7 +1268,8 @@ string anyks::SysLog::application() const noexcept {
 	return this->_app;
 }
 /**
- * application Метод установки названия приложения сообщения
+ * @brief Метод установки названия приложения сообщения
+ *
  * @param app назование приложения для установки
  */
 void anyks::SysLog::application(const string & app) noexcept {
@@ -1242,7 +1283,8 @@ void anyks::SysLog::application(const string & app) noexcept {
 	else this->_app = app;
 }
 /**
- * pid Метод получения идентификатора процесса сообщения
+ * @brief Метод получения идентификатора процесса сообщения
+ *
  * @return идентификатор процесса сообщения
  */
 pid_t anyks::SysLog::pid() const noexcept {
@@ -1250,7 +1292,8 @@ pid_t anyks::SysLog::pid() const noexcept {
 	return this->_pid;
 }
 /**
- * pid Метод установки идентификатора процесса
+ * @brief Метод установки идентификатора процесса
+ *
  * @param pid идентификатор процесса для установки
  */
 void anyks::SysLog::pid(const pid_t pid) noexcept {
@@ -1260,15 +1303,17 @@ void anyks::SysLog::pid(const pid_t pid) noexcept {
 	this->_pid = pid;
 }
 /**
- * mid Метод получения идентификатора сообщения
- * @return идентификатор полученного сообщения 
+ * @brief Метод получения идентификатора сообщения
+ *
+ * @return идентификатор полученного сообщения
  */
 string anyks::SysLog::mid() const noexcept {
 	// Выводим идентификатор сообщения
 	return this->_mid;
 }
 /**
- * mid Метод установки идентификатора сообщения
+ * @brief Метод установки идентификатора сообщения
+ *
  * @param mid идентификатор сообщения для установки
  */
 void anyks::SysLog::mid(const string & mid) noexcept {
@@ -1282,7 +1327,8 @@ void anyks::SysLog::mid(const string & mid) noexcept {
 	else this->_mid = mid;
 }
 /**
- * message Метод получения сообщения
+ * @brief Метод получения сообщения
+ *
  * @return полученное сообщение
  */
 string anyks::SysLog::message() const noexcept {
@@ -1290,7 +1336,8 @@ string anyks::SysLog::message() const noexcept {
 	return this->_message;
 }
 /**
- * message Метод установки сообщения
+ * @brief Метод установки сообщения
+ *
  * @param message сообщение для установки
  */
 void anyks::SysLog::message(const string & message) noexcept {
@@ -1300,7 +1347,8 @@ void anyks::SysLog::message(const string & message) noexcept {
 	this->_message = message;
 }
 /**
- * format Метод получения установленного формата даты
+ * @brief Метод получения установленного формата даты
+ *
  * @return установленный формат даты
  */
 string anyks::SysLog::format() const noexcept {
@@ -1308,7 +1356,8 @@ string anyks::SysLog::format() const noexcept {
 	return this->_format;
 }
 /**
- * format Метод установки формата даты
+ * @brief Метод установки формата даты
+ *
  * @param format формат даты для установки
  */
 void anyks::SysLog::format(const string & format) noexcept {
@@ -1320,7 +1369,8 @@ void anyks::SysLog::format(const string & format) noexcept {
 		this->_format = format;
 }
 /**
- * date Метод получения даты сообщения
+ * @brief Метод получения даты сообщения
+ *
  * @param format формат даты сообщения
  * @return       дата сообщения в указанном формате
  */
@@ -1333,7 +1383,8 @@ string anyks::SysLog::date(const string & format) const noexcept {
 	return this->_chrono.format(this->_timestamp, this->_format);
 }
 /**
- * date Метод установки даты сообщения
+ * @brief Метод установки даты сообщения
+ *
  * @param date   дата сообщения для установки
  * @param format формат даты сообщения для установки
  */
@@ -1351,7 +1402,8 @@ void anyks::SysLog::date(const string & date, const string & format) noexcept {
 	}
 }
 /**
- * syslog Метод получения данных в формате SysLog
+ * @brief Метод получения данных в формате SysLog
+ *
  * @return данные в формате SysLog
  */
 string anyks::SysLog::syslog() const noexcept {
@@ -1361,7 +1413,9 @@ string anyks::SysLog::syslog() const noexcept {
 	try {
 		// Результат работы функции
 		string result = "";
-		// Определяем стандарт SysLog
+		/**
+		 * Определяем стандарт SysLog
+		 */
 		switch(static_cast <uint8_t> (this->_std)){
 			// Если установлен стандарт RFC3164
 			case static_cast <uint8_t> (std_t::RFC3164): {
@@ -1545,7 +1599,8 @@ string anyks::SysLog::syslog() const noexcept {
 	return "";
 }
 /**
- * dump Метод извлечения данных в виде JSON
+ * @brief Метод извлечения данных в виде JSON
+ *
  * @return json объект дампа данных
  */
 anyks::json anyks::SysLog::dump() const noexcept {
@@ -1555,7 +1610,9 @@ anyks::json anyks::SysLog::dump() const noexcept {
 	 * Выполняем отлов ошибок
 	 */
 	try {
-		// Определяем стандарт SysLog
+		/**
+		 * Определяем стандарт SysLog
+		 */
 		switch(static_cast <uint8_t> (this->_std)){
 			// Если установлен стандарт RFC3164
 			case static_cast <uint8_t> (std_t::RFC3164):
@@ -1692,7 +1749,8 @@ anyks::json anyks::SysLog::dump() const noexcept {
 	return result;
 }
 /**
- * dump Метод установки данных в формате JSON
+ * @brief Метод установки данных в формате JSON
+ *
  * @param dump данные в формате JSON
  */
 void anyks::SysLog::dump(const json & dump) noexcept {
@@ -1708,7 +1766,9 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 			uint8_t category = 0, importance = 0;
 			// Если стандарт сообщения передан
 			if(dump.HasMember("RFC") && dump["RFC"].IsNumber()){
-				// Определяем тип переданного стандарта
+				/**
+				 * Определяем тип переданного стандарта
+				 */
 				switch(dump["RFC"].GetUint()){
 					// Если передан стандарт RFC3164
 					case 3164:
@@ -1842,7 +1902,8 @@ void anyks::SysLog::dump(const json & dump) noexcept {
 	}
 }
 /**
- * mode Метод получения установленного режима парсинга
+ * @brief Метод получения установленного режима парсинга
+ *
  * @return установленный режим парсинга
  */
 anyks::SysLog::mode_t anyks::SysLog::mode() const noexcept {
@@ -1850,7 +1911,8 @@ anyks::SysLog::mode_t anyks::SysLog::mode() const noexcept {
 	return this->_mode;
 }
 /**
- * mode Метод установки режима парсинга
+ * @brief Метод установки режима парсинга
+ *
  * @param mode режим парсинга для установки
  */
 void anyks::SysLog::mode(const mode_t mode) noexcept {
@@ -1860,7 +1922,8 @@ void anyks::SysLog::mode(const mode_t mode) noexcept {
 	this->_mode = mode;
 }
 /**
- * Оператор вывода данные контейнера в качестве строки
+ * @brief Оператор вывода данные контейнера в качестве строки
+ *
  * @return данные контейнера в качестве строки
  */
 anyks::SysLog::operator string() const noexcept {
@@ -1868,7 +1931,8 @@ anyks::SysLog::operator string() const noexcept {
 	return this->syslog();
 }
 /**
- * Оператор [!=] сравнения контейнеров
+ * @brief Оператор [!=] сравнения контейнеров
+ *
  * @param syslog контенер для сравнения
  * @return       результат сравнения
  */
@@ -1877,7 +1941,8 @@ bool anyks::SysLog::operator != (const syslog_t & syslog) const noexcept {
 	return (this->syslog().compare(syslog.syslog()) != 0);
 }
 /**
- * Оператор [==] сравнения контейнеров
+ * @brief Оператор [==] сравнения контейнеров
+ *
  * @param syslog контенер для сравнения
  * @return       результат сравнения
  */
@@ -1886,7 +1951,8 @@ bool anyks::SysLog::operator == (const syslog_t & syslog) const noexcept {
 	return (this->syslog().compare(syslog.syslog()) == 0);
 }
 /**
- * Оператор [=] присвоения контейнеров
+ * @brief Оператор [=] присвоения контейнеров
+ *
  * @param syslog контенер для присвоения
  * @return       текущий объект
  */
@@ -1941,7 +2007,8 @@ anyks::SysLog & anyks::SysLog::operator = (const syslog_t & syslog) noexcept {
 	return (* this);
 }
 /**
- * Оператор [=] присвоения контейнеров
+ * @brief Оператор [=] присвоения контейнеров
+ *
  * @param syslog контенер для присвоения
  * @return       текущий объект
  */
@@ -1954,7 +2021,8 @@ anyks::SysLog & anyks::SysLog::operator = (const string & syslog) noexcept {
 	return (* this);
 }
 /**
- * SysLog Конструктор
+ * @brief Конструктор
+ *
  * @param fmk объект фреймворка
  * @param log объект для работы с логами
  */
@@ -1991,7 +2059,8 @@ anyks::SysLog::SysLog(const fmk_t * fmk, const log_t * log) noexcept :
 	});
 }
 /**
- * Оператор [>>] чтения из потока SysLog контейнера
+ * @brief Оператор [>>] чтения из потока SysLog контейнера
+ *
  * @param is     поток для чтения
  * @param syslog контенер для присвоения
  */
@@ -2008,7 +2077,8 @@ istream & anyks::operator >> (istream & is, syslog_t & syslog) noexcept {
 	return is;
 }
 /**
- * Оператор [<<] вывода в поток SysLog контейнера
+ * @brief Оператор [<<] вывода в поток SysLog контейнера
+ *
  * @param os     поток куда нужно вывести данные
  * @param syslog контенер для присвоения
  */

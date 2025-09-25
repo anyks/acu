@@ -44,7 +44,8 @@
 #include <parser.hpp>
 
 /**
- * anyks пространство имён
+ * @brief пространство имён
+ *
  */
 namespace anyks {
 	/**
@@ -60,7 +61,8 @@ namespace anyks {
 	 */
 	using json = Document;
 	/**
-	 * Server Класс сервера
+	 * @brief Класс сервера
+	 *
 	 */
 	typedef class ACUSHARED_EXPORT Server {
 		private:
@@ -91,13 +93,15 @@ namespace anyks {
 			};
 		private:
 			/**
-			 * Bandwidth Структура параметров пропускной способности сети
+			 * @brief Структура параметров пропускной способности сети
+			 *
 			 */
 			typedef struct Bandwidth {
 				string read;  // Ширина канала на чтение
 				string write; // Ширина канала на запись
 				/**
-				 * Bandwidth Конструктор
+				 * @brief Конструктор
+				 *
 				 */
 				Bandwidth() noexcept : read{"100Mbps"}, write{"100Mbps"} {}
 			} bandwidth_t;
@@ -135,7 +139,7 @@ namespace anyks {
 			// Объект ограничения скорости сети доступа к серверу
 			bandwidth_t _bandwidth;
 		private:
-			// Чёрный список для IP-адресов 
+			// Чёрный список для IP-адресов
 			std::unordered_set <string> _ipBlack;
 			// Белый список для IP-адресов
 			std::unordered_set <string> _ipWhite;
@@ -160,12 +164,14 @@ namespace anyks {
 			const log_t * _log;
 		private:
 			/**
-			 * crash Метод обработки вызова крашей в приложении
+			 * @brief Метод обработки вызова крашей в приложении
+			 *
 			 * @param sig номер сигнала операционной системы
 			 */
 			void crash(const int32_t sig) noexcept;
 			/**
-			 * error Метод генерации ошибки
+			 * @brief Метод генерации ошибки
+			 *
 			 * @param sid  идентификатор потока
 			 * @param bid  идентификатор брокера
 			 * @param code код ответа сервера
@@ -174,14 +180,16 @@ namespace anyks {
 			void error(const int32_t sid, const uint64_t bid, const uint16_t code, const string & mess) noexcept;
 		private:
 			/**
-			 * password Метод извлечения пароля (для авторизации методом Digest)
+			 * @brief Метод извлечения пароля (для авторизации методом Digest)
+			 *
 			 * @param bid   идентификатор брокера (клиента)
 			 * @param login логин пользователя
 			 * @return      пароль пользователя хранящийся в базе данных
 			 */
 			string password(const uint64_t bid, const string & login) noexcept;
 			/**
-			 * auth Метод проверки авторизации пользователя (для авторизации методом Basic)
+			 * @brief Метод проверки авторизации пользователя (для авторизации методом Basic)
+			 *
 			 * @param bid      идентификатор брокера (клиента)
 			 * @param login    логин пользователя (от клиента)
 			 * @param password пароль пользователя (от клиента)
@@ -190,7 +198,8 @@ namespace anyks {
 			bool auth(const uint64_t bid, const string & login, const string & password) noexcept;
 		private:
 			/**
-			 * accept Метод активации клиента на сервере
+			 * @brief Метод активации клиента на сервере
+			 *
 			 * @param ip   адрес интернет подключения
 			 * @param mac  аппаратный адрес подключения
 			 * @param port порт подключения
@@ -199,26 +208,30 @@ namespace anyks {
 			bool accept(const string & ip, const string & mac, const uint32_t port) noexcept;
 		private:
 			/**
-			 * active Метод вывода статуса работы сетевого ядра
+			 * @brief Метод вывода статуса работы сетевого ядра
+			 *
 			 * @param status флаг запуска сетевого ядра
 			 */
 			void active(const core_t::status_t status) noexcept;
 			/**
-			 * active Метод идентификации активности на Web сервере
+			 * @brief Метод идентификации активности на Web сервере
+			 *
 			 * @param bid  идентификатор брокера (клиента)
 			 * @param mode режим события подключения
 			 */
 			void active(const uint64_t bid, const server::web_t::mode_t mode) noexcept;
 		private:
 			/**
-			 * handshake Метод получения удачного запроса
+			 * @brief Метод получения удачного запроса
+			 *
 			 * @param sid   идентификатор потока
 			 * @param bid   идентификатор брокера
 			 * @param agent идентификатор агента клиента
 			 */
 			void handshake(const int32_t sid, const uint64_t bid, const server::web_t::agent_t agent) noexcept;
 			/**
-			 * request Метод вывода входящего запроса
+			 * @brief Метод вывода входящего запроса
+			 *
 			 * @param sid     идентификатор входящего потока
 			 * @param bid     идентификатор брокера (клиента)
 			 * @param method  метод входящего запроса
@@ -227,7 +240,8 @@ namespace anyks {
 			 */
 			void headers(const int32_t sid, const uint64_t bid, const web_t::method_t method, const uri_t::url_t & url, const std::unordered_multimap <string, string> & headers) noexcept;
 			/**
-			 * complete Метод завершения получения запроса клиента
+			 * @brief Метод завершения получения запроса клиента
+			 *
 			 * @param sid     идентификатор потока
 			 * @param bid     идентификатор брокера
 			 * @param method  метод запроса
@@ -238,28 +252,33 @@ namespace anyks {
 			void complete(const int32_t sid, const uint64_t bid, const web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const std::unordered_multimap <string, string> & headers) noexcept;
 		public:
 			/**
-			 * config Метод установки конфигурационных параметров в формате JSON
+			 * @brief Метод установки конфигурационных параметров в формате JSON
+			 *
 			 * @param config объект конфигурационных параметров в формате JSON
 			 */
 			void config(const json & config) noexcept;
 		public:
 			/**
-			 * stop Метод остановки работы сервера
+			 * @brief Метод остановки работы сервера
+			 *
 			 */
 			void stop() noexcept;
 			/**
-			 * start Метод запуска работы сервера
+			 * @brief Метод запуска работы сервера
+			 *
 			 */
 			void start() noexcept;
 		public:
 			/**
-			 * Server конструктор
+			 * @brief конструктор
+			 *
 			 * @param fmk объект фреймворка
 			 * @param log объект для работы с логами
 			 */
 			Server(const fmk_t * fmk, const log_t * log) noexcept;
 			/**
-			 * ~Server деструктор
+			 * @brief деструктор
+			 *
 			 */
 			~Server() noexcept;
 	} server_t;
