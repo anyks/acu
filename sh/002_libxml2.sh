@@ -143,22 +143,25 @@ if [ -n "$1" ]; then
 			if [[ $OS = "Windows" ]]; then
 				cmake \
 				 -DBUILD_SHARED_LIBS="OFF" \
-				 -DLIBXML2_WITH_LZMA="OFF" \
+				 -DLIBXML2_WITH_HTML="OFF" \
 				 -DLIBXML2_WITH_ZLIB="OFF" \
+				 -DLIBXML2_WITH_DEBUG="OFF" \
 				 -DLIBXML2_WITH_ICONV="OFF" \
-				 -DLIBXML2_WITH_PYTHON="OFF" \
+				 -DLIBXML2_WITH_TESTS="OFF" \
 				 -DCMAKE_BUILD_TYPE=Release \
 				 -DCMAKE_SYSTEM_NAME=Windows \
 				 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
 				 -G "MSYS Makefiles" \
 				 .. || exit 1
+			# Для всех остальных операционных систем
 			else
 				cmake \
 				 -DBUILD_SHARED_LIBS="OFF" \
-				 -DLIBXML2_WITH_LZMA="OFF" \
+				 -DLIBXML2_WITH_HTML="OFF" \
 				 -DLIBXML2_WITH_ZLIB="OFF" \
+				 -DLIBXML2_WITH_DEBUG="OFF" \
 				 -DLIBXML2_WITH_ICONV="OFF" \
-				 -DLIBXML2_WITH_PYTHON="OFF" \
+				 -DLIBXML2_WITH_TESTS="OFF" \
 				 -DCMAKE_BUILD_TYPE=Release \
 				 -DCMAKE_INSTALL_PREFIX="$PREFIX" \
 				 .. || exit 1
