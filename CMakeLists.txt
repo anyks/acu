@@ -235,7 +235,7 @@ include_directories(BEFORE ${XML_INCLUDE_DIR})
 include_directories(BEFORE ${AWH_INCLUDE_DIRS})
 include_directories(BEFORE ${YAML_INCLUDE_DIR})
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/contrib/include)
+include_directories(BEFORE ${CMAKE_SOURCE_DIR}/contrib/include)
 include_directories(SYSTEM ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 
 # Выполняем подключение исходников
