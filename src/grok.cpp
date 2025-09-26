@@ -76,7 +76,7 @@ void anyks::Grok::Variables::reset() noexcept {
 	 */
 	} catch(const exception & error) {
 		// Выводим сообщение об ошибке
-		::fprintf(stderr, "\"Grok:Variables:reset\": %s\n", error.what());
+		::fprintf(stderr, "\"Grok:Variables:reset\": %s\n\n", error.what());
 	}
 }
 /**
@@ -143,7 +143,7 @@ string anyks::Grok::Variables::get(const string & text, const uint8_t index) noe
 			// Добавляем завершение строки
 			message.append(1, ']');
 			// Выводим сообщение об ошибке
-			::fprintf(stderr, "\"Grok:Variables:get\": %s\n", message.c_str());
+			::fprintf(stderr, "\"Grok:Variables:get\": %s\n\n", message.c_str());
 		}
 	}
 	// Выводим результат
@@ -197,7 +197,7 @@ void anyks::Grok::Variables::push(const string & name, const string & pattern) n
 					// Добавляем завершение строки
 					error.append(1, ']');
 					// Выводим сообщение об ошибке
-					::fprintf(stderr, "\"Grok:Variables:push\": %s\n", error.c_str());
+					::fprintf(stderr, "\"Grok:Variables:push\": %s\n\n", error.c_str());
 				}
 				// Выполняем очистку шаблона
 				this->_patterns.erase(name);
@@ -223,7 +223,7 @@ void anyks::Grok::Variables::push(const string & name, const string & pattern) n
 			// Добавляем завершение строки
 			message.append(1, ']');
 			// Выводим сообщение об ошибке
-			::fprintf(stderr, "\"Grok:Variables:push\": %s\n", message.c_str());
+			::fprintf(stderr, "\"Grok:Variables:push\": %s\n\n", message.c_str());
 		}
 	}
 }
@@ -248,7 +248,7 @@ anyks::Grok::Variables::~Variables() noexcept {
 	 */
 	} catch(const exception & error) {
 		// Выводим сообщение об ошибке
-		::fprintf(stderr, "\"Grok:Variables:~\": %s\n", error.what());
+		::fprintf(stderr, "\"Grok:Variables:~\": %s\n\n", error.what());
 	}
 }
 /**
