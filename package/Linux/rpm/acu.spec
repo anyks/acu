@@ -16,18 +16,22 @@ Distribution: @distribution@
 
 # Если сборка производится в Alt-linux
 %if "%_vendor" == "alt"
-   # Устанавливаем зависимость SCTP
-   BuildRequires: liblksctp-devel
 
-   # Отключаем проверку ELF зависимостей
-   %set_verify_elf_method none
+# Устанавливаем зависимость SCTP
+BuildRequires: liblksctp-devel
 
-   # Отключаем проверку зависимостей
-   %define __find_requires %{nil}
+# Отключаем проверку ELF зависимостей
+%set_verify_elf_method none
+
+# Отключаем проверку зависимостей
+%define __find_requires %{nil}
+
 # Если сборка производится в другом дистрибутиве Linux
 %else
-   # Устанавливаем зависимость SCTP
-   BuildRequires: lksctp-tools-devel
+
+# Устанавливаем зависимость SCTP
+BuildRequires: lksctp-tools-devel
+
 %endif
 
 %description
