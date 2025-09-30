@@ -65,7 +65,7 @@ namespace anyks {
 	 * @brief Класс модуля GROK
 	 *
 	 */
-	typedef class ACUSHARED_EXPORT Grok {
+	typedef class ACU_SHARED_EXPORT Grok {
 		private:
 			/**
 			 * Статус определения разделителя

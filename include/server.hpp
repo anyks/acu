@@ -64,7 +64,7 @@ namespace anyks {
 	 * @brief Класс сервера
 	 *
 	 */
-	typedef class ACUSHARED_EXPORT Server {
+	typedef class ACU_SHARED_EXPORT Server {
 		private:
 			// Тип рабочего формата данных
 			enum class type_t : uint8_t {

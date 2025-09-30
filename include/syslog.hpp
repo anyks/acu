@@ -67,7 +67,7 @@ namespace anyks {
 	 * @brief Класс модуля парсера SysLog (RFC3164/RFC5424)
 	 *
 	 */
-	typedef class ACUSHARED_EXPORT SysLog {
+	typedef class ACU_SHARED_EXPORT SysLog {
 		public:
 			/**
 			 * Поддерживаемые стандарты парсинга
@@ -421,14 +421,14 @@ namespace anyks {
 	 * @param is     поток для чтения
 	 * @param syslog контенер для присвоения
 	 */
-	ACUSHARED_EXPORT istream & operator >> (istream & is, syslog_t & syslog) noexcept;
+	ACU_SHARED_EXPORT istream & operator >> (istream & is, syslog_t & syslog) noexcept;
 	/**
 	 * @brief Оператор [<<] вывода в поток SysLog контейнера
 	 *
 	 * @param os     поток куда нужно вывести данные
 	 * @param syslog контенер для присвоения
 	 */
-	ACUSHARED_EXPORT ostream & operator << (ostream & os, const syslog_t & syslog) noexcept;
+	ACU_SHARED_EXPORT ostream & operator << (ostream & os, const syslog_t & syslog) noexcept;
 };
 
 #endif // __ANYKS_ACU_SYSLOG__

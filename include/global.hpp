@@ -33,17 +33,17 @@
  * Если активирован экспорт динамической библиотеки
  */
 #if ACU_SHARED_LIBRARY_EXPORT
-	#define ACUSHARED_EXPORT DECL_EXPORT
+	#define ACU_SHARED_EXPORT DECL_EXPORT
 /**
  * Если активирован импорт динамической библиотеки
  */
 #elif ACU_SHARED_LIBRARY_IMPORT
-	#define ACUSHARED_EXPORT DECL_IMPORT
+	#define ACU_SHARED_EXPORT DECL_IMPORT
 /**
  * Если мы работаем со статической библиотекой
  */
 #else
-	#define ACUSHARED_EXPORT
+	#define ACU_SHARED_EXPORT
 #endif
 
 #endif // __ACU_GLOBAL__

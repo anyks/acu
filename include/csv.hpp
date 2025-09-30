@@ -63,7 +63,7 @@ namespace anyks {
 	 * @brief Класс модуля CSV
 	 *
 	 */
-	typedef class ACUSHARED_EXPORT CSV {
+	typedef class ACU_SHARED_EXPORT CSV {
 		private:
 			// Флаг разрешения использования заголовков
 			bool _header;
@@ -242,14 +242,14 @@ namespace anyks {
 	 * @param is  поток для чтения
 	 * @param csv контенер для присвоения
 	 */
-	ACUSHARED_EXPORT istream & operator >> (istream & is, csv_t & csv) noexcept;
+	ACU_SHARED_EXPORT istream & operator >> (istream & is, csv_t & csv) noexcept;
 	/**
 	 * @brief Оператор [<<] вывода в поток CSV контейнера
 	 *
 	 * @param os  поток куда нужно вывести данные
 	 * @param csv контенер для присвоения
 	 */
-	ACUSHARED_EXPORT ostream & operator << (ostream & os, const csv_t & csv) noexcept;
+	ACU_SHARED_EXPORT ostream & operator << (ostream & os, const csv_t & csv) noexcept;
 };
 
 #endif // __ANYKS_ACU_CSV__
