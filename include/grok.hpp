@@ -146,7 +146,7 @@ namespace anyks {
 			 * @brief Класс работы с переменными
 			 *
 			 */
-			typedef class Variables {
+			typedef class ACU_SHARED_EXPORT Variables {
 				private:
 					/**
 					 * @brief Устанавливаем дружбу с родительским модулем
