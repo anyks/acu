@@ -262,7 +262,6 @@ if (CMAKE_SHARED_BUILD_LIB)
     # Добавляем динамическую библиотеку
     add_library(${ACU_LIB_NAME} SHARED ${SOURCE_FILES})
     # Выполняем экспорт методов доступных извне в динамических библиотеках
-    target_compile_definitions(${ACU_LIB_NAME} PRIVATE CITYHASH_DLL_EXPORTS)
     target_compile_definitions(${ACU_LIB_NAME} PRIVATE ACU_SHARED_LIBRARY_EXPORT)
     target_compile_definitions(${ACU_LIB_NAME} PRIVATE AWH_SHARED_LIBRARY_EXPORT)
 # Если нужно собрать и статическую библиотеку
