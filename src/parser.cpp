@@ -76,6 +76,48 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 		 */
 		try {
 			/**
+			 * @brief Функция получения целого числа из скаляра YAML
+			 *
+			 * Число, не влезающее в 64 бита, читается как число с плавающей точкой, а если не читается
+			 * и так — остаётся строкой: исключение из noexcept-функции остановило бы весь процесс
+			 *
+			 * @param node      скаляр YAML
+			 * @param allocator распределитель памяти документа
+			 * @return          значение числа
+			 */
+			auto numberFn = [](const YAML::Node & node, Document::AllocatorType & allocator) noexcept -> Value {
+				// Получаем текст числа
+				const string & text = node.as <string> ();
+				/**
+				 * Выполняем отлов ошибок
+				 */
+				try {
+					// Если число является отрицательным (основание 10: ведущие нули не делают число восьмеричным)
+					if(!text.empty() && (text.front() == '-'))
+						// Выводим число со знаком
+						return Value(static_cast <int64_t> (::stoll(text, nullptr, 10)));
+					// Выводим число без знака
+					return Value(static_cast <uint64_t> (::stoull(text, nullptr, 10)));
+				/**
+				 * Если число не влезает в 64 бита
+				 */
+				} catch(const exception &) {
+					/**
+					 * Выполняем отлов ошибок
+					 */
+					try {
+						// Выводим число с плавающей точкой
+						return Value(::stod(text));
+					/**
+					 * Если число не читается и так
+					 */
+					} catch(const exception &) {
+						// Выводим значение строкой
+						return Value(text.c_str(), text.length(), allocator);
+					}
+				}
+			};
+			/**
 			 * @brief Прототип функции парсинга XML документа
 			 *
 			 * @param таблица результатов
@@ -90,7 +132,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 			 * @param name название ключа куда добавляется содержимое ноды
 			 * @param node объект текущей ноды
 			 */
-			parseFn = [&parseFn, this](Document & root, const Value & name, const YAML::Node & node) noexcept -> void {
+			parseFn = [&parseFn, &numberFn, this](Document & root, const Value & name, const YAML::Node & node) noexcept -> void {
 				/**
 				 * Определяем тип полученной ноды
 				 */
@@ -100,41 +142,30 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 						// Если если корень раздела является объектом
 						if(root.IsObject())
 							// Устанавливаем пустое значение
-							root.AddMember(Value(name, root.GetAllocator()).Move(), Value(0).Move(), root.GetAllocator());
+							root.AddMember(Value(name, root.GetAllocator()).Move(), Value(kNullType).Move(), root.GetAllocator());
 						// Если если корень раздела является массивом
 						else if(root.IsArray())
 							// Добавляем пустое значение в массив
-							root.PushBack(Value(0).Move(), root.GetAllocator());
+							root.PushBack(Value(kNullType).Move(), root.GetAllocator());
 					} break;
 					// Если объект является скалярным выражением
 					case YAML::NodeType::Scalar: {
+						// Значение в кавычках (тег «!») — всегда строка: так YAML хранит строки вида "1.0" и "true"
+						const bool plain = (node.Tag().compare("!") != 0);
 						// Если полученное значение является числом
-						if(this->_fmk->is(node.as <string> (), fmk_t::check_t::NUMBER)){
+						if(plain && this->_fmk->is(node.as <string> (), fmk_t::check_t::NUMBER)){
 							// Получаем значение числа
-							const int64_t number = node.as <int64_t> ();
-							// Если число является отрицательным
-							if(number < 0){
-								// Если если корень раздела является объектом
-								if(root.IsObject())
-									// Устанавливаем числовое значение
-									root.AddMember(Value(name, root.GetAllocator()).Move(), Value(number).Move(), root.GetAllocator());
-								// Если если корень раздела является массивом
-								else if(root.IsArray())
-									// Добавляем полученное число в массив
-									root.PushBack(Value(number).Move(), root.GetAllocator());
-							// Выводим числовое значение
-							} else {
-								// Если если корень раздела является объектом
-								if(root.IsObject())
-									// Устанавливаем числовое значение
-									root.AddMember(Value(name, root.GetAllocator()).Move(), Value(node.as <uint64_t> ()).Move(), root.GetAllocator());
-								// Если если корень раздела является массивом
-								else if(root.IsArray())
-									// Добавляем числовое значение в массив
-									root.PushBack(Value(node.as <uint64_t> ()).Move(), root.GetAllocator());
-							}
+							Value number = numberFn(node, root.GetAllocator());
+							// Если если корень раздела является объектом
+							if(root.IsObject())
+								// Устанавливаем числовое значение
+								root.AddMember(Value(name, root.GetAllocator()).Move(), number.Move(), root.GetAllocator());
+							// Если если корень раздела является массивом
+							else if(root.IsArray())
+								// Добавляем полученное число в массив
+								root.PushBack(number.Move(), root.GetAllocator());
 						// Если полученное значение является числом с плавающей точкой
-						} else if(this->_fmk->is(node.as <string> (), fmk_t::check_t::DECIMAL)) {
+						} else if(plain && this->_fmk->is(node.as <string> (), fmk_t::check_t::DECIMAL)) {
 							// Если если корень раздела является объектом
 							if(root.IsObject())
 								// Устанавливаем числовое значение с плавающей точкой
@@ -148,7 +179,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 							// Флаг истинного значения
 							bool mode = false;
 							// Если значение является булевым
-							if((mode = this->_fmk->compare(node.as <string> (), "true")) || this->_fmk->compare(node.as <string> (), "false")){
+							if(plain && ((mode = this->_fmk->compare(node.as <string> (), "true")) || this->_fmk->compare(node.as <string> (), "false"))){
 								// Если если корень раздела является объектом
 								if(root.IsObject())
 									// Устанавливаем булевое значение
@@ -252,18 +283,16 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 				case YAML::NodeType::Scalar: {
 					// Получаем значение в виде строки
 					const string & value = node.as <string> ();
+					// Значение в кавычках (тег «!») — всегда строка
+					const bool plain = (node.Tag().compare("!") != 0);
 					// Если полученное значение является числом
-					if(this->_fmk->is(value, fmk_t::check_t::NUMBER)){
+					if(plain && this->_fmk->is(value, fmk_t::check_t::NUMBER)){
 						// Получаем значение числа
-						const int64_t number = node.as <int64_t> ();
-						// Если число является отрицательным
-						if(number < 0)
-							// Выводим числовое значение
-							result.SetInt64(number);
+						Value number = numberFn(node, result.GetAllocator());
 						// Выводим числовое значение
-						else result.SetUint64(node.as <uint64_t> ());
+						result.CopyFrom(number, result.GetAllocator());
 					// Если полученное значение является числом с плавающей точкой
-					} else if(this->_fmk->is(value, fmk_t::check_t::DECIMAL))
+					} else if(plain && this->_fmk->is(value, fmk_t::check_t::DECIMAL))
 						// Выводим числовое значение с плавающей точкой двойной точности
 						result.SetDouble(node.as <double> ());
 					// Если полученное значение является строкой
@@ -271,7 +300,7 @@ Document anyks::Parser::yaml(const string & text) noexcept {
 						// Флаг истинного значения
 						bool mode = false;
 						// Если значение является булевым
-						if((mode = this->_fmk->compare(value, "true")) || this->_fmk->compare(value, "false"))
+						if(plain && ((mode = this->_fmk->compare(value, "true")) || this->_fmk->compare(value, "false")))
 							// Выводим булевое значение
 							result.SetBool(mode);
 						// Если значение является просто строкой, выводим как оно есть
@@ -374,156 +403,111 @@ string anyks::Parser::yaml(const Document & data) noexcept {
 		 */
 		try {
 			/**
-			 * @brief Прототип функции парсинга XML документа
+			 * @brief Функция проверки, нужны ли строке кавычки
 			 *
-			 * @param таблица результатов
-			 * @param название ключа куда добавляется содержимое ноды
-			 * @param объект текущей ноды
+			 * Без кавычек YAML прочитает такую строку как число, булево значение или null
+			 *
+			 * @param value строка для проверки
+			 * @return      результат проверки
 			 */
-			function <void (YAML::Node &, const Value &, const Value &)> parseFn;
+			auto quoteFn = [this](const string & value) noexcept -> bool {
+				// Пустая строка без кавычек читается как null
+				if(value.empty())
+					// Строка требует кавычек
+					return true;
+				// Если строка похожа на число
+				if(this->_fmk->is(value, fmk_t::check_t::NUMBER) || this->_fmk->is(value, fmk_t::check_t::DECIMAL))
+					// Строка требует кавычек
+					return true;
+				// Выполняем перебор значений, которые YAML читает как булевы и null
+				for(auto word : {"true", "false", "yes", "no", "on", "off", "null", "~"}){
+					// Если строка совпадает со значением без учёта регистра
+					if(this->_fmk->compare(value, word))
+						// Строка требует кавычек
+						return true;
+				}
+				// Строка записывается без кавычек
+				return false;
+			};
+			// Объект формирования текста YAML
+			YAML::Emitter out;
 			/**
-			 * @brief Функция парсинга XML документа
+			 * @brief Прототип функции записи значения JSON в YAML
 			 *
-			 * @param node  корень объекта для записи результата
-			 * @param name  название ключа куда добавляется содержимое ноды
-			 * @param value объект текущей ноды
+			 * @param значение для записи
 			 */
-			parseFn = [&parseFn, this](YAML::Node & node, const Value & name, const Value & value) noexcept -> void {
-				// Если значение является отрицательным 32-х битным числом
-				if(value.IsInt()){
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetInt();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetInt();
-				// Если значение является положительным 32-х битным числом
-				} else if(value.IsUint()) {
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetUint();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetUint();
-				// Если значение является отрицательным 64-х битным числом
-				} else if(value.IsUint64()) {
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetInt64();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetInt64();
-				// Если значение является положительным 64-х битным числом
-				} else if(value.IsUint64()) {
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetUint64();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetUint64();
-				// Если значение является числом с плавающей точкой двойной точности
-				} else if(value.IsDouble()) {
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetDouble();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetDouble();
-				// Если значение является числом с плавающей точкой
-				} else if(value.IsFloat()) {
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetFloat();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetFloat();
+			function <void (const Value &)> emitFn;
+			/**
+			 * @brief Функция записи значения JSON в YAML
+			 *
+			 * @param value значение для записи
+			 */
+			emitFn = [&emitFn, &quoteFn, &out, this](const Value & value) noexcept -> void {
+				// Если значение является пустым
+				if(value.IsNull())
+					// Записываем пустое значение
+					out << YAML::Null;
 				// Если значение является булевым
-				} else if(value.IsBool()) {
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetBool();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetBool();
+				else if(value.IsBool())
+					// Записываем булево значение
+					out << value.GetBool();
+				// Если значение является целым числом со знаком
+				else if(value.IsInt64())
+					// Записываем число
+					out << value.GetInt64();
+				// Если значение является целым числом без знака
+				else if(value.IsUint64())
+					// Записываем число
+					out << value.GetUint64();
+				// Если значение является числом с плавающей точкой, записываем его кратчайшей записью
+				else if(value.IsNumber())
+					// Записываем число
+					out << this->_fmk->noexp(value.GetDouble(), true);
 				// Если значение является строкой
-				} else if(value.IsString()) {
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = value.GetString();
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = value.GetString();
+				else if(value.IsString()) {
+					// Получаем значение строки
+					const string text(value.GetString(), value.GetStringLength());
+					// Если строка без кавычек будет прочитана как другой тип
+					if(quoteFn(text))
+						// Записываем строку в двойных кавычках
+						out << YAML::DoubleQuoted << text;
+					// Записываем строку как есть
+					else out << text;
 				// Если значение является массивом
 				} else if(value.IsArray()) {
-					// Создаём объект дочерней ноды
-					YAML::Node child;
+					// Начинаем последовательность
+					out << YAML::BeginSeq;
 					// Выполняем перебор всего списка
-					for(size_t i = 0; i < value.Size(); i++)
-						// Выполняем добавление в массив полученных значений
-						parseFn(child, Value(static_cast <uint64_t> (i)).Move(), value[i]);
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = child;
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = child;
+					for(auto & item : value.GetArray())
+						// Записываем элемент последовательности
+						emitFn(item);
+					// Завершаем последовательность
+					out << YAML::EndSeq;
 				// Если значение является объектом
 				} else if(value.IsObject()) {
-					// Создаём объект дочерней ноды
-					YAML::Node child;
-					// Выполняем перебор всего списка
-					for(auto & m : value.GetObj())
-						// Выполняем добавление в объект полученных значений
-						parseFn(child, m.name, m.value);
-					// Если название ячейки является числом
-					if(name.IsUint64())
-						// Выполняем добавление значения в ноду
-						node[name.GetUint64()] = child;
-					// Если название ячейки является строкой
-					else if(name.IsString())
-						// Выполняем добавление значения в ноду
-						node[name.GetString()] = child;
+					// Начинаем карту
+					out << YAML::BeginMap;
+					// Выполняем перебор всех ключей
+					for(auto & m : value.GetObj()){
+						// Записываем ключ
+						out << YAML::Key << string(m.name.GetString(), m.name.GetStringLength());
+						// Записываем значение ключа
+						out << YAML::Value;
+						// Записываем значение
+						emitFn(m.value);
+					}
+					// Завершаем карту
+					out << YAML::EndMap;
 				}
 			};
-			// Объект ноды для формирования результата
-			YAML::Node node;
-			// Если значение является массивом
-			if(data.IsArray()){
-				// Выполняем перебор всего списка
-				for(size_t i = 0; i < data.Size(); i++)
-					// Выполняем добавление в массив полученных значений
-					parseFn(node, Value(static_cast <uint64_t> (i)).Move(), data[i]);
-			// Если значение является объектом
-			} else if(data.IsObject()) {
-				// Выполняем перебор всего списка
-				for(auto & m : data.GetObj())
-					// Выполняем добавление в объект полученных значений
-					parseFn(node, m.name, m.value);
-			}
-			// Создаём поток для конвертации ноды YAML
-			stringstream stream;
-			// Записываем ноду YAML в поток
-			stream << node;
+			// Выполняем запись данных
+			emitFn(data);
+			// Если при записи возникла ошибка
+			if(!out.good())
+				// Выводим сообщение об ошибке
+				throw runtime_error(out.GetLastError());
 			// Выполняем формирование результата
-			result = stream.str();
+			result.assign(out.c_str(), out.size());
 		/**
 		 * Если возникает ошибка
 		 */

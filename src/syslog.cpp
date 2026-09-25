@@ -333,7 +333,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 												// Если установлен пробел
 												if(syslog.at(i) == ' '){
 													// Устанавливаем дату сообщения
-													this->date(syslog.substr(pos, i - pos), "%FT%T.%s");
+													this->date(syslog.substr(pos, i - pos), FORMAT);
 													// Запоминаем начало строки с версией
 													pos = (i + 1);
 													// Увеличиваем значение статуса
@@ -630,7 +630,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 												// Если формат даты детектирован
 												if(this->_reg.test(item, this->_exp.date3))
 													// Устанавливаем дату сообщения
-													this->date(item, "%FT%T.%s");
+													this->date(item, FORMAT);
 												// Если парсинг даты не выполнен
 												else this->_log->print("SysLog parse: %s", log_t::flag_t::WARNING, "date format is not defined");
 											}
@@ -813,7 +813,7 @@ void anyks::SysLog::parse(const string & syslog, const std_t std) noexcept {
 													// Если формат даты детектирован
 													if(this->_reg.test(item, this->_exp.date3))
 														// Устанавливаем дату сообщения
-														this->date(item, "%FT%T.%s");
+														this->date(item, FORMAT);
 													// Если парсинг даты не выполнен
 													else this->_log->print("SysLog parse: %s", log_t::flag_t::WARNING, "date format is not defined");
 												}
@@ -1379,6 +1379,13 @@ string anyks::SysLog::date(const string & format) const noexcept {
 	if(!format.empty())
 		// Устанавливаем формат даты сообщения
 		const_cast <SysLog *> (this)->_format = format;
+	/**
+	 * Формат по умолчанию это запись RFC 3339, которой требует RFC 5424. Литеральная буква Z
+	 * означает нулевую зону, поэтому дата формируется в UTC, а не в зоне окружения
+	 */
+	if(this->_format.compare(FORMAT) == 0)
+		// Формируем дату по стандарту в нулевой зоне
+		return this->_chrono.format(this->_timestamp, 0, chrono_t::standard_t::RFC3339);
 	// Формируем дату
 	return this->_chrono.format(this->_timestamp, this->_format);
 }
@@ -1393,8 +1400,21 @@ void anyks::SysLog::date(const string & date, const string & format) noexcept {
 	if(!date.empty() && !format.empty()){
 		// Выполняем блокировку потока
 		const lock_guard <std::recursive_mutex> lock(this->_mtx);
+		/**
+		 * Формат по умолчанию разбираем по RFC 3339: запись может нести и букву Z,
+		 * и смещение зоны (+03:00), а литеральный формат читал бы её в зоне окружения
+		 */
+		if(format.compare(FORMAT) == 0){
+			// Признак пригодности записи
+			bool valid = false;
+			// Выполняем парсинг даты по стандарту
+			this->_timestamp = this->_chrono.parse(date, chrono_t::standard_t::RFC3339, valid);
+			// Если запись без зоны (такие приходят из JSON и YAML), читаем её в зоне окружения, как прежде
+			if(!valid)
+				// Выполняем парсинг даты без зоны
+				this->_timestamp = this->_chrono.parse(date, "%FT%T.%s");
 		// Если формат даты сообщения установлен
-		if(!format.empty())
+		} else if(!format.empty())
 			// Выполняем парсинг даты
 			this->_timestamp = this->_chrono.parse(date, format);
 		// Выполняем парсинг даты
@@ -2041,18 +2061,18 @@ anyks::SysLog::SysLog(const fmk_t * fmk, const log_t * log) noexcept :
 		regexp_t::option_t::UCP
 	});
 	// Выполняем сборку регулярных выражений для распознавания формат даты (2003-10-11T22:14:15.003Z или 2003-08-24T05:14:15.000003-07:00)
-	this->_exp.date3 = this->_reg.build("(\\d{2,4}\\-\\d{1,2}\\-\\d{1,2})T(\\d{1,2}\\:\\d{1,2}\\:\\d{1,2})(?:\\.(\\d+(?:Z|\\-\\d+\\:\\d+)))?", {
+	this->_exp.date3 = this->_reg.build("(\\d{2,4}\\-\\d{1,2}\\-\\d{1,2})T(\\d{1,2}\\:\\d{1,2}\\:\\d{1,2})(?:\\.(\\d+))?(Z|[\\+\\-]\\d{2}\\:\\d{2})?", {
 		regexp_t::option_t::UTF8,
 		regexp_t::option_t::UCP
 	});
 	// Выполняем сборку регулярных выражений для парсинга всего сообщения RFC3164
-	this->_exp.rfc3164 = this->_reg.build("(?:<(\\d+)>)?((?:(?:[a-z]+\\s+)?[a-z]+\\s+\\d+\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\s+\\d{2,4})?)|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}T\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\.(?:\\d+(?:Z|\\-\\d+\\:\\d+)))?)\\s+([^\\s\\:]+)\\s+([\\w\\-]+)(?:\\[(\\d+)\\])?\\:\\s*(.+)", {
+	this->_exp.rfc3164 = this->_reg.build("(?:<(\\d+)>)?((?:(?:[a-z]+\\s+)?[a-z]+\\s+\\d+\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\s+\\d{2,4})?)|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}T\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\.\\d+)?(?:Z|[\\+\\-]\\d{2}\\:\\d{2})?)\\s+([^\\s\\:]+)\\s+([\\w\\-]+)(?:\\[(\\d+)\\])?\\:\\s*(.+)", {
 		regexp_t::option_t::UTF8,
 		regexp_t::option_t::UCP,
 		regexp_t::option_t::CASELESS
 	});
 	// Выполняем сборку регулярных выражений для парсинга всего сообщения RFC5424
-	this->_exp.rfc5424 = this->_reg.build("(?:<(\\d+)>)?(?:(\\d+)\\s+)?((?:(?:[a-z]+\\s+)?[a-z]+\\s+\\d+\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\s+\\d{2,4})?)|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}T\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\.(?:\\d+(?:Z|\\-\\d+\\:\\d+)))?)\\s([^\\s]+)\\s([^\\s]+)\\s+([\\d\\-]+)\\s+([\\w\\-]+)\\s+([\\s\\S]+)", {
+	this->_exp.rfc5424 = this->_reg.build("(?:<(\\d+)>)?(?:(\\d+)\\s+)?((?:(?:[a-z]+\\s+)?[a-z]+\\s+\\d+\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\s+\\d{2,4})?)|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}\\s+\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}|\\d{2,4}\\-\\d{1,2}\\-\\d{1,2}T\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}(?:\\.\\d+)?(?:Z|[\\+\\-]\\d{2}\\:\\d{2})?)\\s([^\\s]+)\\s([^\\s]+)\\s+([\\d\\-]+)\\s+([\\w\\-]+)\\s+([\\s\\S]+)", {
 		regexp_t::option_t::UTF8,
 		regexp_t::option_t::UCP,
 		regexp_t::option_t::CASELESS

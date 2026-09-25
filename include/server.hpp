@@ -25,6 +25,8 @@
  * Стандартные модули
  */
 #include <map>
+#include <deque>
+#include <mutex>
 #include <string>
 #include <vector>
 #include <unordered_set>
@@ -42,6 +44,7 @@
  */
 #include <lib.hpp>
 #include <parser.hpp>
+#include <currency.hpp>
 
 /**
  * @brief пространство имён
@@ -96,6 +99,24 @@ namespace anyks {
 			 * @brief Структура параметров пропускной способности сети
 			 *
 			 */
+			/**
+			 * @brief Структура запроса конвертации валют, ожидающего курсов
+			 *
+			 */
+			typedef struct Exchange {
+				bool stale;    // Флаг разрешения устаревших курсов
+				int32_t sid;   // Идентификатор потока
+				uint64_t bid;  // Идентификатор брокера
+				string text;   // Сумма для конвертации
+				string from;   // Валюта, из которой выполняется конвертация
+				string to;     // Валюта, в которую выполняется конвертация
+				/**
+				 * @brief Конструктор
+				 *
+				 */
+				Exchange() noexcept : stale(false), sid(-1), bid(0), text{""}, from{""}, to{""} {}
+			} exchange_t;
+		private:
 			typedef struct Bandwidth {
 				string read;  // Ширина канала на чтение
 				string write; // Ширина канала на запись
@@ -131,10 +152,39 @@ namespace anyks {
 			// Максимальное количество запросов на одного пользователя в сутки
 			uint16_t _maxRequests;
 		private:
+			// Мьютекс остановки: сигнал останавливает сервер в своём потоке, деструктор ждёт окончания остановки
+			std::mutex _stop;
+		private:
 			// Объект сетевого ядра сервера
 			server::core_t _core;
 			// Объект WEB-сервера
 			server::awh_t _awh;
+		private:
+			// Объект конвертации валют
+			currency_t _currency;
+			// Очередь запросов конвертации валют
+			std::deque <exchange_t> _exchanges;
+		private:
+			// Путь выполняемого запроса к API курсов валют
+			string _exchangePath;
+			// Флаг подключения к API курсов валют
+			bool _exchangeConnected;
+			// Процесс, в котором клиент API курсов подключён к базе событий сервера
+			pid_t _exchangePid;
+			// Время начала выполняемого запроса к API курсов валют
+			time_t _exchangeDate;
+			// Флаг явной установки файла кэша курсов в конфигурации
+			bool _exchangeCache;
+		private:
+			// Флаг работы сервера через unix-сокет
+			bool _unixSocket;
+			// Доверенные адреса прокси-серверов (слово unix — все подключения через unix-сокет)
+			std::unordered_set <string> _trusted;
+		private:
+			// Объект сетевого ядра клиента API курсов валют (создаётся после ядра сервера и работает в его базе событий)
+			client::core_t _exchangeCore;
+			// Объект WEB-клиента API курсов валют
+			client::awh_t _exchangeAwh;
 		private:
 			// Объект ограничения скорости сети доступа к серверу
 			bandwidth_t _bandwidth;
@@ -208,6 +258,15 @@ namespace anyks {
 			bool accept(const string & ip, const string & mac, const uint32_t port) noexcept;
 		private:
 			/**
+			 * @brief Метод получения IP-адреса посетителя с учётом доверенных прокси-серверов
+			 *
+			 * @param bid     идентификатор брокера
+			 * @param headers заголовки запроса
+			 * @return        IP-адрес посетителя
+			 */
+			string client(const uint64_t bid, const std::unordered_multimap <string, string> & headers) const noexcept;
+		private:
+			/**
 			 * @brief Метод вывода статуса работы сетевого ядра
 			 *
 			 * @param status флаг запуска сетевого ядра
@@ -250,6 +309,44 @@ namespace anyks {
 			 * @param headers заголовки запроса
 			 */
 			void complete(const int32_t sid, const uint64_t bid, const web_t::method_t method, const uri_t::url_t & url, const vector <char> & entity, const std::unordered_multimap <string, string> & headers) noexcept;
+		private:
+			/**
+			 * @brief Метод отправки результата конвертации клиенту
+			 *
+			 * @param sid  идентификатор потока
+			 * @param bid  идентификатор брокера
+			 * @param text результат конвертации
+			 */
+			void result(const int32_t sid, const uint64_t bid, const string & text) noexcept;
+		private:
+			/**
+			 * @brief Метод обработки очереди запросов конвертации валют
+			 *
+			 */
+			void exchange() noexcept;
+			/**
+			 * @brief Метод завершения запроса к API курсов валют
+			 *
+			 * @param entity тело ответа или пустое тело при ошибке
+			 */
+			void exchange(const vector <char> & entity) noexcept;
+			/**
+			 * @brief Метод идентификации активности клиента API курсов валют
+			 *
+			 * @param mode режим события подключения
+			 */
+			void exchange(const client::web_t::mode_t mode) noexcept;
+			/**
+			 * @brief Метод получения ответа API курсов валют
+			 *
+			 * @param sid     идентификатор потока
+			 * @param rid     идентификатор запроса
+			 * @param code    код ответа сервера
+			 * @param message сообщение ответа сервера
+			 * @param entity  тело ответа
+			 * @param headers заголовки ответа
+			 */
+			void exchange(const int32_t sid, const uint64_t rid, const uint32_t code, const string & message, const vector <char> & entity, const std::unordered_multimap <string, string> & headers) noexcept;
 		public:
 			/**
 			 * @brief Метод установки конфигурационных параметров в формате JSON

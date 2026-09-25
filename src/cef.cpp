@@ -26,6 +26,142 @@ using namespace awh;
 using namespace rapidjson;
 
 /**
+ * Служебные функции формата CEF
+ */
+namespace {
+	/**
+	 * @brief Функция копирования строки в буфер фиксированного размера
+	 *
+	 * Копирует не больше size - 1 байт и всегда завершает строку нулём:
+	 * буферы события дальше читаются как строки языка C
+	 *
+	 * @param buffer буфер для записи
+	 * @param size   размер буфера
+	 * @param value  строка для копирования
+	 */
+	void copyFn(char * buffer, const size_t size, const string & value) noexcept {
+		// Заполняем нулями буфер
+		::memset(buffer, 0, size);
+		// Копируем строку, оставляя место под завершающий ноль
+		::memcpy(buffer, value.data(), std::min(value.size(), size - 1));
+	}
+	/**
+	 * @brief Функция поиска следующего разделителя полей заголовка
+	 *
+	 * Экранированный разделитель \| частью разметки не считается
+	 *
+	 * @param text  строка в формате CEF
+	 * @param start позиция начала поиска
+	 * @return      позиция разделителя или string::npos
+	 */
+	size_t pipeFn(const string & text, const size_t start) noexcept {
+		// Выполняем перебор всех символов строки
+		for(size_t i = start; i < text.size(); i++){
+			// Если найден символ экранирования
+			if(text[i] == '\\')
+				// Пропускаем экранированный символ
+				i++;
+			// Если найден разделитель
+			else if(text[i] == '|')
+				// Выводим позицию разделителя
+				return i;
+		}
+		// Разделитель не найден
+		return string::npos;
+	}
+	/**
+	 * @brief Функция экранирования значения по стандарту CEF
+	 *
+	 * В заголовке экранируются \ и |, в расширениях — \, =, перевод строки и возврат каретки
+	 *
+	 * @param value  значение для экранирования
+	 * @param header значение является полем заголовка
+	 * @return       экранированное значение
+	 */
+	string escapeFn(const string & value, const bool header) noexcept {
+		// Результат работы функции
+		string result = "";
+		// Резервируем память под результат
+		result.reserve(value.size());
+		// Выполняем перебор всех символов значения
+		for(auto & c : value){
+			/**
+			 * Определяем символ
+			 */
+			switch(c){
+				// Символ экранирования экранируется везде
+				case '\\': result.append("\\\\"); break;
+				// Разделитель полей экранируется только в заголовке
+				case '|': result.append(header ? "\\|" : "|"); break;
+				// Знак равенства экранируется только в расширениях
+				case '=': result.append(header ? "=" : "\\="); break;
+				// Перевод строки в расширении записывается как \n, в заголовке недопустим и заменяется пробелом
+				case '\n': result.append(header ? " " : "\\n"); break;
+				// Возврат каретки в расширении записывается как \r, в заголовке недопустим и заменяется пробелом
+				case '\r': result.append(header ? " " : "\\r"); break;
+				// Остальные символы копируем как есть
+				default: result.append(1, c);
+			}
+		}
+		// Выводим результат
+		return result;
+	}
+	/**
+	 * @brief Функция снятия экранирования по стандарту CEF
+	 *
+	 * @param value  значение с экранированием
+	 * @param header значение является полем заголовка
+	 * @return       значение без экранирования
+	 */
+	string unescapeFn(const string & value, const bool header) noexcept {
+		// Результат работы функции
+		string result = "";
+		// Резервируем память под результат
+		result.reserve(value.size());
+		// Выполняем перебор всех символов значения
+		for(size_t i = 0; i < value.size(); i++){
+			// Если найден символ экранирования и за ним есть символ
+			if((value[i] == '\\') && ((i + 1) < value.size())){
+				// Получаем экранированный символ
+				const char c = value[i + 1];
+				// Если экранирован сам символ экранирования
+				if(c == '\\')
+					// Добавляем символ экранирования
+					result.append(1, '\\');
+				// Если экранирован разделитель полей заголовка
+				else if(header && (c == '|'))
+					// Добавляем разделитель
+					result.append(1, '|');
+				// Если экранирован знак равенства в расширении
+				else if(!header && (c == '='))
+					// Добавляем знак равенства
+					result.append(1, '=');
+				// Если записан перевод строки в расширении
+				else if(!header && (c == 'n'))
+					// Добавляем перевод строки
+					result.append(1, '\n');
+				// Если записан возврат каретки в расширении
+				else if(!header && (c == 'r'))
+					// Добавляем возврат каретки
+					result.append(1, '\r');
+				// Иначе это не экранирование: оставляем символ как есть и следующий не пропускаем
+				else {
+					// Добавляем символ как есть
+					result.append(1, '\\');
+					// Переходим к следующему символу
+					continue;
+				}
+				// Пропускаем экранированный символ
+				i++;
+			// Добавляем символ как есть
+			} else result.append(1, value[i]);
+		}
+		// Выводим результат
+		return result;
+	}
+}
+
+/**
  * @brief Шаблон метода записи числовых данных в контейнер
  *
  * @tparam T тип данных для записи в контейнер
@@ -171,7 +307,7 @@ T anyks::Cef::get(const string & key) noexcept {
 						// Выполняем поиск параметров ключа
 						auto i = this->_extensionSEFv1.find(j->first);
 						// Если параметры ключа найдены
-						if(i != this->_extensionSEFv0.end())
+						if(i != this->_extensionSEFv1.end())
 							// Получаем параметры ключа
 							params = &i->second;
 					}
@@ -402,7 +538,7 @@ T anyks::Cef::get(const string & key, T response) noexcept {
 						// Выполняем поиск параметров ключа
 						auto i = this->_extensionSEFv1.find(j->first);
 						// Если параметры ключа найдены
-						if(i != this->_extensionSEFv0.end())
+						if(i != this->_extensionSEFv1.end())
 							// Получаем параметры ключа
 							params = &i->second;
 					}
@@ -539,7 +675,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 					this->_fmk->transform(this->_header, fmk_t::transform_t::TRIM);
 				}
 				// Если версия контейнера найдена
-				if((stop = cef.find("|", start)) != string::npos){
+				if((stop = pipeFn(cef, start)) != string::npos){
 					// Получаем данные строки
 					string value = cef.substr(start, stop - start);
 					// Выполняем проверку полученного значения
@@ -549,59 +685,59 @@ void anyks::Cef::parse(const string & cef) noexcept {
 						// Получаем версию протокола
 						this->_version = ::stod(value);
 						// Выполняем поиск вендора
-						if((stop = cef.find("|", start)) != string::npos){
+						if((stop = pipeFn(cef, start)) != string::npos){
 							// Получаем длину текста
 							length = (stop - start);
 							// Если значение получено
 							if(length > 0)
 								// Выполняем копирование вендора
-								::memcpy(this->_event.devVendor, cef.data() + start, (length < 63 ? length : 63));
+								copyFn(this->_event.devVendor, sizeof(this->_event.devVendor), unescapeFn(cef.substr(start, length), true));
 							// Получаем позицию начала строки
 							start = (stop + 1);
 							// Выполняем поиск продукта
-							if((stop = cef.find("|", start)) != string::npos){
+							if((stop = pipeFn(cef, start)) != string::npos){
 								// Получаем длину текста
 								length = (stop - start);
 								// Если значение получено
 								if(length > 0)
 									// Выполняем копирование продукта
-									::memcpy(this->_event.devProduct, cef.data() + start, (length < 63 ? length : 63));
+									copyFn(this->_event.devProduct, sizeof(this->_event.devProduct), unescapeFn(cef.substr(start, length), true));
 								// Получаем позицию начала строки
 								start = (stop + 1);
 								// Выполняем поиск версии
-								if((stop = cef.find("|", start)) != string::npos){
+								if((stop = pipeFn(cef, start)) != string::npos){
 									// Получаем длину текста
 									length = (stop - start);
 									// Если значение получено
 									if(length > 0)
 										// Выполняем копирование версии
-										::memcpy(this->_event.devVersion, cef.data() + start, (length < 31 ? length : 31));
+										copyFn(this->_event.devVersion, sizeof(this->_event.devVersion), unescapeFn(cef.substr(start, length), true));
 									// Получаем позицию начала строки
 									start = (stop + 1);
 									// Выполняем поиск подписи
-									if((stop = cef.find("|", start)) != string::npos){
+									if((stop = pipeFn(cef, start)) != string::npos){
 										// Получаем длину текста
 										length = (stop - start);
 										// Если значение получено
 										if(length > 0)
 											// Выполняем копирование подписи
-											::memcpy(this->_event.signatureId, cef.data() + start, (length < 1023 ? length : 1023));
+											copyFn(this->_event.signatureId, sizeof(this->_event.signatureId), unescapeFn(cef.substr(start, length), true));
 										// Получаем позицию начала строки
 										start = (stop + 1);
 										// Выполняем поиск названия события
-										if((stop = cef.find("|", start)) != string::npos){
+										if((stop = pipeFn(cef, start)) != string::npos){
 											// Получаем длину текста
 											length = (stop - start);
 											// Если значение получено
 											if(length > 0)
 												// Выполняем копирование названия события
-												::memcpy(this->_event.name, cef.data() + start, (length < 512 ? length : 512));
+												copyFn(this->_event.name, sizeof(this->_event.name), unescapeFn(cef.substr(start, length), true));
 											// Получаем позицию начала строки
 											start = (stop + 1);
 											// Выполняем поиск важности события
-											if((stop = cef.find("|", start)) != string::npos){
-												// Получаем данные строки
-												value = cef.substr(start, stop - start);
+											if((stop = pipeFn(cef, start)) != string::npos){
+												// Получаем данные строки без экранирования
+												value = unescapeFn(cef.substr(start, stop - start), true);
 												// Если важность события получено
 												if(!value.empty()){
 													// Получаем позицию начала строки
@@ -631,7 +767,7 @@ void anyks::Cef::parse(const string & cef) noexcept {
 													// Если важность события получено в виде строки
 													} else {
 														// Выполняем копирование важность события
-														::memcpy(this->_event.severity.name, value.data(), sizeof(this->_event.severity.name));
+														copyFn(this->_event.severity.name, sizeof(this->_event.severity.name), value);
 														// Преобразуем важность в верхний регистр
 														this->_fmk->transform(value, fmk_t::transform_t::UPPER);
 														// Если сложность является низкой
@@ -897,14 +1033,12 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 						bool result = false;
 						// Если ключё передан
 						if(!key.empty()){
-							// Выполняем поиск нашего ключа
-							auto i = this->_extensionSEFv0.find(key);
 							// Выполняем поиск ключа в схеме для версии CEF:0
-							result = (i != this->_extensionSEFv0.end());
+							result = (this->_extensionSEFv0.find(key) != this->_extensionSEFv0.end());
 							// Если результат не получен но версия CEF:1
 							if(!result && (this->_version == 1.0))
 								// Выполняем поиск ключа в схеме для версии CEF:1
-								result = (i != this->_extensionSEFv1.end());
+								result = (this->_extensionSEFv1.find(key) != this->_extensionSEFv1.end());
 						}
 						// Выводим результат
 						return result;
@@ -913,8 +1047,8 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 					for(auto & extension : kv){
 						// Выполняем матчинг ключа
 						if(matchFn(extension.first))
-							// Выполняем создание расширения
-							this->extension(extension.first, extension.second);
+							// Выполняем создание расширения, сняв экранирование значения
+							this->extension(extension.first, unescapeFn(extension.second, false));
 						// Если ключ не интерпретирован
 						else {
 							// Формируем текст ошибки
@@ -944,8 +1078,8 @@ void anyks::Cef::prepare(const string & extensions) noexcept {
 				} else {
 					// Выполняем перебор всех полученных ключей
 					for(auto & extension : kv)
-						// Выполняем создание расширения
-						this->extension(extension.first, extension.second);
+						// Выполняем создание расширения, сняв экранирование значения
+						this->extension(extension.first, unescapeFn(extension.second, false));
 				}
 			// Если данные не извлечены
 			} else {
@@ -1039,23 +1173,23 @@ string anyks::Cef::cef() const noexcept {
 			// Добавляем разделитель
 			result.append(1, '|');
 			// Добавляем поставщика данных
-			result.append(this->_event.devVendor);
+			result.append(escapeFn(this->_event.devVendor, true));
 			// Добавляем разделитель
 			result.append(1, '|');
 			// Добавляем тип устройства поставщика данных
-			result.append(this->_event.devProduct);
+			result.append(escapeFn(this->_event.devProduct, true));
 			// Добавляем разделитель
 			result.append(1, '|');
 			// Добавляем версию поставщика данных
-			result.append(this->_event.devVersion);
+			result.append(escapeFn(this->_event.devVersion, true));
 			// Добавляем разделитель
 			result.append(1, '|');
 			// Добавляем подпись события поставщика данных
-			result.append(this->_event.signatureId);
+			result.append(escapeFn(this->_event.signatureId, true));
 			// Добавляем разделитель
 			result.append(1, '|');
 			// Добавляем название события
-			result.append(this->_event.name);
+			result.append(escapeFn(this->_event.name, true));
 			// Добавляем разделитель
 			result.append(1, '|');
 			// Если требуется установить важность в числовом виде
@@ -1065,13 +1199,13 @@ string anyks::Cef::cef() const noexcept {
 				// Добавляем важность события
 				result.append(std::to_string(static_cast <uint16_t> (this->_event.severity.level)));
 			// Иначе добавляем важность события в текстовом виде
-			else result.append(this->_event.severity.name);
+			else result.append(escapeFn(this->_event.severity.name, true));
 			// Добавляем разделитель
 			result.append(1, '|');
-			// Создаём объект параметров расширения
-			const ext_t * params = nullptr;
 			// Переходим по всему списку расширений
 			for(auto & extension : this->_extensions){
+				// Параметры ключа ищутся заново для каждого расширения
+				const ext_t * params = nullptr;
 				// Если режим парсинга установлен
 				if(this->_mode != mode_t::NONE){
 					// Выполняем поиск параметров ключа
@@ -1085,7 +1219,7 @@ string anyks::Cef::cef() const noexcept {
 						// Выполняем поиск параметров ключа
 						auto i = this->_extensionSEFv1.find(extension.first);
 						// Если параметры ключа найдены
-						if(i != this->_extensionSEFv0.end())
+						if(i != this->_extensionSEFv1.end())
 							// Получаем параметры ключа
 							params = &i->second;
 					}
@@ -1133,7 +1267,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является MAC-адресом
@@ -1159,7 +1293,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является IPV4-адресом
@@ -1185,7 +1319,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является IPV6-адресом
@@ -1211,7 +1345,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является LONG
@@ -1235,7 +1369,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является INT32
@@ -1259,7 +1393,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является INT64
@@ -1283,7 +1417,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является FLOAT
@@ -1307,7 +1441,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является DOUBLE
@@ -1331,7 +1465,7 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 							// Если тип ключа является STRING
@@ -1341,7 +1475,7 @@ string anyks::Cef::cef() const noexcept {
 								// Добавляем разделитель
 								result.append(1, '=');
 								// Добавляем значение ключа
-								result.append(extension.second.begin(), extension.second.end());
+								result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 							break;
 							// Если тип ключа является TIMESTAMP
 							case static_cast <uint8_t> (type_t::TIMESTAMP): {
@@ -1375,19 +1509,23 @@ string anyks::Cef::cef() const noexcept {
 									// Добавляем разделитель
 									result.append(1, '=');
 									// Добавляем значение ключа
-									result.append(extension.second.begin(), extension.second.end());
+									result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 								}
 							} break;
 						}
 					}
 				// Если режим парсинга не установлен
 				} else {
+					// Если нужно установить разделитель
+					if(result.back() != '|')
+						// Устанавливаем разделитель расширений
+						result.append(1, ' ');
 					// Добавляем ключ расширения
 					result.append(extension.first);
 					// Добавляем разделитель
 					result.append(1, '=');
 					// Добавляем значение ключа
-					result.append(extension.second.begin(), extension.second.end());
+					result.append(escapeFn(string(extension.second.begin(), extension.second.end()), false));
 				}
 			}
 		/**
@@ -1525,7 +1663,7 @@ anyks::json anyks::Cef::dump() const noexcept {
 						// Выполняем поиск параметров ключа
 						auto i = this->_extensionSEFv1.find(extension.first);
 						// Если параметры ключа найдены
-						if(i != this->_extensionSEFv0.end())
+						if(i != this->_extensionSEFv1.end())
 							// Получаем параметры ключа
 							params = &i->second;
 					}
@@ -1877,6 +2015,38 @@ void anyks::Cef::dump(const json & dump) noexcept {
 		 * Выполняем отлов ошибок
 		 */
 		try {
+			/**
+			 * @brief Функция получения значения в текстовом виде
+			 *
+			 * Поля заголовка CEF — строки, но JSON и YAML присылают версии и коды событий числами (1.0, 100)
+			 *
+			 * @param value значение для получения
+			 * @return      значение в текстовом виде или пустая строка
+			 */
+			auto textFn = [this](const Value & value) noexcept -> string {
+				// Если значение является строкой
+				if(value.IsString())
+					// Выводим строку как есть
+					return string(value.GetString(), value.GetStringLength());
+				// Если значение является целым числом со знаком
+				else if(value.IsInt64())
+					// Выводим число в текстовом виде
+					return std::to_string(value.GetInt64());
+				// Если значение является целым числом без знака
+				else if(value.IsUint64())
+					// Выводим число в текстовом виде
+					return std::to_string(value.GetUint64());
+				// Если значение является числом с плавающей точкой
+				else if(value.IsNumber())
+					// Выводим число в текстовом виде
+					return this->_fmk->noexp(value.GetDouble(), true);
+				// Если значение является булевым
+				else if(value.IsBool())
+					// Выводим булево значение в текстовом виде
+					return (value.GetBool() ? "true" : "false");
+				// Выводим пустую строку
+				return "";
+			};
 			// Выполняем очистку данных контейнера
 			this->clear();
 			// Если флаг строгого режима передан
@@ -1908,61 +2078,34 @@ void anyks::Cef::dump(const json & dump) noexcept {
 				this->_version = dump["version"].GetDouble();
 			// Если данные события переданы
 			if(dump.HasMember("event") && dump["event"].IsObject() && !dump["event"].ObjectEmpty()){
-				// Если название события передано
-				if(dump["event"].HasMember("name") && dump["event"]["name"].IsString()){
-					// Получаем название события
-					const string & name = dump["event"]["name"].GetString();
-					// Заполняем нулями буфер названия события
-					::memset(this->_event.name, 0, sizeof(this->_event.name));
-					// Устанавливаем название события
-					::memcpy(this->_event.name, name.data(), sizeof(this->_event.name));
-				}
-				// Если поставщик данных передан
-				if(dump["event"].HasMember("vendor") && dump["event"]["vendor"].IsString()){
-					// Получаем поставщика данных события
-					const string & vendor = dump["event"]["vendor"].GetString();
-					// Заполняем нулями буфер поставщика данных события
-					::memset(this->_event.devVendor, 0, sizeof(this->_event.devVendor));
-					// Устанавливаем поставщика данных события
-					::memcpy(this->_event.devVendor, vendor.data(), sizeof(this->_event.devVendor));
-				}
-				// Если версия поставщика данных передана
-				if(dump["event"].HasMember("version") && dump["event"]["version"].IsString()){
-					// Получаем версию поставщика данных события
-					const string & version = dump["event"]["version"].GetString();
-					// Заполняем нулями буфер версии поставщика данных события
-					::memset(this->_event.devVersion, 0, sizeof(this->_event.devVersion));
-					// Устанавливаем версию поставщика данных данных события
-					::memcpy(this->_event.devVersion, version.data(), sizeof(this->_event.devVersion));
-				}
-				// Если тип устройства поставщика данных передан
-				if(dump["event"].HasMember("product") && dump["event"]["product"].IsString()){
-					// Получаем тип устройства поставщика данных события
-					const string & product = dump["event"]["product"].GetString();
-					// Заполняем нулями буфер типа устройства поставщика данных события
-					::memset(this->_event.devProduct, 0, sizeof(this->_event.devProduct));
-					// Устанавливаем тип устройства поставщика данных события
-					::memcpy(this->_event.devProduct, product.data(), sizeof(this->_event.devProduct));
-				}
-				// Если подпись события поставщика данных передана
-				if(dump["event"].HasMember("signature") && dump["event"]["signature"].IsString()){
-					// Получаем подпись события поставщика данных
-					const string & signature = dump["event"]["signature"].GetString();
-					// Заполняем нулями буфер подписи события поставщика данных
-					::memset(this->_event.signatureId, 0, sizeof(this->_event.signatureId));
-					// Устанавливаем подпись события поставщика данных
-					::memcpy(this->_event.signatureId, signature.data(), sizeof(this->_event.signatureId));
-				}
+				// Если поле события «name» передано строкой или числом
+				if(dump["event"].HasMember("name") && (dump["event"]["name"].IsString() || dump["event"]["name"].IsNumber()))
+					// Устанавливаем поле события
+					copyFn(this->_event.name, sizeof(this->_event.name), textFn(dump["event"]["name"]));
+				// Если поле события «vendor» передано строкой или числом
+				if(dump["event"].HasMember("vendor") && (dump["event"]["vendor"].IsString() || dump["event"]["vendor"].IsNumber()))
+					// Устанавливаем поле события
+					copyFn(this->_event.devVendor, sizeof(this->_event.devVendor), textFn(dump["event"]["vendor"]));
+				// Если поле события «version» передано строкой или числом
+				if(dump["event"].HasMember("version") && (dump["event"]["version"].IsString() || dump["event"]["version"].IsNumber()))
+					// Устанавливаем поле события
+					copyFn(this->_event.devVersion, sizeof(this->_event.devVersion), textFn(dump["event"]["version"]));
+				// Если поле события «product» передано строкой или числом
+				if(dump["event"].HasMember("product") && (dump["event"]["product"].IsString() || dump["event"]["product"].IsNumber()))
+					// Устанавливаем поле события
+					copyFn(this->_event.devProduct, sizeof(this->_event.devProduct), textFn(dump["event"]["product"]));
+				// Если поле события «signature» передано строкой или числом
+				if(dump["event"].HasMember("signature") && (dump["event"]["signature"].IsString() || dump["event"]["signature"].IsNumber()))
+					// Устанавливаем поле события
+					copyFn(this->_event.signatureId, sizeof(this->_event.signatureId), textFn(dump["event"]["signature"]));
 				// Если важность события передана
 				if(dump["event"].HasMember("severity") && dump["event"]["severity"].IsObject() && !dump["event"]["severity"].ObjectEmpty()){
 					// Если важность события в текстовом виде передана
 					if(dump["event"]["severity"].HasMember("text") && dump["event"]["severity"]["text"].IsString()){
 						// Получаем важность события в текстовом виде
 						string severity = dump["event"]["severity"]["text"].GetString();
-						// Заполняем нулями буфер важности события в текстовом виде
-						::memset(this->_event.severity.name, 0, sizeof(this->_event.severity.name));
 						// Устанавливаем важность события в текстовом виде
-						::memcpy(this->_event.severity.name, severity.data(), sizeof(this->_event.severity.name));
+						copyFn(this->_event.severity.name, sizeof(this->_event.severity.name), severity);
 						// Если важность события в числовом виде не передана
 						if(!dump["event"]["severity"].HasMember("level")){
 							// Преобразуем важность в верхний регистр
@@ -1988,7 +2131,7 @@ void anyks::Cef::dump(const json & dump) noexcept {
 					// Если важность события в числовом виде передана
 					if(dump["event"]["severity"].HasMember("level") && dump["event"]["severity"]["level"].IsNumber()){
 						// Получаем важность события в текстовом виде
-						this->_event.severity.level = static_cast <uint8_t> (dump["event"]["severity"]["level"].GetInt());
+						this->_event.severity.level = static_cast <uint8_t> (dump["event"]["severity"]["level"].GetDouble());
 						// Если важность события в текстовом виде не передана
 						if(!dump["event"]["severity"].HasMember("text")){
 							// Заполняем нулями буфер названия важности
@@ -2015,78 +2158,17 @@ void anyks::Cef::dump(const json & dump) noexcept {
 			}
 			// Если список доступных расширений передан
 			if(dump.HasMember("extensions") && dump["extensions"].IsObject() && !dump["extensions"].ObjectEmpty()){
-				// Создаём объект параметров расширения
-				const ext_t * params = nullptr;
 				// Выполняем перебор всех расширений
 				for(auto & m : dump["extensions"].GetObj()){
-					// Выполняем сброс параметров
-					params = nullptr;
 					// Если значение является строкой
 					if(m.value.IsString())
 						// Выполняем добавление расширение
 						this->extension(m.name.GetString(), m.value.GetString());
-					// Если значение является числом
-					else if(m.value.IsNumber()) {
-						// Выполняем поиск параметров ключа
-						auto i = this->_extensionSEFv0.find(m.name.GetString());
-						// Если параметры ключа найдены
-						if(i != this->_extensionSEFv0.end())
-							// Получаем параметры ключа
-							params = &i->second;
-						// Если параметры ключа не найдены и версия протокола №1
-						else if(this->_version > .0) {
-							// Выполняем поиск параметров ключа
-							auto i = this->_extensionSEFv1.find(m.name.GetString());
-							// Если параметры ключа найдены
-							if(i != this->_extensionSEFv0.end())
-								// Получаем параметры ключа
-								params = &i->second;
-						}
-						// Если параметры ключа получены
-						if(params != nullptr){
-							/**
-							 * Определяем тип ключа
-							 */
-							switch(static_cast <uint8_t> (params->type)){
-								// Если тип ключа является LONG
-								case static_cast <uint8_t> (type_t::LONG):
-									// Выполняем добавление расширение
-									this->extension(m.name.GetString(), std::to_string(m.value.GetInt64()));
-								break;
-								// Если тип ключа является INT32
-								case static_cast <uint8_t> (type_t::INT32):
-									// Выполняем добавление расширение
-									this->extension(m.name.GetString(), std::to_string(m.value.GetInt()));
-								break;
-								// Если тип ключа является INT64
-								case static_cast <uint8_t> (type_t::INT64):
-									// Выполняем добавление расширение
-									this->extension(m.name.GetString(), std::to_string(m.value.GetInt64()));
-								break;
-								// Если тип ключа является DOUBLE
-								case static_cast <uint8_t> (type_t::DOUBLE):
-									// Выполняем добавление расширение
-									this->extension(m.name.GetString(), this->_fmk->noexp(m.value.GetDouble(), true));
-								break;
-								// Если тип ключа является FLOAT
-								case static_cast <uint8_t> (type_t::FLOAT):
-									// Выполняем добавление расширение
-									this->extension(m.name.GetString(), this->_fmk->noexp(m.value.GetFloat(), true));
-								break;
-								// Если тип ключа является TIMESTAMP
-								case static_cast <uint8_t> (type_t::TIMESTAMP):
-									// Если переданное значение является числом
-									if(m.value.IsNumber())
-										// Выполняем добавление расширение
-										this->extension(m.name.GetString(), std::to_string(m.value.GetInt64()));
-									// Если значение является текстовой строкой
-									else if(m.value.IsString())
-										// Выполняем добавление расширение
-										this->extension(m.name.GetString(), m.value.GetString());
-								break;
-							}
-						}
-					}
+					// Если значение является числом или булевым, добавляем его в текстовом виде:
+					// тип ключа по словарю разбирает сам метод extension, а ключи не из словаря не теряются
+					else if(m.value.IsNumber() || m.value.IsBool())
+						// Выполняем добавление расширение
+						this->extension(m.name.GetString(), textFn(m.value));
 				}
 			}
 		/**
@@ -2206,7 +2288,7 @@ anyks::Cef::type_t anyks::Cef::type(const string & key) const noexcept {
 						// Выполняем поиск параметров ключа
 						auto i = this->_extensionSEFv1.find(j->first);
 						// Если параметры ключа найдены
-						if(i != this->_extensionSEFv0.end())
+						if(i != this->_extensionSEFv1.end())
 							// Получаем параметры ключа
 							params = &i->second;
 					}
@@ -2314,7 +2396,7 @@ std::unordered_map <string, string> anyks::Cef::extensions() const noexcept {
 						// Выполняем поиск параметров ключа
 						auto i = this->_extensionSEFv1.find(extension.first);
 						// Если параметры ключа найдены
-						if(i != this->_extensionSEFv0.end())
+						if(i != this->_extensionSEFv1.end())
 							// Получаем параметры ключа
 							params = &i->second;
 					}
@@ -2698,7 +2780,7 @@ void anyks::Cef::extension(const string & key, const string & value) noexcept {
 					// Выполняем поиск параметров ключа
 					auto i = this->_extensionSEFv1.find(key);
 					// Если параметры ключа найдены
-					if(i != this->_extensionSEFv0.end())
+					if(i != this->_extensionSEFv1.end())
 						// Получаем параметры ключа
 						params = &i->second;
 				}

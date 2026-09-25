@@ -37,6 +37,11 @@
 			"write": "20Mbps"
 		}
 	},
+	"currency": {
+		"ttl": 600,
+		"apiKey": "",
+		"apiPro": false
+	},
 	"workers": 0,
 	"user": "auto",
 	"group": "auto",

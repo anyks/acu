@@ -36,18 +36,29 @@ using namespace placeholders;
  * @param sig номер сигнала операционной системы
  */
 void anyks::Server::crash(const int32_t sig) noexcept {
-	// Если мы получили сигнал завершения работы
-	if(sig == 2)
+	// Если мы получили сигнал завершения работы (SIGINT или SIGTERM)
+	if((sig == 2) || (sig == 15)){
 		// Выводим сообщение о заверщении работы
 		this->_log->print("%s finishing work, goodbye!", log_t::flag_t::INFO, ACU_NAME);
-	// Выводим сообщение об ошибке
-	else this->_log->print("%s cannot be continued, signal: [%u]. Finishing work, goodbye!", log_t::flag_t::CRITICAL, ACU_NAME, sig);
-	// Выполняем отключение вывода лога
-	const_cast <awh::log_t *> (this->_log)->level(awh::log_t::level_t::NONE);
-	// Выполняем остановку работы сервера
-	this->stop();
-	// Завершаем работу приложения
-	::exit(sig);
+		/**
+		 * Сигнал приходит в отдельном потоке AWH. Останавливаем сервер под мьютексом и выходим:
+		 * главный поток сам вернётся из start() и завершит приложение, а деструктор дождётся
+		 * конца остановки. Вызов exit() отсюда разрушал объекты под ногами главного потока
+		 */
+		const lock_guard <std::mutex> lock(this->_stop);
+		// Выполняем остановку работы сервера
+		this->stop();
+	// Если получен аварийный сигнал
+	} else {
+		// Выводим сообщение об ошибке
+		this->_log->print("%s cannot be continued, signal: [%u]. Finishing work, goodbye!", log_t::flag_t::CRITICAL, ACU_NAME, sig);
+		// Выполняем отключение вывода лога
+		const_cast <awh::log_t *> (this->_log)->level(awh::log_t::level_t::NONE);
+		// Выполняем остановку работы сервера
+		this->stop();
+		// Завершаем работу приложения
+		::exit(sig);
+	}
 }
 /**
  * @brief Метод генерации ошибки
@@ -182,6 +193,65 @@ bool anyks::Server::accept(const string & ip, const string & mac, const uint32_t
 	}
 	// Разрешаем подключение клиенту
 	return true;
+}
+/**
+ * @brief Метод получения IP-адреса посетителя с учётом доверенных прокси-серверов
+ *
+ * @param bid     идентификатор брокера
+ * @param headers заголовки запроса
+ * @return        IP-адрес посетителя
+ */
+string anyks::Server::client(const uint64_t bid, const std::unordered_multimap <string, string> & headers) const noexcept {
+	// Получаем IP-адрес подключения
+	string result = this->_awh.ip(bid);
+	/**
+	 * Заголовкам доверяем, только если подключение пришло от доверенного прокси-сервера:
+	 * иначе посетитель подделает X-Forwarded-For и обойдёт суточное ограничение запросов
+	 */
+	if(this->_trusted.empty() || !((this->_unixSocket && (this->_trusted.count("unix") > 0)) || (this->_trusted.count(result) > 0)))
+		// Выводим адрес подключения
+		return result;
+	/**
+	 * Выполняем отлов ошибок
+	 */
+	try {
+		// Адрес посетителя из заголовков
+		string addr = "";
+		// Выполняем поиск заголовка X-Real-IP
+		auto i = headers.find("x-real-ip");
+		// Если заголовок найден
+		if(i != headers.end())
+			// Получаем адрес посетителя
+			addr = i->second;
+		// Если заголовка X-Real-IP нет, берём последний адрес цепочки X-Forwarded-For (его добавил ближайший прокси-сервер)
+		else if((i = headers.find("x-forwarded-for")) != headers.end()) {
+			// Получаем цепочку адресов
+			const string & chain = i->second;
+			// Позиция последнего разделителя
+			const size_t pos = chain.rfind(',');
+			// Получаем последний адрес цепочки
+			addr = (pos != string::npos ? chain.substr(pos + 1) : chain);
+		}
+		// Удаляем пробелы по краям адреса
+		this->_fmk->transform(addr, fmk_t::transform_t::TRIM);
+		// Если адрес получен
+		if(!addr.empty()){
+			// Определяем тип адреса
+			const awh::net_t::type_t type = net_t(this->_log).host(addr);
+			// Если адрес является IPv4 или IPv6
+			if((type == awh::net_t::type_t::IPV4) || (type == awh::net_t::type_t::IPV6))
+				// Запоминаем адрес посетителя
+				result = addr;
+		}
+	/**
+	 * Если возникает ошибка
+	 */
+	} catch(const exception & error) {
+		// Выводим сообщение об ошибке
+		this->_log->print("%s", log_t::flag_t::WARNING, error.what());
+	}
+	// Выводим результат
+	return result;
 }
 /**
  * @brief Метод вывода статуса работы сетевого ядра
@@ -529,8 +599,8 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 			} break;
 			// Если мы получили POST запрос
 			case static_cast <uint8_t> (awh::web_t::method_t::POST): {
-				// Получаем значение IP-адреса
-				const string & ip = this->_awh.ip(bid);
+				// Получаем IP-адрес посетителя (за доверенным прокси-сервером — из его заголовков)
+				const string ip = this->client(bid, headers);
 				// Выполняем получение каунтеров запроса клиента
 				auto i = this->_counts.find(ip);
 				// Если каунтер клиента получен
@@ -579,7 +649,7 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						// Если поля указаны правильно
 						if(request.HasMember("text") && request.HasMember("from") && request.HasMember("to") &&
 						   request["text"].IsString() && request["from"].IsString() && request["to"].IsString() &&
-						   !request.HasMember("date") && !request.HasMember("bytes") && !request.HasMember("seconds")){
+						   !request.HasMember("date") && !request.HasMember("bytes") && !request.HasMember("seconds") && !request.HasMember("currency")){
 							// Регулярное выражение в формате GROK
 							string express = "";
 							// Выполняем инициализацию объекта парсера
@@ -989,11 +1059,50 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 									return;
 								}
 							}
+						// Если указаны валюты для конвертации
+						} else if(request.HasMember("currency") && request.HasMember("text") && request.HasMember("from") && request.HasMember("to") &&
+						          request["text"].IsString() && request["from"].IsString() && request["to"].IsString()) {
+							// Объект запроса конвертации валют
+							exchange_t item;
+							// Запоминаем идентификатор потока
+							item.sid = sid;
+							// Запоминаем идентификатор брокера
+							item.bid = bid;
+							// Запоминаем сумму для конвертации
+							item.text = request["text"].GetString();
+							// Запоминаем валюту, из которой выполняется конвертация
+							item.from = request["from"].GetString();
+							// Запоминаем валюту, в которую выполняется конвертация
+							item.to = request["to"].GetString();
+							// Удаляем пробелы по краям суммы
+							this->_fmk->transform(item.text, fmk_t::transform_t::TRIM);
+							// Если сумма или валюты не переданы
+							if(item.text.empty() || item.from.empty() || item.to.empty()){
+								// Выпоолняем генерацию ошибки запроса
+								this->error(sid, bid, 400, "No value specified for conversion");
+								// Выводим удачное завершение работы
+								return;
+							}
+							// Если очередь запросов переполнена
+							if(this->_exchanges.size() >= 1000){
+								// Выпоолняем генерацию ошибки запроса
+								this->error(sid, bid, 400, "Exchange rate service is busy, try again later");
+								// Выводим удачное завершение работы
+								return;
+							}
+							// Добавляем запрос в очередь, ответ будет отправлен после получения курсов
+							this->_exchanges.push_back(::move(item));
+							// Выполняем обработку очереди запросов
+							this->exchange();
+							// Выводим удачное завершение работы
+							return;
 						// Если указаны форматы конвертации даты
 						} else if(request.HasMember("date") && request.HasMember("text") && request.HasMember("to") &&
 						          request.HasMember("from") && request["text"].IsString() && request["to"].IsString() && request["from"].IsString()) {
 							// Получаем текст для конвертации
 							string text = request["text"].GetString();
+							// Удаляем пробелы по краям: разбор длительности, как в AWH v5, их не допускает
+							this->_fmk->transform(text, fmk_t::transform_t::TRIM);
 							// Получаем формат даты которую нужно получить на выходе
 							const string & to = request["to"].GetString();
 							// Получаем формат даты которую необходимо сконвертировать
@@ -1111,6 +1220,8 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 						          request.HasMember("to") && request["text"].IsString() && request["to"].IsString()) {
 							// Получаем текст для конвертации
 							string text = request["text"].GetString();
+							// Удаляем пробелы по краям: разбор длительности, как в AWH v5, их не допускает
+							this->_fmk->transform(text, fmk_t::transform_t::TRIM);
 							// Получаем единицу измерения времени в которую следует произвести конвертацию
 							const string & to = request["to"].GetString();
 							// Если данные для конвертации переданы
@@ -1120,7 +1231,9 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 								// Если текст передан в виде секнд
 								if(this->_fmk->is(text, fmk_t::check_t::NUMBER) || this->_fmk->is(text, fmk_t::check_t::DECIMAL)){
 									// Получаем тип название типа входящих данных
-									const string & from = (request.HasMember("from") && request["from"].IsString() ? request["from"].GetString() : "");
+									string from = (request.HasMember("from") && request["from"].IsString() ? request["from"].GetString() : "");
+									// Удаляем пробелы по краям единицы измерения
+									this->_fmk->transform(from, fmk_t::transform_t::TRIM);
 									// Выполняем конвертацию полученных секунд
 									seconds = (!from.empty() ? this->_chrono.seconds(text + from) : ::stod(text));
 								// Если количество секунд передано в виде текста
@@ -1673,6 +1786,210 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 	}
 }
 /**
+ * @brief Метод отправки результата конвертации клиенту
+ *
+ * @param sid  идентификатор потока
+ * @param bid  идентификатор брокера
+ * @param text результат конвертации
+ */
+void anyks::Server::result(const int32_t sid, const uint64_t bid, const string & text) noexcept {
+	// Выполняем формирование результата ответа
+	json answer(kObjectType);
+	// Выполняем формирование результата
+	answer.AddMember(Value("result", answer.GetAllocator()).Move(), Value(text, answer.GetAllocator()).Move(), answer.GetAllocator());
+	// Создаём результьрующий буфер
+	rapidjson::StringBuffer result;
+	// Выполняем создание объекта писателя
+	Writer <StringBuffer> writer(result);
+	// Передаем данные объекта JSON писателю
+	answer.Accept(writer);
+	// Выполняем получение буфера данных для отправки
+	const string & buffer = result.GetString();
+	// Отправляем сообщение клиенту
+	this->_awh.send(sid, bid, 200, "OK", vector <char> (buffer.begin(), buffer.end()), {
+		{"Accept-Ranges", "bytes"},
+		{"Vary", "Accept-Encoding"},
+		{"Content-Type", "application/json"},
+		{"Access-Control-Request-Headers", "Content-Type"},
+		{"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
+		{"Access-Control-Allow-Origin", !this->_origin.empty() ? this->_origin : "*"}
+	});
+}
+/**
+ * @brief Метод обработки очереди запросов конвертации валют
+ *
+ */
+void anyks::Server::exchange() noexcept {
+	// Если запрос к API уже выполняется
+	if(!this->_exchangePath.empty()){
+		// Если ответ API не пришёл за отведённое время, считаем запрос неудачным
+		if((::time(nullptr) - this->_exchangeDate) > 10){
+			// Сбрасываем флаг подключения
+			this->_exchangeConnected = false;
+			// Выполняем отключение от API
+			this->_exchangeAwh.stop();
+			// Завершаем запрос с ошибкой
+			this->exchange(vector <char> ());
+		}
+		// Выходим из функции
+		return;
+	}
+	// Выполняем перебор всех ожидающих запросов
+	while(!this->_exchanges.empty()){
+		// Получаем первый запрос из очереди
+		exchange_t & item = this->_exchanges.front();
+		// Получаем путь запроса к API, необходимого для конвертации
+		const string & path = this->_currency.need(item.from, item.to, item.stale);
+		// Если для конвертации всё есть
+		if(path.empty()){
+			// Результат конвертации
+			string text = "";
+			// Если конвертация выполнена
+			if(this->_currency.convert(item.text, item.from, item.to, text))
+				// Отправляем результат клиенту
+				this->result(item.sid, item.bid, text);
+			// Отправляем ошибку клиенту
+			else this->error(item.sid, item.bid, 400, this->_currency.error());
+			// Удаляем запрос из очереди
+			this->_exchanges.pop_front();
+			// Переходим к следующему запросу
+			continue;
+		}
+		// Если API недоступен, а сохранённых курсов для этого запроса нет
+		if(item.stale){
+			// Отправляем ошибку клиенту
+			this->error(item.sid, item.bid, 400, (!this->_currency.error().empty() ? this->_currency.error() : "Exchange rate service is unavailable"));
+			// Удаляем запрос из очереди
+			this->_exchanges.pop_front();
+			// Переходим к следующему запросу
+			continue;
+		}
+		// Запоминаем путь выполняемого запроса
+		this->_exchangePath = path;
+		// Запоминаем время начала запроса
+		this->_exchangeDate = ::time(nullptr);
+		// Если подключение к API уже есть
+		if(this->_exchangeConnected){
+			// Создаём объект запроса
+			client::web_t::request_t request(this->_fmk, this->_log);
+			// Устанавливаем метод запроса
+			request.method = awh::web_t::method_t::GET;
+			// Устанавливаем адрес запроса
+			request.url = this->_uri.parse(this->_exchangePath);
+			// Устанавливаем заголовки запроса
+			request.headers = this->_currency.headers();
+			// Устанавливаем идентификатор запроса
+			request.id = this->_fmk->timestamp <uint64_t> (fmk_t::chrono_t::NANOSECONDS);
+			// Если запрос отправить не удалось
+			if(this->_exchangeAwh.send(request) < 0){
+				// Сбрасываем флаг подключения
+				this->_exchangeConnected = false;
+				// Завершаем запрос с ошибкой
+				this->exchange(vector <char> ());
+			}
+		// Если подключения к API нет
+		} else {
+			// Если клиент ещё не подключён к базе событий сервера в этом процессе (рабочие процессы создаются после запуска)
+			if(this->_exchangePid != ::getpid()){
+				// Запоминаем процесс
+				this->_exchangePid = ::getpid();
+				// Выполняем подключение клиента к базе событий сервера
+				this->_core.bind(&this->_exchangeCore);
+			}
+			// Выполняем инициализацию подключения к API
+			this->_exchangeAwh.init(this->_currency.host(), {
+				awh::http_t::compressor_t::GZIP,
+				awh::http_t::compressor_t::DEFLATE
+			});
+			// Выполняем подключение к API, запрос будет отправлен после подключения
+			this->_exchangeAwh.start();
+		}
+		// Выходим из функции
+		return;
+	}
+}
+/**
+ * @brief Метод завершения запроса к API курсов валют
+ *
+ * @param entity тело ответа или пустое тело при ошибке
+ */
+void anyks::Server::exchange(const vector <char> & entity) noexcept {
+	// Если запрос к API не выполнялся
+	if(this->_exchangePath.empty())
+		// Выходим из функции
+		return;
+	// Получаем путь выполненного запроса
+	const string path = this->_exchangePath;
+	// Сбрасываем путь выполняемого запроса
+	this->_exchangePath.clear();
+	// Если ответ API не загружен
+	if(!this->_currency.load(path, entity)){
+		// Выводим сообщение об ошибке
+		this->_log->print("%s [%s]", log_t::flag_t::WARNING, this->_currency.error().c_str(), path.c_str());
+		// Разрешаем ожидающим запросам использовать сохранённые курсы, чтобы не повторять неудачный запрос
+		for(auto & item : this->_exchanges)
+			// Помечаем запрос
+			item.stale = true;
+	}
+	// Выполняем обработку очереди запросов
+	this->exchange();
+}
+/**
+ * @brief Метод идентификации активности клиента API курсов валют
+ *
+ * @param mode режим события подключения
+ */
+void anyks::Server::exchange(const client::web_t::mode_t mode) noexcept {
+	/**
+	 * Определяем режим события подключения
+	 */
+	switch(static_cast <uint8_t> (mode)){
+		// Если подключение к API выполнено
+		case static_cast <uint8_t> (client::web_t::mode_t::CONNECT): {
+			// Устанавливаем флаг подключения
+			this->_exchangeConnected = true;
+			// Если есть запрос, ожидающий подключения
+			if(!this->_exchangePath.empty()){
+				// Создаём объект запроса
+				client::web_t::request_t request(this->_fmk, this->_log);
+				// Устанавливаем метод запроса
+				request.method = awh::web_t::method_t::GET;
+				// Устанавливаем адрес запроса
+				request.url = this->_uri.parse(this->_exchangePath);
+				// Устанавливаем заголовки запроса
+				request.headers = this->_currency.headers();
+				// Устанавливаем идентификатор запроса
+				request.id = this->_fmk->timestamp <uint64_t> (fmk_t::chrono_t::NANOSECONDS);
+				// Если запрос отправить не удалось
+				if(this->_exchangeAwh.send(request) < 0)
+					// Завершаем запрос с ошибкой
+					this->exchange(vector <char> ());
+			}
+		} break;
+		// Если подключение к API разорвано
+		case static_cast <uint8_t> (client::web_t::mode_t::DISCONNECT): {
+			// Сбрасываем флаг подключения
+			this->_exchangeConnected = false;
+			// Если запрос остался без ответа, завершаем его с ошибкой
+			this->exchange(vector <char> ());
+		} break;
+	}
+}
+/**
+ * @brief Метод получения ответа API курсов валют
+ *
+ * @param sid     идентификатор потока
+ * @param rid     идентификатор запроса
+ * @param code    код ответа сервера
+ * @param message сообщение ответа сервера
+ * @param entity  тело ответа
+ * @param headers заголовки ответа
+ */
+void anyks::Server::exchange([[maybe_unused]] const int32_t sid, [[maybe_unused]] const uint64_t rid, [[maybe_unused]] const uint32_t code, [[maybe_unused]] const string & message, const vector <char> & entity, [[maybe_unused]] const std::unordered_multimap <string, string> & headers) noexcept {
+	// Передаём ответ модулю курсов: ошибки API приходят в теле ответа и разбираются там же
+	this->exchange(entity);
+}
+/**
  * @brief Метод установки конфигурационных параметров в формате JSON
  *
  * @param config объект конфигурационных параметров в формате JSON
@@ -1703,6 +2020,33 @@ void anyks::Server::config(const json & config) noexcept {
 			if(config.HasMember("index") && config["index"].IsString())
 				// Выполняем установку название файла по умолчанию
 				this->_index = config["index"].GetString();
+			// Если параметры конвертера валют установлены
+			if(config.HasMember("currency") && config["currency"].IsObject()){
+				// Если время жизни курсов установлено
+				if(config["currency"].HasMember("ttl") && config["currency"]["ttl"].IsUint())
+					// Выполняем установку времени жизни курсов
+					this->_currency.ttl(static_cast <time_t> (config["currency"]["ttl"].GetUint()));
+				// Если адрес общего файла кэша курсов задан (пустой адрес отключает общий кэш)
+				if(config["currency"].HasMember("cache") && config["currency"]["cache"].IsString()){
+					// Выполняем установку адреса файла кэша
+					this->_currency.cache(config["currency"]["cache"].GetString());
+					// Запоминаем, что файл кэша задан явно
+					this->_exchangeCache = true;
+				}
+				// Если адрес сервера API задан вместо адреса CoinGecko
+				if(config["currency"].HasMember("url") && config["currency"]["url"].IsString())
+					// Выполняем установку адреса сервера API
+					this->_currency.url(config["currency"]["url"].GetString());
+				// Если ключ доступа к API установлен
+				if(config["currency"].HasMember("apiKey") && config["currency"]["apiKey"].IsString())
+					// Выполняем установку ключа доступа к API
+					this->_currency.key(
+						config["currency"]["apiKey"].GetString(),
+						config["currency"].HasMember("apiPro") &&
+						config["currency"]["apiPro"].IsBool() &&
+						config["currency"]["apiPro"].GetBool()
+					);
+			}
 			// Если максимальное количество запросов на одного пользователя в сутки установлено
 			if(config.HasMember("maxRequests") && config["maxRequests"].IsUint())
 				// Выполняем установку максимального количества запросов на одного пользователя в сутки
@@ -1792,10 +2136,31 @@ void anyks::Server::config(const json & config) noexcept {
 						}
 					}
 				}
+				// Если доверенные прокси-серверы переданы
+				if(config["net"].HasMember("trustedProxies") && config["net"]["trustedProxies"].IsArray()){
+					// Выполняем перебор всех адресов
+					for(auto & v : config["net"]["trustedProxies"].GetArray()){
+						// Если адрес является строкой
+						if(v.IsString()){
+							// Получаем адрес
+							string addr = v.GetString();
+							// Переводим адрес в нижний регистр
+							this->_fmk->transform(addr, fmk_t::transform_t::LOWER);
+							// Добавляем адрес в список доверенных
+							this->_trusted.emplace(addr);
+						}
+					}
+				}
 				// Если установлен unix-сокет для подклчюения
 				if(config["net"].HasMember("unixSocket") &&
 				   config["net"]["unixSocket"].IsString() &&
 				  (strlen(config["net"]["unixSocket"].GetString()) > 0)){
+					// Запоминаем, что сервер работает через unix-сокет
+					this->_unixSocket = true;
+					// Если каталог unix-сокета задан (по умолчанию /tmp, который система может очищать)
+					if(config["net"].HasMember("unixSocketPath") && config["net"]["unixSocketPath"].IsString())
+						// Устанавливаем каталог unix-сокета
+						this->_core.sockpath(config["net"]["unixSocketPath"].GetString());
 					// Устанавливаем тип сокета unix-сокет
 					this->_core.family(awh::scheme_t::family_t::IPC);
 					// Выполняем инициализацию сервера для unix-сокета
@@ -2161,6 +2526,13 @@ void anyks::Server::stop() noexcept {
  *
  */
 void anyks::Server::start() noexcept {
+	/**
+	 * Если файл кэша курсов не задан, берём его во временном каталоге пользователя. Адрес вычисляется
+	 * здесь, а не при чтении конфигурации: к запуску процесс уже работает от имени заданного пользователя
+	 */
+	if(!this->_exchangeCache)
+		// Выполняем установку адреса файла кэша по умолчанию
+		this->_currency.cache(currency_t::cache());
 	// Разрешаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::ENABLED);
 	// Устанавливаем функцию обработки сигналов завершения работы приложения
@@ -2180,7 +2552,9 @@ anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
  _fs(fmk, log), _uri(fmk, log), _hash(log),
  _root{""}, _index{""}, _origin{""}, _favicon{""},
  _chrono(fmk), _http(fmk, log), _maxRequests(100),
- _core(fmk, log), _awh(&_core, fmk, log), _fmk(fmk), _log(log) {
+ _core(fmk, log), _awh(&_core, fmk, log), _currency(fmk, log),
+ _exchangePath{""}, _exchangeConnected(false), _exchangePid(0), _exchangeDate(0), _exchangeCache(false), _unixSocket(false),
+ _exchangeCore(fmk, log), _exchangeAwh(&_exchangeCore, fmk, log), _fmk(fmk), _log(log) {
 	// Выполняем установку идентификатора клиента
 	this->_awh.ident(AWH_SHORT_NAME, AWH_NAME, AWH_VERSION);
 	// Устанавливаем функцию извлечения пароля пользователя для авторизации
@@ -2197,12 +2571,37 @@ anyks::Server::Server(const fmk_t * fmk, const log_t * log) noexcept :
 	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const std::unordered_multimap <string, string> &)> ("headers", &server_t::headers, this, _1, _2, _3, _4, _5);
 	// Установливаем функцию обратного вызова на событие получения полного запроса клиента
 	this->_awh.on <void (const int32_t, const uint64_t, const awh::web_t::method_t, const uri_t::url_t &, const vector <char> &, const std::unordered_multimap <string, string> &)> ("complete", &server_t::complete, this, _1, _2, _3, _4, _5, _6);
+	// Устанавливаем флаг запрещающий вывод информационных сообщений клиента API курсов валют
+	this->_exchangeCore.verbose(false);
+	// Активируем правило асинхронной работы передачи данных
+	this->_exchangeCore.transferRule(client::core_t::transfer_t::ASYNC);
+	// Запросы к API курсов валют выполняются по HTTP/1.1
+	this->_exchangeCore.proto(awh::engine_t::proto_t::HTTP1_1);
+	/**
+	 * 1. Отключение от API не должно останавливать базу событий сервера
+	 * 2. Запрещаем вывод информационных сообщений
+	 */
+	this->_exchangeAwh.mode({
+		client::web_t::flag_t::NOT_STOP,
+		client::web_t::flag_t::NOT_INFO
+	});
+	/**
+	 * Устанавливаем таймауты чтения, записи и подключения в секундах: ответ клиенту должен уйти
+	 * раньше, чем сервер закроет его подключение по времени ожидания (net.wait, обычно 15 секунд)
+	 */
+	this->_exchangeAwh.waitTimeDetect(7, 5, 5);
+	// Устанавливаем функцию обратного вызова активности клиента API курсов валют
+	this->_exchangeAwh.on <void (const client::web_t::mode_t)> ("active", static_cast <void (server_t::*)(const client::web_t::mode_t)> (&server_t::exchange), this, _1);
+	// Устанавливаем функцию обратного вызова получения ответа API курсов валют
+	this->_exchangeAwh.on <void (const int32_t, const uint64_t, const uint32_t, const string &, const vector <char> &, const std::unordered_multimap <string, string> &)> ("complete", static_cast <void (server_t::*)(const int32_t, const uint64_t, const uint32_t, const string &, const vector <char> &, const std::unordered_multimap <string, string> &)> (&server_t::exchange), this, _1, _2, _3, _4, _5, _6);
 }
 /**
  * @brief деструктор
  *
  */
 anyks::Server::~Server() noexcept {
+	// Дожидаемся окончания остановки, начатой по сигналу в другом потоке
+	const lock_guard <std::mutex> lock(this->_stop);
 	// Запрещаем перехват сигналов
 	this->_core.signalInterception(awh::scheme_t::mode_t::DISABLED);
 	// Выполняем остановку сервера

@@ -246,6 +246,7 @@ SET(SOURCE_FILES
     "${SOURCE_FILES}"
     "${CMAKE_SOURCE_DIR}/src/cef.cpp"
     "${CMAKE_SOURCE_DIR}/src/csv.cpp"
+    "${CMAKE_SOURCE_DIR}/src/currency.cpp"
     "${CMAKE_SOURCE_DIR}/src/grok.cpp"
     "${CMAKE_SOURCE_DIR}/src/syslog.cpp"
     "${CMAKE_SOURCE_DIR}/src/parser.cpp"

@@ -17,12 +17,14 @@
 #include <lib.hpp>
 #include <env.hpp>
 #include <parser.hpp>
+#include <currency.hpp>
 
 /**
  * Подключаем модуль файловой системы
  */
 #include <awh/sys/fs.hpp>
 #include <awh/sys/hash.hpp>
+#include <awh/client/awh.hpp>
 
 /**
  * Подписываемся на пространство имён anyks
@@ -43,6 +45,8 @@ static void help(const string & name) noexcept {
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert bytes: \x1B[1m[-bytes | --bytes]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert seconds: \x1B[1m[-seconds | --seconds]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert notation: \x1B[1m[-notation | --notation]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Flag for convert currency at CoinGecko rates: \x1B[1m[-currency | --currency]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Flag for using the paid CoinGecko API plan (with -apiKey): \x1B[1m[-apiPro | --apiPro]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for generating headers when parsing CSV files: \x1B[1m[-header | --header]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Flag for generating a readable file format (XML or JSON): \x1B[1m[-prettify | --prettify]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Display application version: \x1B[1m[-version | --version | -V]\x1B[0m\r\n\r\n"
@@ -59,6 +63,7 @@ static void help(const string & name) noexcept {
 		"\x1B[33m\x1B[1m+\x1B[0m Logging level (if required): \x1B[1m[-logLevel <value> | --logLevel=<value>]\x1B[0m\r\n"
 		"\x1B[32m\x1B[1m  -\x1B[0m ( 0 = NONE | 1 = INFO | 2 = WARNING | 3 = CRITICAL | 4 = INFO and WARNING | 5 = INFO and CRITICAL | 6 = WARNING CRITICAL | 7 = ALL)\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Hash-based message authentication code: \x1B[1m[-hmac <value> | --hmac=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m CoinGecko API key for currency conversion (if required): \x1B[1m[-apiKey <value> | --apiKey=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m File address for writing logs (if required): \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m File or directory address for saving converted files: \x1B[1m[-dest <value> | --dest=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Separator for parsing CSV files (default: \";\"): \x1B[1m[-delim <value> | --delim=<value>]\x1B[0m\r\n\r\n"
@@ -322,7 +327,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 			log.level(static_cast <log_t::level_t> (env.get <uint32_t> (true, "logLevel")));
 		// Если указанны форматы конвертирования
 		if(env.isString(false, "from") && env.isString(false, "to") &&
-		  !env.isBoolean(false, "date") && !env.isBoolean(false, "bytes") && !env.isBoolean(false, "seconds")){
+		  !env.isBoolean(false, "date") && !env.isBoolean(false, "bytes") && !env.isBoolean(false, "seconds") && !env.isBoolean(false, "currency")){
 			// Регулярное выражение в формате GROK
 			string express = "";
 			// Выполняем инициализацию объекта парсера
@@ -1866,6 +1871,85 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 						cout << fmk.noexp(number) << endl;
 				// Выводим полученный результат
 				} else cout << "0" << endl;
+			// Выводим сообщение, что значение для конвертации не указанно
+			} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
+		// Если указаны валюты для конвертации
+		} else if(env.isString(false, "from") && env.isString(false, "to") && env.isBoolean(false, "currency")) {
+			// Получаем валюту, в которую выполняется конвертация
+			const string & to = env.get <string> (false, "to");
+			// Получаем валюту, из которой выполняется конвертация
+			const string & from = env.get <string> (false, "from");
+			// Удаляем пробелы по краям суммы
+			fmk.transform(text, fmk_t::transform_t::TRIM);
+			// Если данные прочитаны из потока
+			if(!text.empty() && !from.empty() && !to.empty()){
+				// Флаг удачного получения курсов
+				bool success = true;
+				// Создаём объект работы с адресами URI
+				uri_t uri(&fmk, &log);
+				// Создаём объект конвертации валют
+				currency_t currency(&fmk, &log);
+				// Если адрес файла кэша курсов прописан в конфигурационном файле (пустой адрес отключает общий кэш)
+				if(env.isString(true, "currency", "cache"))
+					// Выполняем установку адреса файла кэша
+					currency.cache(env.get <string> (true, "currency", "cache"));
+				/**
+				 * Иначе берём общий файл кэша во временном каталоге пользователя: запуски утилиты
+				 * и сервер того же пользователя пользуются одними курсами и не тратят лимит API
+				 */
+				else currency.cache(currency_t::cache());
+				// Если ключ доступа к API передан в параметрах
+				if(env.isString(false, "apiKey"))
+					// Выполняем установку ключа доступа к API
+					currency.key(env.get <string> (false, "apiKey"), env.isBoolean(false, "apiPro") && env.get <bool> (false, "apiPro"));
+				// Если ключ доступа к API прописан в конфигурационном файле
+				else if(env.isString(true, "currency", "apiKey"))
+					// Выполняем установку ключа доступа к API
+					currency.key(env.get <string> (true, "currency", "apiKey"), env.isBoolean(true, "currency", "apiPro") && env.get <bool> (true, "currency", "apiPro"));
+				/**
+				 * Выполняем запросы к API, пока модулю курсов нужны данные:
+				 * список курсов, поиск двух монет и их цены — не больше пяти запросов
+				 */
+				for(uint8_t i = 0; i < 5; i++){
+					// Получаем путь запроса к API, необходимого для конвертации
+					const string & path = currency.need(from, to);
+					// Если для конвертации всё есть
+					if(path.empty())
+						// Выходим из цикла
+						break;
+					// Создаём объект сетевого ядра клиента
+					client::core_t core(&fmk, &log);
+					// Создаём объект WEB-клиента
+					client::awh_t awh(&core, &fmk, &log);
+					// Запрещаем вывод информационных сообщений
+					core.verbose(false);
+					// Запросы к API курсов валют выполняются по HTTP/1.1
+					core.proto(awh::engine_t::proto_t::HTTP1_1);
+					// Запрещаем вывод информационных сообщений клиента
+					awh.mode({client::web_t::flag_t::NOT_INFO});
+					// Устанавливаем таймауты подключения, чтения и записи в секундах
+					awh.waitTimeDetect(15, 15, 10);
+					// Выполняем запрос к API
+					const auto & entity = awh.GET(uri.parse(currency.host() + path), currency.headers());
+					// Если ответ API не загружен
+					if(!(success = currency.load(path, entity))){
+						// Выводим сообщение об ошибке
+						log.print("%s", log_t::flag_t::CRITICAL, currency.error().c_str());
+						// Выходим из цикла
+						break;
+					}
+				}
+				// Если курсы получены
+				if(success){
+					// Результат конвертации
+					string result = "";
+					// Если конвертация выполнена
+					if(currency.convert(text, from, to, result))
+						// Выводим полученный результат
+						cout << result << endl;
+					// Выводим сообщение об ошибке
+					else log.print("%s", log_t::flag_t::CRITICAL, currency.error().c_str());
+				}
 			// Выводим сообщение, что значение для конвертации не указанно
 			} else log.print("No value specified for conversion", log_t::flag_t::CRITICAL);
 		// Если указаны форматы системы счисления
