@@ -64,6 +64,8 @@ static void help(const string & name) noexcept {
 		"\x1B[32m\x1B[1m  -\x1B[0m ( 0 = NONE | 1 = INFO | 2 = WARNING | 3 = CRITICAL | 4 = INFO and WARNING | 5 = INFO and CRITICAL | 6 = WARNING CRITICAL | 7 = ALL)\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Hash-based message authentication code: \x1B[1m[-hmac <value> | --hmac=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m CoinGecko API key for currency conversion (if required): \x1B[1m[-apiKey <value> | --apiKey=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m CA file with trusted root certificates for the CoinGecko connection: \x1B[1m[-ca <value> | --ca=<value>]\x1B[0m\r\n\r\n"
+		"\x1B[33m\x1B[1m+\x1B[0m Directory with trusted root certificates (with -ca): \x1B[1m[-capath <value> | --capath=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m File address for writing logs (if required): \x1B[1m[-log <value> | --log=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m File or directory address for saving converted files: \x1B[1m[-dest <value> | --dest=<value>]\x1B[0m\r\n\r\n"
 		"\x1B[33m\x1B[1m+\x1B[0m Separator for parsing CSV files (default: \";\"): \x1B[1m[-delim <value> | --delim=<value>]\x1B[0m\r\n\r\n"
@@ -257,16 +259,20 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				env.init(reinterpret_cast <const char **> (params), static_cast <uint8_t> (count));
 			}
 		#endif
+		// Параметр командной строки (--log, --formatDate) важнее значения из конфига
+		const bool cliDate = env.isString(false, "formatDate");
 		// Если формат вывода лога передан
-		if(env.isString(true, "formatDate"))
+		if(cliDate || env.isString(true, "formatDate"))
 			// Получаем формат вывода даты
-			formatDate = env.get <string> (true, "formatDate");
+			formatDate = env.get <string> (!cliDate, "formatDate");
 		// Устанавливаем формат вывода даты
 		log.format(formatDate);
+		// Адрес файла лога передан в командной строке
+		const bool cliLog = env.isString(false, "log");
 		// Если адрес файла лога передан
-		if(env.isString(true, "log")){
+		if(cliLog || env.isString(true, "log")){
 			// Получаем адрес файла лога
-			const string & filename = env.get <string> (true, "log");
+			const string & filename = env.get <string> (!cliLog, "log");
 			// Если адрес файла лога получен
 			if(!filename.empty()){
 				// Позиция разделителя каталога
@@ -1925,6 +1931,27 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 					core.verbose(false);
 					// Запросы к API курсов валют выполняются по HTTP/1.1
 					core.proto(awh::engine_t::proto_t::HTTP1_1);
+					// Адрес CA-файла передан в параметрах
+					const bool cliCA = env.isString(false, "ca");
+					// Если адрес CA-файла задан: где он лежит, зависит от системы
+					if(cliCA || env.isString(true, "ssl", "ca")){
+						// Параметры SSL клиента курсов
+						node_t::ssl_t ssl;
+						// Устанавливаем адрес CA-файла
+						ssl.ca = (cliCA ? env.get <string> (false, "ca") : env.get <string> (true, "ssl", "ca"));
+						// Если каталог с CA-файлами передан в параметрах
+						if(env.isString(false, "capath"))
+							// Устанавливаем каталог с CA-файлами
+							ssl.capath = env.get <string> (false, "capath");
+						// Если каталог с CA-файлами прописан в конфигурационном файле
+						else if(env.isString(true, "ssl", "capath"))
+							// Устанавливаем каталог с CA-файлами
+							ssl.capath = env.get <string> (true, "ssl", "capath");
+						// Если адрес CA-файла не пустой
+						if(!ssl.ca.empty())
+							// Выполняем установку параметров SSL клиента курсов
+							core.ssl(ssl);
+					}
 					// Запрещаем вывод информационных сообщений клиента
 					awh.mode({client::web_t::flag_t::NOT_INFO});
 					// Устанавливаем таймауты подключения, чтения и записи в секундах

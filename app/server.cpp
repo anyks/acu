@@ -285,33 +285,6 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 				env.init(reinterpret_cast <const char **> (params), static_cast <uint8_t> (count));
 			}
 		#endif
-		// Если формат вывода лога передан
-		if(env.isString(true, "formatDate"))
-			// Получаем формат вывода даты
-			formatDate = env.get <string> (true, "formatDate");
-		// Устанавливаем формат вывода даты
-		log.format(formatDate);
-		// Если адрес файла лога передан
-		if(env.isString(true, "log")){
-			// Получаем адрес файла лога
-			const string & filename = env.get <string> (true, "log");
-			// Если адрес файла лога получен
-			if(!filename.empty()){
-				// Позиция разделителя каталога
-				size_t pos = 0;
-				// Выполняем поиск разделителя каталога
-				if((pos = string(filename).rfind(AWH_FS_SEPARATOR)) != string::npos){
-					// Извлекаем путь сохранения файла лога
-					const string & path = fs.realPath(filename.substr(0, pos));
-					// Если путь для сохранения каталога не существует
-					if(!path.empty() && !fs.isDir(path))
-						// Выполняем создание адреса каталога
-						fs.makePath(path);
-				}
-				// Устанавливаем адрес файла лога
-				log.filename(fs.realPath(filename));
-			}
-		}
 		// Если нужно вывести справочную помощь
 		if((env.count(true) == 0) || env.is(false, "info") || env.is(false, "H")){
 			// Выполняем загрузку конфигурационного файла
@@ -351,6 +324,38 @@ static void version(const log_t * log, const fs_t * fs, const string & address) 
 		if(!configFile.empty())
 			// Выполняем извлечение данных конфигурационного файла
 			env.filename(configFile);
+		// Формат даты и файл лога читаются только после загрузки конфига: до неё в корне ещё пусто.
+		// Параметр командной строки (--log, --formatDate) важнее значения из конфига
+		const bool cliDate = env.isString(false, "formatDate");
+		// Если формат вывода лога передан
+		if(cliDate || env.isString(true, "formatDate"))
+			// Получаем формат вывода даты
+			formatDate = env.get <string> (!cliDate, "formatDate");
+		// Устанавливаем формат вывода даты
+		log.format(formatDate);
+		// Адрес файла лога передан в командной строке
+		const bool cliLog = env.isString(false, "log");
+		// Если адрес файла лога передан
+		if(cliLog || env.isString(true, "log")){
+			// Получаем адрес файла лога
+			const string & filename = env.get <string> (!cliLog, "log");
+			// Если адрес файла лога получен
+			if(!filename.empty()){
+				// Позиция разделителя каталога
+				size_t pos = 0;
+				// Выполняем поиск разделителя каталога
+				if((pos = string(filename).rfind(AWH_FS_SEPARATOR)) != string::npos){
+					// Извлекаем путь сохранения файла лога
+					const string & path = fs.realPath(filename.substr(0, pos));
+					// Если путь для сохранения каталога не существует
+					if(!path.empty() && !fs.isDir(path))
+						// Выполняем создание адреса каталога
+						fs.makePath(path);
+				}
+				// Устанавливаем адрес файла лога
+				log.filename(fs.realPath(filename));
+			}
+		}
 		// Выполняем инициализацию объекта сервера
 		server_t server(&fmk, &log);
 		// Выполняем установку конфигурационных параметров

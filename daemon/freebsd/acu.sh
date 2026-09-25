@@ -19,6 +19,8 @@ logpri='local3.info'
 : ${acu_name="acu"}
 : ${acu_config="/usr/local/etc/$acu_name/config.json"}
 : ${acu_pid="/var/run/$acu_name.pid"}
+# По pid-файлу rc.subr отличает этот сервер от других процессов
+pidfile="$acu_pid"
 
 # Commands
 start_cmd="start"
@@ -38,7 +40,8 @@ start(){
 		echo "$acu_name is already running"
 	else
 		rm -f $acu_pid 2>/dev/null
-		$command --config=$acu_config --log="/var/log/$acu_name.log" --logLevel=6 &
+		# Вывод не привязываем к терминалу или cron: после их закрытия запись в поток убила бы сервер
+		$command --config=$acu_config --log="/var/log/$acu_name.log" --logLevel=6 </dev/null >/dev/null 2>&1 &
 		# $command --config=$acu_config --log="/var/log/$acu_name.log" --logLevel=6 2>/dev/null
 		sleep 1
 		pid=`cat $acu_pid 2>/dev/null`

@@ -487,6 +487,8 @@ For **UNIX-like** operating systems, parameters can be specified using environme
 	"ssl": {
 		"key": "",
 		"cert": "",
+		"ca": "",
+		"capath": "",
 		"verify": false
 	},
 	"net": {
@@ -542,6 +544,8 @@ For **UNIX-like** operating systems, parameters can be specified using environme
 | **ssl.verify** | Parameter for activating the **SSL certificate validity check** mode. |
 | **ssl.key** | Key of the certificate file in the file system, for working in secure server mode. |
 | **ssl.cert** | Certificate file in the file system, for working in secure server mode. |
+| **ssl.ca** | CA file with trusted root certificates for checking the exchange rate service (CoinGecko). Where it lies depends on the OS, e.g. a bundle of `/etc/ssl/certs` on FreeBSD. |
+| **ssl.capath** | Directory with trusted root certificates, used together with **ssl.ca**. |
 | **server** | Server parameters |
 | **server.ipv** | Supported Internet Protocol Type **IPv4** or **IPv6**. |
 | **server.wait** | Time to wait for data to be received from the client in seconds. |

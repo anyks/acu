@@ -3,6 +3,8 @@
 	"ssl": {
 		"key": "",
 		"cert": "",
+		"ca": "",
+		"capath": "",
 		"verify": false
 	},
 	"net": {

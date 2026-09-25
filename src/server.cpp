@@ -2047,6 +2047,22 @@ void anyks::Server::config(const json & config) noexcept {
 						config["currency"]["apiPro"].GetBool()
 					);
 			}
+			// Если адрес CA-файла задан: по нему клиент курсов проверяет сертификат сервиса API.
+			// Где лежит CA-файл, зависит от системы, поэтому путь задаётся в конфиге
+			if(config.HasMember("ssl") && config["ssl"].IsObject() &&
+			   config["ssl"].HasMember("ca") && config["ssl"]["ca"].IsString() &&
+			  (strlen(config["ssl"]["ca"].GetString()) > 0)){
+				// Параметры SSL клиента курсов
+				node_t::ssl_t ssl;
+				// Устанавливаем адрес CA-файла
+				ssl.ca = config["ssl"]["ca"].GetString();
+				// Если каталог с CA-файлами задан
+				if(config["ssl"].HasMember("capath") && config["ssl"]["capath"].IsString())
+					// Устанавливаем каталог с CA-файлами
+					ssl.capath = config["ssl"]["capath"].GetString();
+				// Выполняем установку параметров SSL клиенту курсов
+				this->_exchangeCore.ssl(ssl);
+			}
 			// Если максимальное количество запросов на одного пользователя в сутки установлено
 			if(config.HasMember("maxRequests") && config["maxRequests"].IsUint())
 				// Выполняем установку максимального количества запросов на одного пользователя в сутки
