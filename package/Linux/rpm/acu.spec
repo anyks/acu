@@ -17,6 +17,7 @@ BuildRequires: liblksctp-devel
 
 %set_verify_elf_method none
 %define __find_requires %{nil}
+%define __find_provides %{nil}
 
 %else
 
