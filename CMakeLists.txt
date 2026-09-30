@@ -132,8 +132,10 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     SET(ACU_PARAMS "-Wno-cpp -Wno-deprecated")
 # Устанавливаем параметры игнорирования ошибок для Solaris
+# libc не указывается явно: собиратель подключает её сам после libgcc_s, а явная -lc ставила её
+# раньше, и _Unwind_Resume связывался с раскруткой libc - исключение с очисткой роняло процесс
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
-    SET(ACU_PARAMS "-lsocket -lnsl -lc -Wno-cpp -Wno-deprecated")
+    SET(ACU_PARAMS "-lsocket -lnsl -Wno-cpp -Wno-deprecated")
 # Устанавливаем параметры игнорирования ошибок для MacOS X
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     SET(ACU_PARAMS "-framework Carbon -Wno-cpp -Wno-deprecated -Wno-unused-command-line-argument")
