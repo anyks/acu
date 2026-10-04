@@ -112,10 +112,10 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				// Устанавливаем название Операционной Системы
 				os = "Windows";
 			break;
-			// Если операционной системой является MacOS X
+			// Если операционной системой является macOS
 			case static_cast <uint8_t> (os_t::family_t::MACOSX):
 				// Устанавливаем название Операционной Системы
-				os = "MacOS X";
+				os = "macOS";
 			break;
 			// Если операционной системой является FreeBSD
 			case static_cast <uint8_t> (os_t::family_t::FREEBSD):
@@ -146,7 +146,8 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				"installed dir: %s\r\n\r\n*\r\n"
 				"* site:     %s\r\n"
 				"* email:    %s\r\n"
-				"* telegram: %s\r\n*\r\n\r\n",
+				"* telegram: %s\r\n*\r\n",
+				"* %s\r\n*\r\n\r\n",
 				ACU_NAME,
 				ACU_VERSION,
 				__DATE__,
@@ -155,7 +156,8 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				os, app.c_str(),
 				ACU_SITE,
 				ACU_EMAIL,
-				ACU_CONTACT
+				ACU_CONTACT,
+				ACU_COPYRIGHT
 			);
 		// Выводим сообщение об ошибке
 		} else log->print("Operating system is not identified", log_t::flag_t::CRITICAL);

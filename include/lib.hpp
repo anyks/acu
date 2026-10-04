@@ -28,6 +28,8 @@
 #define ACU_SITE "https://acu.anyks.com"
 // Адрес электронной почты
 #define ACU_EMAIL "info@anyks.com"
+// Авторские права
+#define ACU_COPYRIGHT "Copyright (c) 2025-2026 ANYKS (Yuriy Lobarev)"
 
 // Порт сервера по умолчанию
 #define ACU_SERVER_PORT 2222
