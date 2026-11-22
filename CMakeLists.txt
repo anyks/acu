@@ -175,10 +175,6 @@ if (CMAKE_SHARED_BUILD_LIB)
     endif(MSVC)
 endif(CMAKE_SHARED_BUILD_LIB)
 
-# Разрешаем сборку IDN
-SET(CMAKE_BUILD_IDN ON)
-add_compile_definitions(AWH_IDN)
-
 # Добавляем модули cmake
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cmake")
@@ -187,7 +183,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cmake")
 find_package(AWH REQUIRED)
 find_package(XML REQUIRED)
 find_package(YAML REQUIRED)
-find_package(TcMalloc REQUIRED)
+# С AWH 4.5.0 распределитель памяти свой, внутри libawh, и gperftools больше не строится.
+# Прежние AWH (4.4.x) приносили tcmalloc, поэтому ищем его необязательно: нашли — линкуем,
+# нет — собираем без него и говорим, чей распределитель используется.
+find_package(TcMalloc)
 
 # Провекра XML
 if (XML_FOUND)
@@ -209,7 +208,8 @@ endif (YAML_FOUND)
 if (TcMalloc_FOUND)
     message(STATUS "TcMalloc lib found: " ${TCMALLOC_LIBRARY} " " ${TCMALLOC_COMMON_LIBRARY})
 else (TcMalloc_FOUND)
-    message(FATAL_ERROR "TcMalloc not found")
+    message(STATUS "TcMalloc not found: распределитель памяти берём у AWH")
+    SET(TCMALLOC_LIBRARIES "")
 endif (TcMalloc_FOUND)
 
 # Провекра AWH
@@ -221,16 +221,9 @@ if (AWH_FOUND)
     message(STATUS "ZSTD include dir found: " ${ZSTD_INCLUDE_DIR})
     message(STATUS "LZMA include dir found: " ${LZMA_INCLUDE_DIR})
     message(STATUS "ZLib include dir found: " ${ZLIB_INCLUDE_DIR})
-    message(STATUS "PCRE2 include dir found: " ${PCRE_INCLUDE_DIR})
-    message(STATUS "NgHttp2 include dir found: " ${NGHTTP2_INCLUDE_DIR})
     message(STATUS "OpenSSL include dir found: " ${OPENSSL_INCLUDE_DIR})
     message(STATUS "Brotli include dir found: " ${BROTLI_INCLUDE_ENCODE_DIR} " " ${BROTLI_INCLUDE_DECODE_DIR})
 
-    # Сборка модуля AWH_IDN, если операционной системой не является Windows
-    if (CMAKE_BUILD_IDN AND (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows"))
-        message(STATUS "IDN2 include dir found: " ${IDN2_INCLUDE_DIR})
-        message(STATUS "ICONV include dir found: " ${ICONV_INCLUDE_DIR})
-    endif()
 else (AWH_FOUND)
     message(FATAL_ERROR "Dependence not found")
 endif (AWH_FOUND)
@@ -320,7 +313,6 @@ if (CMAKE_SHARED_BUILD_LIB)
             ${AWH_LIBRARIES}
             ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
-            ${AWH_IDN}
         )
 
         # Выполняем сборку приложения утилиты
@@ -329,7 +321,6 @@ if (CMAKE_SHARED_BUILD_LIB)
             ${ACU_LIB_NAME}
             ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
-            ${AWH_IDN}
         )
 
         # Выполняем сборку приложения сервера
@@ -338,7 +329,6 @@ if (CMAKE_SHARED_BUILD_LIB)
             ${ACU_LIB_NAME}
             ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
-            ${AWH_IDN}
         )
 
     # Если операционной системой является Linux, FreeBSD, MacOS X
@@ -383,7 +373,6 @@ else (CMAKE_SHARED_BUILD_LIB)
             ${AWH_LIBRARIES}
             ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
-            ${AWH_IDN}
         )
 
         # Выполняем сборку приложения сервера
@@ -395,7 +384,6 @@ else (CMAKE_SHARED_BUILD_LIB)
             ${AWH_LIBRARIES}
             ${TCMALLOC_LIBRARIES}
             ${WINFLAGS}
-            ${AWH_IDN}
         )
 
     # Если операционной системой является Linux, FreeBSD, MacOS X

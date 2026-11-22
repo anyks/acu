@@ -547,8 +547,12 @@ void anyks::Server::complete(const int32_t sid, const uint64_t bid, const awh::w
 					} else if((result = this->_fs.isFile(filename))) {
 						// Выполняем чтение запрошенного файла
 						const auto & buffer = this->_fs.read(filename);
+						// Получаем хэш буфера данных: прежний CityHash из зависимостей AWH ушёл,
+						// потому сумму считает модуль хэширования, а из неё складывают 64 бита
+						string md5 = "";
+						this->_hash.hashing(string(buffer.data(), buffer.size()), hash_t::type_t::MD5, md5);
 						// Получаем хэш буфера данных
-						const uint64_t etag = ::CityHash64(buffer.data(), buffer.size());
+						const uint64_t etag = (md5.length() >= 16 ? static_cast <uint64_t> (::stoull(md5.substr(0, 16), nullptr, 16)) : 0);
 						// Выполняем добавление файла в кэш
 						this->_cache.emplace(filename, std::make_pair(etag, buffer));
 						// Выполняем поиск заголовка проверки ETag

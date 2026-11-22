@@ -94,13 +94,10 @@ if [ -n "$1" ]; then
 					export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 					# Выполняем конфигурацию проекта
-					if [[ $OS = "Windows" ]]; then
-						# Выполняем сборку зависимостей
-						./build_third_party.sh
-					else
-						# Выполняем сборку зависимостей
-						./build_third_party.sh --idn
-					fi
+					# Выполняем сборку зависимостей: флаг --idn был нужен, когда IDN линковали
+					# из libidn2 и iconv; после переноса модулей из AWH v5 IDN свой, нативный,
+					# внешних библиотек и отдельного флага больше не требуется
+					./build_third_party.sh
 				fi
 			# Если флаг передан в виде коммита
 			elif [ $FLAG = "--c" ]; then
@@ -118,13 +115,10 @@ if [ -n "$1" ]; then
 					export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 					# Выполняем конфигурацию проекта
-					if [[ $OS = "Windows" ]]; then
-						# Выполняем сборку зависимостей
-						./build_third_party.sh
-					else
-						# Выполняем сборку зависимостей
-						./build_third_party.sh --idn
-					fi
+					# Выполняем сборку зависимостей: флаг --idn был нужен, когда IDN линковали
+					# из libidn2 и iconv; после переноса модулей из AWH v5 IDN свой, нативный,
+					# внешних библиотек и отдельного флага больше не требуется
+					./build_third_party.sh
 				fi
 			# Если флаг передан в виде тега
 			elif [ $FLAG = "--t" ]; then
@@ -146,13 +140,10 @@ if [ -n "$1" ]; then
 					export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 					# Выполняем конфигурацию проекта
-					if [[ $OS = "Windows" ]]; then
-						# Выполняем сборку зависимостей
-						./build_third_party.sh
-					else
-						# Выполняем сборку зависимостей
-						./build_third_party.sh --idn
-					fi
+					# Выполняем сборку зависимостей: флаг --idn был нужен, когда IDN линковали
+					# из libidn2 и iconv; после переноса модулей из AWH v5 IDN свой, нативный,
+					# внешних библиотек и отдельного флага больше не требуется
+					./build_third_party.sh
 				fi
 			# Если флаг передан в виде версии
 			elif [ $FLAG = "--v" ]; then
@@ -176,13 +167,10 @@ if [ -n "$1" ]; then
 					export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 					# Выполняем конфигурацию проекта
-					if [[ $OS = "Windows" ]]; then
-						# Выполняем сборку зависимостей
-						./build_third_party.sh
-					else
-						# Выполняем сборку зависимостей
-						./build_third_party.sh --idn
-					fi
+					# Выполняем сборку зависимостей: флаг --idn был нужен, когда IDN линковали
+					# из libidn2 и iconv; после переноса модулей из AWH v5 IDN свой, нативный,
+					# внешних библиотек и отдельного флага больше не требуется
+					./build_third_party.sh
 				fi
 			# Если передан непонятный флаг
 			else

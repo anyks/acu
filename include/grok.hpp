@@ -26,16 +26,18 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#include <iostream>
+#include <memory>
+#include <map>
+#include <functional>
+#include <utility>
 #include <unordered_map>
-#include <pcre2posix.h>
-#include <cityhash/city.h>
 
 /**
  * Модули AWH
  */
 #include <awh/sys/fmk.hpp>
 #include <awh/sys/log.hpp>
+#include <awh/regex/grok/grok.hpp>
 
 /**
  * Подключаем заголовочные файлы JSON
@@ -64,182 +66,48 @@ namespace anyks {
 	/**
 	 * @brief Класс модуля GROK
 	 *
+	 * @details Разворот ссылок вида «%{NAME}», «%{NAME:поле}» и «%{NAME:поле:вид}»,
+	 *          реестр шаблонов и извлечение полей выполняет модуль «awh::Grok»:
+	 *          здесь остаётся только кэш собранных выражений по тексту шаблона и
+	 *          схема соответствий, из которой собирается ответ.
+	 *
 	 */
 	typedef class ACU_SHARED_EXPORT Grok {
-		private:
-			/**
-			 * Статус определения разделителя
-			 */
-			enum class ss_t : uint8_t {
-				NONE   = 0x00, // Статус не установлен
-				FIRST  = 0x01, // Статус начальный
-				SECOND = 0x02  // Статус конечный
-			};
-			/**
-			 * Тип выполняемого события
-			 */
-			enum class event_t : uint8_t {
-				NONE     = 0x00, // Событие не установленно
-				INTERNAL = 0x01, // Внутреннее событие
-				EXTERNAL = 0x02  // Внешнее событие
-			};
 		private:
 			/**
 			 * @brief Структура кэша регулярных выражений
 			 *
 			 */
-			typedef class Express {
-				public:
-					// Флаг инициализации регулярного выражения
-					bool mode;
-				public:
-					// Объект контекста регулярного выражения
-					regex_t reg;
-				public:
-					// Регулярное выражение в текстовом виде
-					string expression;
-				public:
-					/**
-					 * @brief Конструктор
-					 *
-					 */
-					Express() noexcept : mode(false) {}
-					/**
-					 * @brief Деструктор
-					 *
-					 */
-					~Express() noexcept {
-						// Если регулярное выражение скомпилированно
-						if(this->mode)
-							// Выполняем удаление скомпилированного регулярного выражения
-							::pcre2_regfree(&this->reg);
-					}
-			} express_t;
-		private:
-			/**
-			 * @brief структура рабочих мютексов
-			 *
-			 */
-			typedef struct Mutex {
-				// Мютекс контроля кэша
-				std::mutex cache;
-				// Мютекс контроля собранных соответствий
-				std::mutex mapping;
-				// Мютекс контроля собранных шаблонов
-				std::mutex patterns;
-			} mtx_t;
-			/**
-			 * @brief Класс работы с блочными переменными
-			 *
-			 */
-			typedef struct Let {
-				size_t pos;   // Начальная позиция переменной
-				size_t size;  // Размер переменной
-				size_t delim; // Позиция разделителя
-				/**
-				 * @brief Конструктор
-				 *
-				 */
-				Let() noexcept : pos(0), size(0), delim(0) {}
-			} __attribute__((packed)) let_t;
-			/**
-			 * @brief Класс работы с переменными
-			 *
-			 */
-			typedef class ACU_SHARED_EXPORT Variables {
-				private:
-					/**
-					 * @brief Устанавливаем дружбу с родительским модулем
-					 *
-					 */
-					friend class Grok;
-				private:
-					// Мютекс для блокировки потока
-					std::mutex _mtx;
-				private:
-					// Список имён переменных
-					vector <string> _names;
-					// Список шаблонов переменных
-					std::unordered_multimap <string, regex_t> _patterns;
-				private:
-					// Объект работы с логами
-					const log_t * _log;
-				public:
-					/**
-					 * @brief Метод сброса параметров объекта
-					 *
-					 */
-					void reset() noexcept;
-				public:
-					/**
-					 * @brief Метод получения количество добавленных переменных
-					 *
-					 * @return количество добавленных переменных
-					 */
-					uint8_t count() const noexcept;
-				public:
-					/**
-					 * @brief Метод извлечения названия переменной которой соответствует текст
-					 *
-					 * @param text  для получения переменной передан
-					 * @param index индекс запрашиваемой переменной
-					 * @return      название переменной, которой соответствует текст
-					 */
-					string get(const string & text, const uint8_t index) noexcept;
-				public:
-					/**
-					 * @brief Метод добавления переменной
-					 *
-					 * @param name    название переменной
-					 * @param pattern шаблон регулярного выражения переменной
-					 */
-					void push(const string & name, const string & pattern) noexcept;
-				public:
-					/**
-					 * @brief конструктор
-					 *
-					 * @param log объект для работы с логами
-					 */
-					Variables(const log_t * log) noexcept : _log(log) {}
-					/**
-					 * @brief деструктор
-					 *
-					 */
-					~Variables() noexcept;
-			} vars_t;
-		private:
-			/**
-			 * @brief Структура кэша
-			 *
-			 */
 			typedef struct Cache {
-				// Переменные регулярного выражения
-				vars_t vars;
-				// Регулярные выражения
-				express_t express;
+				// Собранный шаблон регулярного выражения
+				awh::Grok::exp_t exp;
 				// Схема соответствий ключей
 				std::unordered_map <string, string> mapping;
-				/**
-				 * @brief конструктор
-				 *
-				 * @param log объект для работы с логами
-				 */
-				Cache(const log_t * log) noexcept : vars(log) {}
 			} cache_t;
 		private:
 			// Мютекс для блокировки потока
-			mtx_t _mtx;
+			mutable std::mutex _mtx;
 		private:
-			// Список именованных групп
-			std::map <uint64_t, string> _nameGroups;
+			/**
+			 * @brief Метод перевода именованных групп в ссылки шаблонов Grok
+			 *
+			 * @param text текст регулярного выражения для обработки
+			 */
+			void namedGroups(string & text) const noexcept;
+			/**
+			 * @brief Метод поиска именованной группы в тексте выражения
+			 *
+			 * @param text текст регулярного выражения для поиска
+			 * @return     границы найденной группы, либо «-1, -1» при её отсутствии
+			 */
+			std::pair <ssize_t, ssize_t> namedGroup(const string & text) const noexcept;
 		private:
-			// Список внутренних шаблонов для работы
-			std::unordered_map <string, string> _patternsInternal;
-			// Список внешних шаблонов для работы
-			std::unordered_map <string, string> _patternsExternal;
+			// Объект реестра и сборки шаблонов Grok: сборка выражения дополняет реестр
+			// именованными группами текста, поэтому объект доступен и в const-методе
+			mutable awh::Grok _grok;
 		private:
 			// Объект кэша работы модуля
-			std::map <uint64_t, std::unique_ptr <cache_t>> _cache;
+			mutable std::map <uint64_t, std::unique_ptr <cache_t>> _cache;
 		private:
 			// Объект фреймворка
 			const fmk_t * _fmk;
@@ -263,62 +131,12 @@ namespace anyks {
 			 *
 			 */
 			void clearPatterns() noexcept;
-		public:
 			/**
 			 * @brief Метод удаления добавленного шаблона
 			 *
 			 * @param name название шаблона для удаления
 			 */
 			void removePattern(const string & name) noexcept;
-		private:
-			/**
-			 * @brief Метод извлечения именованных групп
-			 *
-			 * @param text текст для извлечения именованных групп
-			 */
-			void namedGroups(string & text) const noexcept;
-		private:
-			/**
-			 * @brief Метод извлечения первой блоковой переменной в тексте
-			 *
-			 * @param text текст из которого следует извлечь переменные
-			 * @return     первая блоковая переменная
-			 */
-			let_t variable(const string & text) const noexcept;
-		private:
-			/**
-			 * @brief Метод удаления скобок
-			 *
-			 * @param text текст в котором следует удалить скобки
-			 */
-			void removeBrackets(string & text) const noexcept;
-		private:
-			/**
-			 * @brief Метод поиска скобки для замены
-			 *
-			 * @param text текст для поиска
-			 * @param pos  начальная позиция для поиска
-			 * @return     позиция найденной скобки
-			 */
-			ssize_t bracket(const string & text, const size_t pos = 0) const noexcept;
-		private:
-			/**
-			 * @brief Метод получения позиции именованной группы
-			 *
-			 * @param text текст для поиска
-			 * @param pos  начальная позиция для поиска
-			 * @return     позиция найденной именованной группы
-			 */
-			std::pair <ssize_t, ssize_t> namedGroup(const string & text, const size_t pos = 0) const noexcept;
-		private:
-			/**
-			 * @brief Метод обработки полученной переменной Grok
-			 *
-			 * @param text текст в котором найдена переменная Grok
-			 * @param lets разрешить обработку блочных переменных
-			 * @return     список извлечённых переменных
-			 */
-			vector <std::pair <string, string>> prepare(string & text, const bool lets = true) const noexcept;
 		public:
 			/**
 			 * @brief Метод добавления списка поддерживаемых шаблонов
@@ -335,22 +153,12 @@ namespace anyks {
 			void pattern(const string & key, const string & val) noexcept;
 		private:
 			/**
-			 * @brief Метод добавления шаблона
+			 * @brief Метод добавления шаблона в реестр под удержанной блокировкой
 			 *
-			 * @param key   название переменной
-			 * @param val   регуляреное выражение соответствующее переменной
-			 * @param event тип выполняемого события
+			 * @param key название переменной
+			 * @param val регуляреное выражение соответствующее переменной
 			 */
-			void pattern(const string & key, const string & val, const event_t event) noexcept;
-		private:
-			/**
-			 * @brief Метод генерации шаблона
-			 *
-			 * @param key название шаблона в виде <name>
-			 * @param val значение шиблок (Регулярное выражение или Grok-шаблон)
-			 * @return    сгенерированный шаблон
-			 */
-			string generatePattern(const string & key, const string & val) noexcept;
+			void addPattern(const string & key, const string & val) noexcept;
 		public:
 			/**
 			 * @brief Метод сборки регулярного выражения
@@ -376,7 +184,6 @@ namespace anyks {
 			 * @return    json объект дампа данных
 			 */
 			json dump(const uint64_t cid) const noexcept;
-		public:
 			/**
 			 * @brief Метод извлечения записи по ключу
 			 *
