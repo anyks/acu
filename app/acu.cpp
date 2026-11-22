@@ -146,7 +146,7 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				"installed dir: %s\r\n\r\n*\r\n"
 				"* site:     %s\r\n"
 				"* email:    %s\r\n"
-				"* telegram: %s\r\n*\r\n",
+				"* telegram: %s\r\n*\r\n"
 				"* %s\r\n*\r\n\r\n",
 				ACU_NAME,
 				ACU_VERSION,
