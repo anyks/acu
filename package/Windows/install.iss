@@ -47,13 +47,13 @@ DisableDirPage=yes
 ChangesAssociations=yes
 ChangesEnvironment=yes
 DisableProgramGroupPage=yes
-ArchitecturesInstallIn64BitMode=x64compatible
+ArchitecturesInstallIn64BitMode=@arch@
 ; SetupIconFile="{#MyDir}\icon.ico"
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 PrivilegesRequired=none
 OutputDir="{#MyResaultDir}"
-OutputBaseFilename=SetupACU-{#MyAppVersion}
+OutputBaseFilename=SetupACU-{#MyAppVersion}@suffix@
 SetupIconFile="{#MyDir}\setup.ico"
 Compression=lzma
 SolidCompression=yes
@@ -65,9 +65,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 Source: "{#MyDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyDir}\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyDir}\libgcc_s_seh-1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyDir}\libstdc++-6.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyDir}\libwinpthread-1.dll"; DestDir: "{app}"; Flags: ignoreversion
+; Библиотеки времени выполнения окружения MSYS2 собираются счётом ldd в подкаталог runtime
+Source: "{#MyDir}\runtime\*"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

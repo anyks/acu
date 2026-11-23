@@ -9,8 +9,8 @@ readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 # Получаем версию OS
 OS=$(uname -a | awk '{print $1}')
 
-# Компенсируем название OS Windows
-if [[ $OS =~ "MINGW64" ]]; then
+# Окружения MSYS2: MINGW64 и UCRT64 (gcc x86-64), CLANG64 (clang x86-64), CLANGARM64 (clang ARM64)
+if [[ $OS =~ ^(MINGW64|UCRT64|CLANG64|CLANGARM64)_NT ]]; then
 	OS="Windows"
 fi
 
@@ -72,10 +72,31 @@ mkdir -p "$ROOT/../installer" || exit 1
 cp -ar $EXECUTABLE_FILE "$ROOT/../win" || exit 1
 cp -ar "$ROOT/../icons/icon.ico" "$ROOT/../win" || exit 1
 cp -ar "$ROOT/../icons/setup.ico" "$ROOT/../win" || exit 1
-cp -ar "/mingw64/bin/libgcc_s_seh-1.dll" "$ROOT/../win" || exit 1
-cp -ar "/mingw64/bin/libwinpthread-1.dll" "$ROOT/../win" || exit 1
-cp -ar "/mingw64/bin/libstdc++-6.dll" "$ROOT/../win" || exit 1
 cp -ar "$ROOT/../package/Windows/install.iss" "$ROOT/../win" || exit 1
+
+##
+ # Собираем библиотеки времени выполнения
+ #
+ # У gcc это libstdc++, libgcc_s и libwinpthread, у clang - libc++ и libunwind, и на ARM64
+ # их имена отличаются от x86-64. Поэтому перечень не пишется руками, а снимается с самого
+ # приложения: в установщик берутся только библиотеки окружения MSYS2 (/mingw64, /clangarm64),
+ # системные (kernel32 и прочие) установщик не трогает
+ ##
+mkdir -p "$ROOT/../win/runtime" || exit 1
+for i in $(ldd "$EXECUTABLE_FILE" | awk '{print $3}' | sort -u); do
+	if [[ $i == "$MINGW_PREFIX/bin/"* ]]; then
+		cp -a "$i" "$ROOT/../win/runtime"/ || exit 1
+	fi
+done
+
+# Архитектура установщика для Inno Setup и суффикс имени файла: x86-64 без суффикса, как прежде
+if [ "$MSYSTEM_CARCH" = "aarch64" ]; then
+	ARCH="arm64"
+	SUFFIX="-arm64"
+else
+	ARCH="x64compatible"
+	SUFFIX=""
+fi
 
 
 # Заполняем поля шаблона для создания конфига инсталятора
@@ -89,3 +110,5 @@ sed -i "s/@version@/${VERSION}/g" $ROOT/../win/install.iss
 sed -i "s|@pwd@|${SOURCE_DIR}|g" $ROOT/../win/install.iss
 sed -i "s|@name@|${PACKAGE_NAME}|g" $ROOT/../win/install.iss
 sed -i "s|@installerDir@|${INSTALLER_DIR}|g" $ROOT/../win/install.iss
+sed -i "s|@arch@|${ARCH}|g" $ROOT/../win/install.iss
+sed -i "s|@suffix@|${SUFFIX}|g" $ROOT/../win/install.iss

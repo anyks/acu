@@ -22,8 +22,8 @@ ARCHITECTURE=""
 # Получаем тип архитектуры
 if [ $OS = "FreeBSD" ]; then # FreeBSD
 	ARCHITECTURE=$(sysctl -a | egrep -i 'hw.machine|hw.model|hw.ncpu' | grep hw.machine: | awk '{print $2}')
-else # Linux
-	ARCHITECTURE=$(arch)
+else # Linux и остальные системы: arch несут не все из них (NetBSD и DragonFly его не имеют)
+	ARCHITECTURE=$(uname -m)
 fi
 
 # Выполняем корректировку типа процессора
@@ -87,8 +87,8 @@ if [ $OS = "Darwin" ]; then
 elif [ $OS = "Windows" ] || [ $OS = "Linux" ] || [ $OS = "SunOS" ]; then
 	# Устанавливаем количество ядер системы
 	numproc=$(nproc)
-# Если сборка производится в операционной системе FreeBSD, NetBSD или OpenBSD
-elif [ $OS = "FreeBSD" ] || [ $OS = "NetBSD" ] || [ $OS = "OpenBSD" ]; then
+# Если сборка производится в операционной системе FreeBSD, NetBSD, OpenBSD или DragonFly
+elif [ $OS = "FreeBSD" ] || [ $OS = "NetBSD" ] || [ $OS = "OpenBSD" ] || [ $OS = "DragonFly" ]; then
 	# Устанавливаем количество ядер системы
 	numproc=$(sysctl -n hw.ncpu)
 # Если операционная система не определена
@@ -97,8 +97,8 @@ else
 	exit 1
 fi
 
-# Если сборка производится в операционной системе FreeBSD, NetBSD, OpenBSD или Solaris
-if [ $OS = "FreeBSD" ] || [ $OS = "NetBSD" ] || [ $OS = "OpenBSD" ] || [ $OS = "SunOS" ]; then
+# Если сборка производится в операционной системе FreeBSD, NetBSD, OpenBSD, DragonFly или Solaris
+if [ $OS = "FreeBSD" ] || [ $OS = "NetBSD" ] || [ $OS = "OpenBSD" ] || [ $OS = "DragonFly" ] || [ $OS = "SunOS" ]; then
 	# Устанавливаем сборщик
 	MAKE="gmake"
 # Если сборка производится в другой операционной системе

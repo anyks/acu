@@ -23,6 +23,17 @@ message(STATUS "Build dir: ${CMAKE_CURRENT_BINARY_DIR}\n")
 
 # Получаем архитектуру
 EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+# Оболочка MSYS2 на Windows ARM64 исполняется под подражанием x86_64 и отвечает им, а не
+# набором команд машины: по такому ответу ветка ниже ставила -march=core2 -mrdrnd, на которых
+# clang с целью aarch64-w64-windows-gnu отказывает. Набор команд спрашиваем у самой оснастки:
+# страж в submodules/awh/CMakeLists.txt смотрит CMAKE_SYSTEM_PROCESSOR и
+# CMAKE_CXX_COMPILER_TARGET, а под задачей планировщика оба несут AMD64/пусто
+if (ARCHITECTURE MATCHES "x86_64" OR ARCHITECTURE MATCHES "AMD64" OR ARCHITECTURE MATCHES "amd64")
+    EXECUTE_PROCESS( COMMAND ${CMAKE_CXX_COMPILER} -dumpmachine OUTPUT_VARIABLE COMPILER_TARGET )
+    if (COMPILER_TARGET MATCHES "aarch64")
+        SET(ARCHITECTURE "aarch64")
+    endif()
+endif()
 message(STATUS "Architecture: ${ARCHITECTURE}")
 
 # Проверка версии OS
@@ -49,12 +60,25 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
     endif()
     message(STATUS "Detected OS: Solaris v${OS_VERSION}")
     SET(DEBUGGER "-ggdb3")
+    # Различаем линковщик по факту сборки с линковкой, а не по названию системы: Solaris 11.4
+    # принимает --no-as-needed, а линковщик illumos отказывает ("ld: fatal: unrecognized option
+    # '--no-as-needed'"). Тот же приём уже применён в submodules/awh/CMakeLists.txt; на illumos
+    # обходиться без флага можно -- его линковщик библиотеки по умолчанию не выбрасывает,
+    # поэтому -ldl остаётся в зависимостях и так
+    INCLUDE(CheckCXXSourceCompiles)
+    SET(CMAKE_REQUIRED_LINK_OPTIONS "-Wl,--no-as-needed")
+    CHECK_CXX_SOURCE_COMPILES("int main(void){return 0;}" ACU_LINKER_NO_AS_NEEDED)
+    UNSET(CMAKE_REQUIRED_LINK_OPTIONS)
      # Используем Clang
     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
      # Используем GCC
     elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl")
+        if (ACU_LINKER_NO_AS_NEEDED)
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl")
+        else()
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl")
+        endif()
     endif()
 # Если операционной системой является MacOS X
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")

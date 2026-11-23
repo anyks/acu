@@ -122,10 +122,30 @@ static void version(const fmk_t * fmk, const log_t * log, const fs_t * fs, const
 				// Устанавливаем название Операционной Системы
 				os = "FreeBSD";
 			break;
+			// Если операционной системой является NetBSD
+			case static_cast <uint8_t> (os_t::family_t::NETBSD):
+				// Устанавливаем название Операционной Системы
+				os = "NetBSD";
+			break;
+			// Если операционной системой является OpenBSD
+			case static_cast <uint8_t> (os_t::family_t::OPENBSD):
+				// Устанавливаем название Операционной Системы
+				os = "OpenBSD";
+			break;
+			// Если операционной системой является DragonFly BSD
+			case static_cast <uint8_t> (os_t::family_t::DFLYBSD):
+				// Устанавливаем название Операционной Системы
+				os = "DragonFly";
+			break;
 			// Если операционной системой является Sun Solaris
 			case static_cast <uint8_t> (os_t::family_t::SOLARIS):
 				// Устанавливаем название Операционной Системы
 				os = "Solaris";
+			break;
+			// Если операционной системой является illumos (OpenIndiana, SmartOS, OmniOS)
+			case static_cast <uint8_t> (os_t::family_t::ILLUMOS):
+				// Устанавливаем название Операционной Системы
+				os = "illumos";
 			break;
 		}
 		// Если операционная система обнаружена

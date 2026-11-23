@@ -49,15 +49,38 @@ fi
 
 # Получаем архитектуру машины 
 SYSTEM_ARCHITECTURE=$(uname -m)
+# У NetBSD `uname -m` называет порт платы (evbarm -- и 32-, и 64-разрядный ARM), а набор
+# команд несёт `uname -p`: иначе пакет для ARM64 вышел бы с именем evbarm
+if [ "$OS" = "NetBSD" ]; then
+	case "$SYSTEM_ARCHITECTURE" in
+		evb*) SYSTEM_ARCHITECTURE=$(uname -p);;
+	esac
+fi
 if [ "${SYSTEM_ARCHITECTURE}" = "x86_64" ] || [ "${SYSTEM_ARCHITECTURE}" = "i86pc" ]; then
 	SYSTEM_ARCHITECTURE="amd64"
+fi
+
+# У FreeBSD архитектура ARM пишется как arm64, хотя ядро отзывается aarch64
+if [ "$OS" = "FreeBSD" ] && [ "${SYSTEM_ARCHITECTURE}" = "aarch64" ]; then
+	SYSTEM_ARCHITECTURE="arm64"
 fi
 
 # Получаем полное имя ОС
 if [ "$OS" = "FreeBSD" ]; then
 	OS_NAME="FreeBSD"
+elif [ "$OS" = "DragonFly" ]; then
+	OS_NAME="DragonFly"
+elif [ "$OS" = "NetBSD" ]; then
+	OS_NAME="NetBSD"
+elif [ "$OS" = "OpenBSD" ]; then
+	OS_NAME="OpenBSD"
 elif [ "$OS" = "SunOS" ]; then
-	OS_NAME="Solaris"
+	# Solaris и illumos различаются по uname -v: второй у OpenIndiana там и помянут
+	if uname -v | grep -q "illumos"; then
+		OS_NAME="illumos"
+	else
+		OS_NAME="Solaris"
+	fi
 elif [ "$OS" = "Darwin" ]; then
 	OS_NAME="MacOSX"
 elif [ "$OS" = "Linux" ]; then
@@ -86,8 +109,9 @@ rm -rf $BUILD_DIR || exit 1
 # Создаём сборочный каталог
 mkdir -p $BUILD_DIR || exit 1
 
-# Если операционная система FreeBSD
-if [ "$OS" = "FreeBSD" ]; then
+# Если операционная система FreeBSD, DragonFly, NetBSD или OpenBSD: у всех них локальный
+# каталог программ -- /usr/local/bin
+if [ "$OS" = "FreeBSD" ] || [ "$OS" = "DragonFly" ] || [ "$OS" = "NetBSD" ] || [ "$OS" = "OpenBSD" ]; then
 	# Выполняем создание каталога
 	mkdir -p "$BUILD_DIR/usr/local/bin" || exit 1
 	# Выполняем копирование приложений

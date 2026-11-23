@@ -21,6 +21,24 @@ readonly ROOT=$(cd "$(dirname "$0")" && pwd)
 # Получаем версию OS
 readonly OS=$(uname -a | awk '{print $1}')
 
+##
+ # Разновидность системы: Oracle Solaris или illumos (OpenIndiana)
+ #
+ # Пакеты у обеих IPS, но расходятся хранилищем, по которому pkglint сверяет зависимости,
+ # и именем итогового архива: иначе пакет illumos занял бы место солнечного в матрице
+ ##
+if uname -v | grep -q "illumos"; then
+	readonly OS_FLAVOR="illumos"
+	# Хранилище пакетов OpenIndiana
+	readonly REFERENCE_REPO="https://pkg.openindiana.org/hipster"
+	readonly PKG_FLAVOR="illumos_"
+else
+	readonly OS_FLAVOR="solaris"
+	# Хранилище пакетов Oracle Solaris
+	readonly REFERENCE_REPO="http://pkg.oracle.com/solaris/release"
+	readonly PKG_FLAVOR=""
+fi
+
 # Адрес каталога с собранными бинарями
 readonly BUILD_DIR="$ROOT/../build"
 
@@ -81,7 +99,7 @@ VERSION_u=$(echo $VERSION | awk -F '\\.' '{print $2}')
 VERSION_r=$(echo $VERSION | awk -F '\\.' '{print $3}')
 
 # Создаём название пакета установки
-readonly PKG_NAME="${PACKAGE_NAME}_${VERSION}-1_${SYSTEM_ARCHITECTURE}.p5p"
+readonly PKG_NAME="${PACKAGE_NAME}_${VERSION}-1_${PKG_FLAVOR}${SYSTEM_ARCHITECTURE}.p5p"
 
 # Выполняем удаление директории для сборки пакета
 if [ -d $WORK_PREFIX ]; then
@@ -135,7 +153,7 @@ pkgdepend resolve -m $MANIFEST_PREFIX/$PACKAGE_NAME.p5m
 # Проверяем соответствие зависимостям
 pkglint $MANIFEST_PREFIX/$PACKAGE_NAME.p5m.res
 # Проверяем соответствие зависимостей в репозитории
-pkglint -c $MANIFEST_PREFIX/solaris-reference -r http://pkg.oracle.com/solaris/release $MANIFEST_PREFIX/$PACKAGE_NAME.p5m.res
+pkglint -c $MANIFEST_PREFIX/solaris-reference -r $REFERENCE_REPO $MANIFEST_PREFIX/$PACKAGE_NAME.p5m.res
 # Перепроверяем результат с учётом кэша
 pkglint -c $MANIFEST_PREFIX/solaris-reference $MANIFEST_PREFIX/$PACKAGE_NAME.p5m.res
 
